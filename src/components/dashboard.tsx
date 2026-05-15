@@ -204,7 +204,7 @@ export function Dashboard({ data }: DashboardProps) {
               count: {data.fallbackGate.primary_targets.length}.
             </p>
             <div className="footer-note">
-              Artifact path: <code>.omx/plans/mandate402-fallback-gate.md</code>
+              Artifact path: <code>config/mandate402-fallback-gate.md</code>
             </div>
           </div>
 

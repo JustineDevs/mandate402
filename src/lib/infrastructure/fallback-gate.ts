@@ -52,8 +52,7 @@ function parseFrontmatter(markdown: string) {
 export async function readFallbackGate() {
   const filePath = path.join(
     process.cwd(),
-    ".omx",
-    "plans",
+    "config",
     "mandate402-fallback-gate.md",
   );
   const raw = await readFile(filePath, "utf8");
