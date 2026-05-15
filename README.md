@@ -177,6 +177,7 @@ Without those values, the app remains structurally correct but cannot prove the 
 | Deployment tx | `0xfd0b1f2312437a97e791aad3cd14ca251b86b70ffa42215d48b92a2c8c9ff147` |
 | Explorer contract | `https://explorer-hoodi.morph.network/address/0xD08301fEAc731dDe33b81059A59A69c1A1B5DD60` |
 | Explorer tx | `https://explorer-hoodi.morph.network/tx/0xfd0b1f2312437a97e791aad3cd14ca251b86b70ffa42215d48b92a2c8c9ff147` |
+| Explorer verification | `Pass - Verified` |
 
 ## Contract Verification
 
@@ -196,6 +197,10 @@ forge verify-contract \
   --verifier-url https://explorer-hoodi.morph.network/api \
   --watch
 ```
+
+Verification status:
+
+- `Mandate402Treasury` is now verified on the Morph Hoodi explorer.
 
 ## Why Morph Matters
 
