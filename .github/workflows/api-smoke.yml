@@ -1,0 +1,108 @@
+name: API Smoke
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - run: pnpm install --frozen-lockfile=false
+
+      - name: Write smoke env
+        run: |
+          DEMO_KEY=$(node -e "console.log('0x' + '1'.repeat(64))")
+          DEMO_ADDR=$(node -e "console.log('0x19E7E376E7C213B7E7E7E46CC70A5DD086DAFF2A')")
+          cat > .env.local <<EOF
+          MANDATE402_OPERATOR_TOKEN=mandate402-demo-token
+          MANDATE402_TESTNET_RPC_URL=https://rpc-hoodi.morph.network
+          MANDATE402_TESTNET_CHAIN_ID=2910
+          MANDATE402_TESTNET_EXPLORER_URL=https://explorer-hoodi.morph.network/
+          MANDATE402_PYTH_ORACLE_ADDRESS=0xA2aa501b1a2434E0341E02FdD29810850D2434E0
+          MANDATE402_PYTH_ETH_USD_FEED_ID=0xff61491a931112ddf1bd8147cd1b641375f79f582bb9473d47a502f86ef44195
+          MANDATE402_PYTH_USDC_USD_FEED_ID=0xeaa020c61cc479712813461ce153894b96a6c00b21ed0cfc2798d1f9a9e9c94a
+          MORPH_RPC_URL=https://rpc-quicknode.morph.network
+          MORPH_EXPLORER_URL=https://explorer.morph.network
+          MORPH_X402_FACILITATOR_URL=https://morph-rails.morph.network/x402
+          MORPH_HOODI_X402_FACILITATOR_URL=https://morph-rails-hoodi.morph.network/x402/v2
+          MORPH_X402_ACCESS_KEY=dummy
+          MORPH_X402_SECRET_KEY=dummy
+          MORPH_X402_PAYTO_ADDRESS=0x867a2e06e2ecbcc4d4aacc2f92353e51c0c8305f
+          MORPH_X402_PRICE=0.001
+          MORPH_X402_DEMO_PORT=:8000
+          MORPH_PRIVATE_KEY=${DEMO_KEY}
+          MANDATE402_DEPLOYER_PRIVATE_KEY=${DEMO_KEY}
+          MANDATE402_GOVERNANCE_OWNER=${DEMO_ADDR}
+          MANDATE_REGISTRY_ADDRESS=0x0000000000000000000000000000000000000001
+          MORPH_CHAIN_ID=2818
+          MORPH_HOODI_CHAIN_ID=2910
+          MORPH_HOODI_TOKEN_ADDRESS=0xEcF966Cc754BC411E1F1106fbb4e343b835E85E4
+          MORPH_HOODI_TOKEN_NAME=HoodiTestToken
+          MORPH_HOODI_TOKEN_VERSION=1.0
+          MORPH_HOODI_TOKEN_DECIMALS=18
+          PRIMARY_X402_VENDOR_A_URL=http://127.0.0.1:8000/x402_demo/api/market-data
+          PRIMARY_X402_VENDOR_B_URL=http://127.0.0.1:8000/x402_demo/api/research
+          MORPH_MARKET_DATA_URL=http://127.0.0.1:8000/x402_demo/api/market-data
+          MORPH_RESEARCH_NET_URL=http://127.0.0.1:8000/x402_demo/api/research
+          MANDATE402_DEMO_WRAPPER_URL=http://127.0.0.1:8000/x402_demo/api/resource
+          MANDATE402_X402_DEMO_VENDOR_URL=http://127.0.0.1:8000/x402_demo/api/resource
+          MANDATE402_MARKET_PROVIDER=demo
+          CMC_BASE_URL=https://pro-api.coinmarketcap.com
+          CMC_API_KEY=replace-me
+          COINAPI_BASE_URL=https://rest.coinapi.io
+          COINAPI_KEY=replace-me
+          EOF
+
+      - name: Start Go merchant
+        run: |
+          go run . > /tmp/mandate402-go.log 2>&1 &
+          echo $! > /tmp/mandate402-go.pid
+          sleep 5
+
+      - name: Start Next app
+        run: |
+          pnpm dev > /tmp/mandate402-next.log 2>&1 &
+          echo $! > /tmp/mandate402-next.pid
+          sleep 10
+
+      - name: Smoke system route
+        run: |
+          curl -fsS http://127.0.0.1:3000/api/system
+
+      - name: Smoke vendor A 402
+        run: |
+          code=$(curl -s -o /tmp/vendor-a.out -w "%{http_code}" -X POST http://127.0.0.1:8000/x402_demo/api/market-data)
+          test "$code" = "402"
+
+      - name: Smoke vendor B 402
+        run: |
+          code=$(curl -s -o /tmp/vendor-b.out -w "%{http_code}" -X POST http://127.0.0.1:8000/x402_demo/api/research)
+          test "$code" = "402"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          test -f /tmp/mandate402-go.pid && kill $(cat /tmp/mandate402-go.pid) || true
+          test -f /tmp/mandate402-next.pid && kill $(cat /tmp/mandate402-next.pid) || true

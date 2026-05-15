@@ -1,0 +1,23 @@
+pre-commit:
+  parallel: true
+  commands:
+    repo-safety:
+      run: pnpm check:repo-safety
+    biome:
+      run: pnpm check:biome
+    typecheck:
+      run: pnpm typecheck
+    test:
+      run: pnpm test
+    contracts:
+      run: cd contracts && FOUNDRY_CACHE_PATH=cache FOUNDRY_OUT=out /root/.foundry/bin/forge test
+    go:
+      run: GOCACHE=$(pwd)/.tmp/go-build-cache GOTMPDIR=$(pwd)/.tmp/go-tmp go test ./...
+
+pre-push:
+  parallel: true
+  commands:
+    release-readiness:
+      run: pnpm check:release-readiness
+    ci-all:
+      run: pnpm ci:all

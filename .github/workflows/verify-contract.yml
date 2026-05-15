@@ -1,0 +1,39 @@
+name: Verify Contract
+
+on:
+  workflow_dispatch:
+    inputs:
+      contract_address:
+        description: "Deployed contract address"
+        required: true
+      contract_name:
+        description: "Contract name (e.g. Mandate402Treasury)"
+        required: true
+        default: "Mandate402Treasury"
+      chain_id:
+        description: "Morph chain id"
+        required: true
+        default: "2910"
+      verifier_url:
+        description: "Blockscout-compatible verifier URL"
+        required: true
+        default: "https://explorer-hoodi.morph.network/api"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Verify contract on Morph explorer
+        run: |
+          cd contracts
+          forge verify-contract \
+            "${{ inputs.contract_address }}" \
+            "src/${{ inputs.contract_name }}.sol:${{ inputs.contract_name }}" \
+            --chain "${{ inputs.chain_id }}" \
+            --verifier blockscout \
+            --verifier-url "${{ inputs.verifier_url }}" \
+            --watch

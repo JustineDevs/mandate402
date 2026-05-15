@@ -1,0 +1,50 @@
+{
+  "name": "mandate402",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "format": "biome format --write . --files-ignore-unknown=true",
+    "check:biome": "biome check . --files-ignore-unknown=true",
+    "check:repo-safety": "node scripts/check-repo-safety.mjs",
+    "check:release-readiness": "node scripts/check-release-readiness.mjs",
+    "ci:all": "pnpm check:repo-safety && pnpm check:biome && pnpm test && pnpm typecheck && pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts",
+    "changeset": "changeset",
+    "release:dry-run": "semantic-release --dry-run --no-ci",
+    "release": "semantic-release",
+    "prepare": "lefthook install || true"
+  },
+  "dependencies": {
+    "next": "^15.3.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "viem": "^2.30.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^15.3.2",
+    "@biomejs/biome": "^1.9.4",
+    "@changesets/changelog-github": "^0.5.1",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@changesets/cli": "^2.29.6",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "eslint": "^9.26.0",
+    "lefthook": "^1.7.21",
+    "semantic-release": "^24.2.7",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.3"
+  }
+}

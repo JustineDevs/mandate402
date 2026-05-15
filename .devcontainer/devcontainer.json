@@ -1,0 +1,21 @@
+{
+  "name": "mandate402",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.25.0"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    }
+  },
+  "postCreateCommand": "corepack enable && pnpm install && python3 -m ensurepip --upgrade || true",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true
+      },
+      "extensions": ["biomejs.biome", "golang.go"]
+    }
+  }
+}

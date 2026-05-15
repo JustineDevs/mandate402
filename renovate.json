@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "timezone": "Asia/Singapore",
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "groupName": "node tooling"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "go tooling"
+    }
+  ]
+}

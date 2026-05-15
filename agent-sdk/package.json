@@ -1,0 +1,13 @@
+{
+  "name": "mandate402-agent-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "simulate": "node agentSimulator.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "viem": "^2.30.0"
+  }
+}

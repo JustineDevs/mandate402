@@ -1,0 +1,18 @@
+node_modules
+.next
+.omx
+coverage
+dist
+out
+.DS_Store
+data/store.json
+tsconfig.tsbuildinfo
+.env.local
+internal/dont push.txt
+.tmp
+mandate402
+agent-sdk/node_modules
+agent-sdk/package-lock.json
+contracts/out
+contracts/cache
+contracts/broadcast

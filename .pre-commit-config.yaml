@@ -1,0 +1,23 @@
+repos:
+  - repo: local
+    hooks:
+      - id: repo-safety
+        name: repo-safety
+        entry: pnpm check:repo-safety
+        language: system
+        pass_filenames: false
+      - id: biome-check
+        name: biome-check
+        entry: pnpm check:biome
+        language: system
+        pass_filenames: false
+      - id: ts-typecheck
+        name: ts-typecheck
+        entry: pnpm typecheck
+        language: system
+        pass_filenames: false
+      - id: app-tests
+        name: app-tests
+        entry: pnpm test
+        language: system
+        pass_filenames: false
