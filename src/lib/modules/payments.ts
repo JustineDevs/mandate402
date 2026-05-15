@@ -15,6 +15,7 @@ import {
   readFallbackGate,
 } from "@/lib/infrastructure/fallback-gate";
 import { createId } from "@/lib/infrastructure/id";
+import { getPaymentFetch } from "@/lib/infrastructure/x402-client";
 
 export type DispatchResult =
   | {
@@ -55,9 +56,10 @@ async function postToVendor(
 ): Promise<DispatchResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8_000);
+  const fetchWithPayment = getPaymentFetch();
 
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetchWithPayment(endpoint, {
       method: "POST",
       signal: controller.signal,
       headers: {

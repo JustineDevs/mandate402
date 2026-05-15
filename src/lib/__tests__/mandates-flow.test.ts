@@ -4,6 +4,7 @@ import {
   createSeedStoreData,
   resetStoreForTests,
 } from "@/lib/infrastructure/store";
+import { resetPaymentFetchForTests } from "@/lib/infrastructure/x402-client";
 import {
   listAuditEntries,
   listMandates,
@@ -15,13 +16,18 @@ beforeEach(async () => {
   await resetStoreForTests(createSeedStoreData());
 });
 
+const TEST_PRIVATE_KEY =
+  "0x1111111111111111111111111111111111111111111111111111111111111111";
+
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
+  resetPaymentFetchForTests();
 });
 
 describe("mandate flow", () => {
   it("does not mark execution_unknown as reconciled before correlation", async () => {
+    vi.stubEnv("MORPH_PRIVATE_KEY", TEST_PRIVATE_KEY);
     vi.stubEnv("MORPH_MARKET_DATA_URL", "https://example.com/vendor");
     vi.spyOn(globalThis, "fetch").mockImplementation(
       () =>
@@ -55,6 +61,7 @@ describe("mandate flow", () => {
   });
 
   it("reconciles unknown attempts from correlated vendor truth", async () => {
+    vi.stubEnv("MORPH_PRIVATE_KEY", TEST_PRIVATE_KEY);
     vi.stubEnv("MORPH_MARKET_DATA_URL", "https://example.com/vendor");
     vi.spyOn(globalThis, "fetch")
       .mockImplementationOnce(

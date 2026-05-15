@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { Vendor } from "@/lib/domain/types";
+import { resetPaymentFetchForTests } from "@/lib/infrastructure/x402-client";
 import {
   correlateAttemptStatus,
   dispatchAttempt,
@@ -16,9 +17,13 @@ const primaryVendor: Vendor = {
   adapterKey: "primary",
 };
 
+const TEST_PRIVATE_KEY =
+  "0x1111111111111111111111111111111111111111111111111111111111111111";
+
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
+  resetPaymentFetchForTests();
 });
 
 describe("dispatchAttempt", () => {
@@ -38,6 +43,7 @@ describe("dispatchAttempt", () => {
   });
 
   it("marks dispatch as unknown on timeout", async () => {
+    vi.stubEnv("MORPH_PRIVATE_KEY", TEST_PRIVATE_KEY);
     vi.stubEnv("MORPH_MARKET_DATA_URL", "https://example.com/vendor");
     vi.spyOn(globalThis, "fetch").mockImplementation(
       () =>
@@ -63,6 +69,7 @@ describe("dispatchAttempt", () => {
   });
 
   it("correlates vendor status by payment identifier", async () => {
+    vi.stubEnv("MORPH_PRIVATE_KEY", TEST_PRIVATE_KEY);
     vi.stubEnv("MORPH_MARKET_DATA_URL", "https://example.com/vendor");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(

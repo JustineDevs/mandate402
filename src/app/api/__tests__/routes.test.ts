@@ -10,6 +10,7 @@ import {
   createSeedStoreData,
   resetStoreForTests,
 } from "@/lib/infrastructure/store";
+import { resetPaymentFetchForTests } from "@/lib/infrastructure/x402-client";
 
 function jsonRequest(
   url: string,
@@ -30,11 +31,16 @@ function jsonRequest(
 
 beforeEach(async () => {
   await resetStoreForTests(createSeedStoreData());
+  vi.stubEnv(
+    "MORPH_PRIVATE_KEY",
+    "0x1111111111111111111111111111111111111111111111111111111111111111",
+  );
 });
 
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
+  resetPaymentFetchForTests();
 });
 
 describe("API routes", () => {
