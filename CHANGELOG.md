@@ -68,6 +68,7 @@ Initial public MVP release of **Mandate402**.
 - separated facilitator URLs from paid vendor URLs throughout the codebase and docs
 - aligned the repo to current official Morph Hoodi testnet values instead of stale Holesky-style RPC/chain combinations
 - moved the fallback gate artifact into tracked runtime config under `config/mandate402-fallback-gate.md` so CI and deployed runtime do not depend on ignored local `.omx` state
+- upgraded app persistence from JSON-file storage to a SQLite-backed normalized store
 - upgraded `README.md` into a public-remote-safe project document with:
   - centered header image
   - badges

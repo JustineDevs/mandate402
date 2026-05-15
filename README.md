@@ -77,7 +77,7 @@ Current implementation includes:
 - a modular-monolith Next.js app
 - mandate, policy, payment, receipt, vendor, and auth modules
 - a canonical fallback-gate artifact
-- local-file demo persistence
+- SQLite-backed local persistence
 - unit tests for the critical state machine and policy logic
 
 The contract workspace lives under `contracts/`.

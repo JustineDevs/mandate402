@@ -6,6 +6,9 @@ dist
 out
 .DS_Store
 data/store.json
+data/mandate402.sqlite
+data/mandate402.sqlite-shm
+data/mandate402.sqlite-wal
 tsconfig.tsbuildinfo
 .env.local
 internal/dont push.txt
