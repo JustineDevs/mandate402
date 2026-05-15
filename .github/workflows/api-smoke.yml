@@ -78,6 +78,7 @@ jobs:
 
       - name: Start Go merchant
         run: |
+          go build -buildvcs=false -o /tmp/mandate402-smoke .
           env \
             MANDATE402_OPERATOR_TOKEN=mandate402-demo-token \
             MANDATE402_TESTNET_RPC_URL=https://rpc-hoodi.morph.network \
@@ -117,15 +118,15 @@ jobs:
             CMC_API_KEY=replace-me \
             COINAPI_BASE_URL=https://rest.coinapi.io \
             COINAPI_KEY=replace-me \
-            go run . > /tmp/mandate402-go.log 2>&1 &
+            /tmp/mandate402-smoke > /tmp/mandate402-go.log 2>&1 &
           echo $! > /tmp/mandate402-go.pid
-          sleep 5
+          timeout 60 bash -c 'until nc -z 127.0.0.1 8000; do sleep 1; done'
 
       - name: Start Next app
         run: |
           pnpm dev > /tmp/mandate402-next.log 2>&1 &
           echo $! > /tmp/mandate402-next.pid
-          sleep 10
+          timeout 60 bash -c 'until curl -fsS http://127.0.0.1:3000/api/system > /dev/null; do sleep 1; done'
 
       - name: Smoke system route
         run: |
