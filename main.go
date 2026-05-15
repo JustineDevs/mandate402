@@ -50,6 +50,7 @@ var (
 	price          = envOr("MORPH_X402_PRICE", "0.001")
 	port           = envOr("MORPH_X402_DEMO_PORT", ":8000")
 	provider       = envOr("MANDATE402_MARKET_PROVIDER", "demo")
+	syncFacilitatorOnStart = mustEnvBool("MORPH_X402_SYNC_FACILITATOR_ON_START", true)
 	cmcBaseURL     = envOr("CMC_BASE_URL", "https://pro-api.coinmarketcap.com")
 	cmcAPIKey      = envOr("CMC_API_KEY", "")
 	coinAPIBaseURL = envOr("COINAPI_BASE_URL", "https://rest.coinapi.io")
@@ -285,6 +286,18 @@ func mustEnvInt64(key string, fallback int64) int64 {
 	return parsed
 }
 
+func mustEnvBool(key string, fallback bool) bool {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		panic(fmt.Sprintf("invalid bool for %s: %v", key, err))
+	}
+	return parsed
+}
+
 // ========== HMAC Transport (Morph authentication — generic template, do not modify) ==========
 func morphBuildSignContent(accessKey, timestamp, method, path, rawQuery, rawBody string) []byte {
 	signMap := map[string]interface{}{
@@ -418,7 +431,7 @@ func main() {
 		Schemes: []ginmw.SchemeConfig{
 			{Network: network, Server: evmServerScheme},
 		},
-		SyncFacilitatorOnStart: true,
+		SyncFacilitatorOnStart: syncFacilitatorOnStart,
 		Timeout:                requestTimeout,
 	}))
 

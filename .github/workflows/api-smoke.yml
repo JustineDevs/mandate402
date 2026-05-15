@@ -52,6 +52,7 @@ jobs:
           MORPH_X402_PAYTO_ADDRESS=0x867a2e06e2ecbcc4d4aacc2f92353e51c0c8305f
           MORPH_X402_PRICE=0.001
           MORPH_X402_DEMO_PORT=:8000
+          MORPH_X402_SYNC_FACILITATOR_ON_START=false
           MORPH_PRIVATE_KEY=${DEMO_KEY}
           MANDATE402_DEPLOYER_PRIVATE_KEY=${DEMO_KEY}
           MANDATE402_GOVERNANCE_OWNER=${DEMO_ADDR}
@@ -104,5 +105,7 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
+          test -f /tmp/mandate402-go.log && echo "--- go log ---" && tail -n 200 /tmp/mandate402-go.log || true
+          test -f /tmp/mandate402-next.log && echo "--- next log ---" && tail -n 200 /tmp/mandate402-next.log || true
           test -f /tmp/mandate402-go.pid && kill $(cat /tmp/mandate402-go.pid) || true
           test -f /tmp/mandate402-next.pid && kill $(cat /tmp/mandate402-next.pid) || true
