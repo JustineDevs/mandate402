@@ -2,6 +2,8 @@
 
 Mandate402 is a governance and treasury control layer for x402 machine payments on Morph. It is designed for teams that want software agents to buy paid services without handing those agents unrestricted spending power.
 
+This document is for readers who want the product explanation, scope, and why the project exists.
+
 ## 1. One-Sentence Definition
 
 Mandate402 gives an organization a way to define who an agent may pay, how much it may spend, when that authority expires, what evidence must be returned, and how that authority can be revoked.

@@ -2,6 +2,8 @@
 
 This document explains how Mandate402 creates value, who that value matters to, and what a realistic commercialization path looks like for the current product shape.
 
+This document is for product, strategy, and stakeholder readers who need the commercial framing.
+
 ## 1. What the Product Sells
 
 Mandate402 does not primarily sell data, trading insight, or payment settlement.

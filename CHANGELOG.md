@@ -7,11 +7,22 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - versioned team operating artifacts for the Mandate402 three-person workflow:
+  - `docs/README.md`
+  - `docs/GLOSSARY.md`
+  - `docs/design-tokens.md`
+  - `docs/STATUS.md`
+  - `docs/EXPLAIN.md`
   - `docs/TEAM.md`
+  - `docs/adr/ADR-0001-justine-scope-documents.md`
+  - `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md`
+  - `docs/adr/ADR-0003-edward-frontend-implementation-task.md`
+  - `docs/adr/README.md`
   - `team-structure.yml`
   - `agentic-workflow.yml`
   - `PROGRESS.md`
   - `.cursorrules`
+  - `.clauderules`
+  - `.devinrules`
 - GitHub workflow and collaboration templates for the anti-silo handoff process:
   - `.github/ISSUE_TEMPLATE/feature_handoff.md`
   - `.github/PULL_REQUEST_TEMPLATE.md`
@@ -21,6 +32,7 @@ All notable changes to this project will be documented in this file.
 
 - expanded the team operating model to make Justine the integration/release hub, Sherwin the design handoff owner, and Edward the repo-audit-first frontend implementer
 - formalized a linear workflow to prevent silo mentality, hyper-specialization, tunnel vision, and "us vs. them" collaboration failures
+- added an audience map, ADR index, glossary, status page, and design-token reference so the docs set can be used as a coherent documentation system instead of isolated files
 
 ## 0.1.0
 

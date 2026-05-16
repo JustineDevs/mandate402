@@ -35,7 +35,7 @@ Mandate402 is a Morph-native governance and treasury control layer for x402 comm
 |---|---|---|---|
 | Justine | `@JustineDevs` | Project Manager / Full Stack | Product direction, infra, sprint, release, socials |
 | Sherwin | `@owenlim225` | UI/UX Designer | Wireframes, user experience, design system |
-| Edward Joseph | `@EJ` | Frontend Developer | Repo audit, UI implementation, client logic |
+| Edward Joseph | `@automatewithedward` | Frontend Developer | Repo audit, UI implementation, client logic |
 
 Operational pipeline:
 
@@ -76,10 +76,18 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 
 | Document | Purpose |
 |---|---|
+| [docs/README.md](./docs/README.md) | Docs index, audience map, and reading order |
 | [docs/SYSTEM_DESIGN.md](./docs/SYSTEM_DESIGN.md) | Full technical architecture, runtime behavior, and system diagram |
 | [docs/PROJECT.md](./docs/PROJECT.md) | Neutral project explanation: idea, problem, solution, what/why/how |
+| [docs/EXPLAIN.md](./docs/EXPLAIN.md) | Simple plain-language explanation of the project for non-technical readers |
 | [docs/BM.md](./docs/BM.md) | Business model and stakeholder framing |
+| [docs/GLOSSARY.md](./docs/GLOSSARY.md) | Shared definitions for product and system terms |
+| [docs/design-tokens.md](./docs/design-tokens.md) | UI token reference for design and frontend implementation |
+| [docs/STATUS.md](./docs/STATUS.md) | Current MVP state, real vs demo-shaped boundaries, and next priorities |
 | [docs/TEAM.md](./docs/TEAM.md) | Team ownership model and anti-silo collaboration rules |
+| [docs/adr/ADR-0001-justine-scope-documents.md](./docs/adr/ADR-0001-justine-scope-documents.md) | Defines the explicit scope-authority surface for Justine-led tasks |
+| [docs/adr/ADR-0002-sherwin-ui-wireframe-task.md](./docs/adr/ADR-0002-sherwin-ui-wireframe-task.md) | Defines the canonical wireframe and design brief for Sherwin's task |
+| [docs/adr/ADR-0003-edward-frontend-implementation-task.md](./docs/adr/ADR-0003-edward-frontend-implementation-task.md) | Defines Edward's repo-audit-first implementation boundary |
 
 ## Acknowledgements
 

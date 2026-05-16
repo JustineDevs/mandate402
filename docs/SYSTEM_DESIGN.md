@@ -2,6 +2,8 @@
 
 This document describes the current Mandate402 MVP as implemented in this repository. It focuses on the real control boundaries, runtime behavior, data model, and contract responsibilities instead of describing an aspirational architecture.
 
+This document is for engineers, reviewers, and technical contributors who need the implementation-grounded system view.
+
 ## 1. Purpose
 
 Mandate402 is the governance and treasury control layer that sits between:

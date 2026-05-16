@@ -4,6 +4,8 @@
 
 This document defines the human team structure for Mandate402 and the anti-silo workflow the repository should follow.
 
+This document is for team members and contributors who need the ownership model, handoff flow, and review boundaries.
+
 ## Core Team Roles
 
 ### Justine (`@JustineDevs`) - Full Stack & Project Manager
@@ -41,7 +43,7 @@ Core responsibilities:
 - hand off clear UI structure and states to frontend engineering
 - ensure responsive behavior is considered before implementation starts
 
-### Edward Joseph (`@EJ`) - Frontend Developer
+### Edward Joseph (`@automatewithedward`) - Frontend Developer
 
 Scope:
 
@@ -114,6 +116,8 @@ Edward does not own:
 
 Justine does not operate as a black box. Product constraints, rationale, and tradeoffs still need to be documented and shared.
 
+For the explicit definition of what counts as Justine scope authority, see [ADR-0001](./adr/ADR-0001-justine-scope-documents.md).
+
 ## Linear Anti-Silo Workflow
 
 All work should follow this handoff sequence:
@@ -177,139 +181,17 @@ Every handoff must include:
 
 ## Sherwin Design Task Package
 
-Sherwin's current UI wireframe package for Mandate402 should include the following reference layouts.
+Sherwin's current UI wireframe package for Mandate402 should use the canonical ASCII reference layouts in [ADR-0002](./adr/ADR-0002-sherwin-ui-wireframe-task.md).
 
-### Main Dashboard
+Those layouts are the tracked source for:
 
-```text
-+--------------------------------------------------------------------------------------------------+
-| Mandate402                                                   [Search]        [Wallet] [Profile] |
-+----------------------+--------------------------------------------------------------------------+
-| Sidebar              | Overview                                                                 |
-|----------------------|--------------------------------------------------------------------------|
-| Dashboard            | +------------------+ +------------------+ +------------------+          |
-| Mandates             | | Active Mandates  | | Spend Today      | | Policy Blocks    |          |
-| Agents               | | 12               | | $1,248           | | 7                |          |
-| Vendors              | +------------------+ +------------------+ +------------------+          |
-| Transactions         |                                                                          |
-| Policies             | +--------------------------------------------------------------+         |
-| Receipts             | | Spend by Agent                                               |         |
-| Settings             | | Agent A  ###########  $420                                   |         |
-|                      | | Agent B  #######      $260                                   |         |
-|                      | | Agent C  ####         $140                                   |         |
-|                      | +--------------------------------------------------------------+         |
-|                      |                                                                          |
-|                      | +----------------------------------+ +--------------------------------+  |
-|                      | | Recent Mandates                  | | Recent Transactions            |  |
-|                      | |----------------------------------| |--------------------------------|  |
-|                      | | Procurement Agent   Active       | | OpenAI API     $12   Success  |  |
-|                      | | Research Agent      Expiring     | | Tavily         $4    Success  |  |
-|                      | | Ops Agent           Revoked      | | Vendor X       $18   Blocked  |  |
-|                      | +----------------------------------+ +--------------------------------+  |
-+----------------------+--------------------------------------------------------------------------+
-```
+- main dashboard
+- create mandate screen
+- mandate detail page
+- agent view
+- mobile-friendly simplified layout
 
-### Create Mandate Screen
-
-```text
-+--------------------------------------------------------------------------------------------------+
-| Create New Mandate                                                                                |
-+--------------------------------------------------------------------------------------------------+
-| Mandate Name        [ Procurement - Market Research                                           ]  |
-| Assigned Agent      [ Agent Alpha v ]                                                             |
-| Task / Purpose      [ Find and purchase research/report/API access                              ] |
-|                                                                                                  |
-| Budget Type         (•) Fixed Cap   ( ) Usage-Based Ceiling                                      |
-| Max Spend           [ $50.00 ]                                                                   |
-| Expiry              [ 2026-05-20 ] [ 23:59 UTC ]                                                 |
-|                                                                                                  |
-| Allowed Vendors                                                                                  |
-| +----------------------------------------------------------------------------------------------+ |
-| | [x] OpenAI API     [x] Tavily     [x] Perplexity API     [ ] Any verified x402 vendor      | |
-| +----------------------------------------------------------------------------------------------+ |
-|                                                                                                  |
-| Category Rules                                                                                   |
-| [x] Data / Research   [x] AI APIs   [ ] Compute   [ ] Content   [ ] Other                      |
-|                                                                                                  |
-| Receipt + Audit                                                                                  |
-| [x] Require receipt                                                                              |
-| [x] Attach payment identifier                                                                    |
-| [x] Log Reference Key                                                                            |
-|                                                                                                  |
-| Risk Controls                                                                                    |
-| [x] Block out-of-policy payments                                                                 |
-| [x] Manual approval if > $20                                                                     |
-| [x] Auto-revoke after expiry                                                                     |
-|                                                                                                  |
-|                                              [Cancel]                     [Create Mandate]       |
-+--------------------------------------------------------------------------------------------------+
-```
-
-### Mandate Detail Page
-
-```text
-+--------------------------------------------------------------------------------------------------+
-| Mandate: Procurement - Market Research                                [Pause] [Revoke] [Edit]   |
-+--------------------------------------------------------------------------------------------------+
-| Status: Active        Agent: Agent Alpha        Budget Used: $18 / $50        Expires: 2 days   |
-+--------------------------------------------------------------------------------------------------+
-| Rules Summary                                                                                    |
-| - Approved vendors: OpenAI API, Tavily, Perplexity API                                           |
-| - Categories: Data / Research, AI APIs                                                           |
-| - Per-payment soft limit: $20                                                                    |
-| - Receipt required: Yes                                                                          |
-+--------------------------------------------------------------------------------------------------+
-| Activity Timeline                                                                                 |
-|--------------------------------------------------------------------------------------------------|
-| 10:42 AM   Quote request to Tavily                         $2        Success                      |
-| 10:48 AM   Search API purchase from OpenAI API             $12       Success                      |
-| 11:02 AM   Vendor X payment attempt                        $18       Blocked - not allowlisted    |
-| 11:15 AM   Receipt exported                                --        Complete                     |
-+--------------------------------------------------------------------------------------------------+
-| Receipts                                                                                         |
-| [Receipt #1842] [Receipt #1843] [Export CSV] [Export PDF]                                        |
-+--------------------------------------------------------------------------------------------------+
-```
-
-### Agent View
-
-```text
-+--------------------------------------------------------------------------------------------------+
-| Agent Console: Agent Alpha                                                                        |
-+--------------------------------------------------------------------------------------------------+
-| Task: Find best market data source and purchase access under policy                              |
-|                                                                                                  |
-| Current Mandate                                                                                  |
-| +----------------------------------------------------------------------------------------------+ |
-| | Budget Remaining: $32                                                                         | |
-| | Allowed Vendors: OpenAI API, Tavily, Perplexity API                                           | |
-| | Allowed Until: 2026-05-20 23:59 UTC                                                           | |
-| | Policy Status: In Good Standing                                                               | |
-| +----------------------------------------------------------------------------------------------+ |
-|                                                                                                  |
-| Proposed Actions                                                                                 |
-| 1. Query Tavily for source shortlist                            Cost: $2         [Run]           |
-+--------------------------------------------------------------------------------------------------+
-```
-
-### Mobile-Friendly Simplified Layout
-
-```text
-+--------------------------------------+
-| Mandate402                 [Menu]    |
-+--------------------------------------+
-| Active Mandates: 12                  |
-| Spend Today: $1,248                  |
-| Policy Blocks: 7                     |
-+--------------------------------------+
-| Recent Activity                      |
-| - OpenAI API      $12   Success      |
-| - Vendor X        $18   Blocked      |
-| - Tavily          $4    Success      |
-+--------------------------------------+
-| [Create Mandate]                     |
-+--------------------------------------+
-```
+The ADR should be treated as the verbatim wireframe reference for this task, so the layout does not drift across multiple duplicated copies.
 
 ## Mandate402 Visual Direction
 
