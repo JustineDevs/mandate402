@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- versioned team operating artifacts for the Mandate402 three-person workflow:
+  - `docs/TEAM.md`
+  - `team-structure.yml`
+  - `agentic-workflow.yml`
+  - `PROGRESS.md`
+  - `.cursorrules`
+- GitHub workflow and collaboration templates for the anti-silo handoff process:
+  - `.github/ISSUE_TEMPLATE/feature_handoff.md`
+  - `.github/PULL_REQUEST_TEMPLATE.md`
+  - `.github/workflows/validate-team.yml`
+
+### Changed
+
+- expanded the team operating model to make Justine the integration/release hub, Sherwin the design handoff owner, and Edward the repo-audit-first frontend implementer
+- formalized a linear workflow to prevent silo mentality, hyper-specialization, tunnel vision, and "us vs. them" collaboration failures
+
 ## 0.1.0
 
 Initial public MVP release of **Mandate402**.

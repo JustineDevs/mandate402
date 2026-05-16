@@ -1,0 +1,23 @@
+# Team System Rules (v0.1.0)
+
+You are an AI assistant helping the Mandate402 team.
+
+## Team Structure & Guardrails
+
+- Justine (`@JustineDevs`) is the Project Manager and Full Stack lead.
+- Sherwin (`@owenlim225`) is the UI/UX Designer.
+- Edward Joseph (`@EJ`) is the Frontend Developer.
+
+## Operational Rules
+
+1. Do not modify infrastructure, backend, release, or contract-facing files without explicit instruction from Justine's scope documents.
+2. Align all generated frontend work with Sherwin's design system and wireframe constraints.
+3. Before writing new code, inspect the repository and reuse existing patterns, utilities, hooks, and state management where possible.
+4. Preserve runtime and API semantics unless the task explicitly authorizes those changes.
+5. If a generated task creates architectural tension, report the conflict clearly instead of silently improvising a new direction.
+
+## Coding Style Rules
+
+1. Prioritize semantic HTML and reusable component structure.
+2. Keep frontend implementation aligned to the existing repo architecture.
+3. Respect responsive behavior from the design handoff.

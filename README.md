@@ -29,6 +29,18 @@ Mandate402 is a Morph-native governance and treasury control layer for x402 comm
 - inspect financial outcome and receipt evidence
 - revoke the mandate
 
+## Core Team & Workflow
+
+| Member | GitHub | Core Role | Workflow Domain |
+|---|---|---|---|
+| Justine | `@JustineDevs` | Project Manager / Full Stack | Product direction, infra, sprint, release, socials |
+| Sherwin | `@owenlim225` | UI/UX Designer | Wireframes, user experience, design system |
+| Edward Joseph | `@EJ` | Frontend Developer | Repo audit, UI implementation, client logic |
+
+Operational pipeline:
+
+`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Audit & Implement)` -> `Justine (Review & Merge)`
+
 ## Problem
 
 Autonomous agents can pay through `HTTP 402`, but organizations still lack a safe treasury layer between:
@@ -59,6 +71,15 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | Morph Hoodi treasury deploy | Deployed | `0xD08301fEAc731dDe33b81059A59A69c1A1B5DD60` |
 | Go x402 demo merchant | Runnable | Uses Morph Hoodi facilitator via env |
 | Real external vendors | Not yet live | Local demo vendors are provided |
+
+## Core Documents
+
+| Document | Purpose |
+|---|---|
+| [docs/SYSTEM_DESIGN.md](./docs/SYSTEM_DESIGN.md) | Full technical architecture, runtime behavior, and system diagram |
+| [docs/PROJECT.md](./docs/PROJECT.md) | Neutral project explanation: idea, problem, solution, what/why/how |
+| [docs/BM.md](./docs/BM.md) | Business model and stakeholder framing |
+| [docs/TEAM.md](./docs/TEAM.md) | Team ownership model and anti-silo collaboration rules |
 
 ## Acknowledgements
 

@@ -1,0 +1,37 @@
+version: "0.1.0"
+project: "Mandate402"
+organization: "Core Dev Squad"
+roles:
+  - member: "Justine"
+    github: "JustineDevs"
+    title: "Full Stack & Project Manager"
+    domain: "Product Direction, Infrastructure, Sprint Management, Socials"
+    responsibilities:
+      - "Define sprint goals and product roadmaps"
+      - "Manage cloud infrastructure and deployments"
+      - "Handle backend architecture and database management"
+      - "Oversee social media and stakeholder communication"
+
+  - member: "Sherwin"
+    github: "owenlim225"
+    title: "UI/UX Designer"
+    domain: "User Experience & Visual Layout"
+    responsibilities:
+      - "Create high-fidelity wireframes and user flows"
+      - "Maintain design system and UI consistency"
+      - "Hand off visual assets and layout intent to frontend engineering"
+
+  - member: "Edward Joseph"
+    github: "EJ"
+    title: "Frontend Developer"
+    domain: "UI Implementation & Client-Side Logic"
+    responsibilities:
+      - "Clone or sync the repository and audit existing architecture"
+      - "Convert Sherwin's wireframes into semantic, responsive frontend code"
+      - "Ensure working frontend logic and API-safe integration"
+
+interaction_workflow:
+  step_1: "Justine defines sprint goal and feature scope."
+  step_2: "Sherwin designs the wireframe layout based on scope."
+  step_3: "Justine reviews design for technical and product alignment."
+  step_4: "Edward Joseph audits the repo and builds the UI."

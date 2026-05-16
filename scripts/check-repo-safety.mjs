@@ -23,7 +23,9 @@ const violations = [];
 
 function shouldIgnore(relPath) {
   if (ignoredFiles.has(relPath)) return true;
+  const segments = relPath.split("/");
   for (const dir of ignoredDirs) {
+    if (!dir.includes("/") && segments.includes(dir)) return true;
     if (relPath === dir || relPath.startsWith(`${dir}/`)) return true;
   }
   return false;

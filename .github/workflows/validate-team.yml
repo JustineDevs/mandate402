@@ -1,0 +1,22 @@
+name: Validate Team Config (v0.1.0)
+
+on:
+  push:
+    paths:
+      - "team-structure.yml"
+  pull_request:
+    paths:
+      - "team-structure.yml"
+
+jobs:
+  validate:
+    name: Check YAML Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate YAML Syntax
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: "team-structure.yml"
