@@ -93,7 +93,8 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | Go x402 demo merchant | Runnable | Uses Morph Hoodi facilitator via env |
 | Real external vendors | Not yet live | Local demo vendors are provided |
 
-## Core Documents
+<details>
+<summary><strong>Core Documents</strong></summary>
 
 | Document | Purpose |
 |---|---|
@@ -122,6 +123,8 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | [docs/adr/ADR-0001-justine-scope-documents.md](./docs/adr/ADR-0001-justine-scope-documents.md) | Defines the explicit scope-authority surface for Justine-led tasks |
 | [docs/adr/ADR-0002-sherwin-ui-wireframe-task.md](./docs/adr/ADR-0002-sherwin-ui-wireframe-task.md) | Defines the canonical wireframe and design brief for Sherwin's task |
 | [docs/adr/ADR-0003-edward-frontend-implementation-task.md](./docs/adr/ADR-0003-edward-frontend-implementation-task.md) | Defines Edward's repo-audit-first implementation boundary |
+
+</details>
 
 ## Acknowledgements
 
