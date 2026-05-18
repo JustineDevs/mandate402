@@ -47,6 +47,14 @@ This document defines the required issue and PR labels for Mandate402.
 - `ai:review-required`
 - `ai:no-direct-merge`
 
+## Public Onboarding Labels
+
+- `good first issue`
+- `help wanted`
+- `docs-help`
+- `design-help`
+- `testing-help`
+
 ## Minimum Required Labels Per Issue
 
 Every issue must have at least:
@@ -56,3 +64,5 @@ Every issue must have at least:
 - one `prio:*`
 
 High-risk work should also carry a `risk:*` label.
+
+Public-facing contributor issues may also carry one or more onboarding labels from the public onboarding set above.

@@ -11,6 +11,23 @@ This document defines the required PR rules for Mandate402.
 - verification evidence
 - release impact note when relevant
 
+## Example Good PR
+
+- one issue
+- one lane owner
+- one coherent scope
+- screenshots if UI changed
+- verification commands listed
+- release impact clearly stated
+
+## Example Bad PR
+
+- mixed unrelated changes
+- no linked issue
+- no lane ownership
+- no verification evidence
+- “misc fixes” style summary
+
 ## Every PR Must Satisfy
 
 - one coherent scope

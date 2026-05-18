@@ -28,6 +28,34 @@ No meaningful work should skip the issue or PR stage.
 8. Justine performs final integration/release review.
 9. Required checks must pass before merge.
 
+## Contributor Startup Sequence
+
+Every contributor should start with:
+
+1. sync latest `main`
+2. read [AGENTS.md](../AGENTS.md)
+3. read [WORKFLOW.md](./WORKFLOW.md), [BRANCHING.md](./BRANCHING.md), and [LANES.md](./LANES.md)
+4. open the linked issue
+5. confirm lane ownership and out-of-scope
+6. create a branch from the issue
+
+## Example Issues
+
+### Good feature issue
+
+- one problem
+- one owner
+- one lane
+- clear acceptance criteria
+- explicit out-of-scope
+
+### Bad issue
+
+- mixes frontend, infra, auth, and docs in one scope
+- no owner
+- no lane
+- no acceptance criteria
+
 ## Mandatory Sync Rule
 
 Every implementer must sync from the latest `main` before meaningful work continues.
@@ -86,6 +114,27 @@ The frontend is split into two lanes:
 - John: observability and presentation UI
 
 They must not silently co-own the same screen by default.
+
+## Escalation Quick Guide
+
+Escalate to Justine if:
+
+- auth changes
+- infra changes
+- contract changes
+- release workflow changes
+- issue scope changes
+- lane overlap appears
+
+Escalate to Sherwin if:
+
+- design intent is unclear
+- shared visual patterns are changing
+
+Escalate across frontend lanes if:
+
+- shared primitives change
+- the same screen is touched by both frontend lanes
 
 ## Release Rule
 
