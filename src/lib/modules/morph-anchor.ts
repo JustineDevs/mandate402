@@ -8,7 +8,10 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-import { getMorphRuntimeConfig } from "@/lib/infrastructure/env";
+import {
+  assertProductionMorphAnchoringConfig,
+  getMorphRuntimeConfig,
+} from "@/lib/infrastructure/env";
 import { createId } from "@/lib/infrastructure/id";
 
 const mandateRegistryAbi = parseAbi([
@@ -40,24 +43,29 @@ function mandateIdToBytes32(mandateId: string) {
   return keccak256(stringToHex(mandateId));
 }
 
+export function assertMorphWriteReady() {
+  return assertProductionMorphAnchoringConfig();
+}
+
 async function writeAnchor(
   action: "issueMandate" | "revokeMandate",
   mandateId: string,
   refValue: string,
 ) {
-  const config = getMorphRuntimeConfig();
-  if (!config.rpcUrl || !config.privateKey || !config.contractAddress) {
+  const { config, missingConfig } = assertMorphWriteReady();
+  if (missingConfig) {
     return `demo_${action}_${mandateId}_${createId("tx")}`;
   }
 
   const account = privateKeyToAccount(config.privateKey as `0x${string}`);
   const chain = createMorphChain(config.chainId);
   const transport = http(config.rpcUrl);
+  const contractAddress = config.contractAddress as `0x${string}`;
   const walletClient = createWalletClient({ account, chain, transport });
   const publicClient = createPublicClient({ chain, transport });
 
   const hash = await walletClient.writeContract({
-    address: config.contractAddress,
+    address: contractAddress,
     abi: mandateRegistryAbi,
     functionName: action,
     args: [mandateIdToBytes32(mandateId), keccak256(stringToHex(refValue))],

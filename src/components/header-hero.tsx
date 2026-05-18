@@ -1,9 +1,26 @@
+import Image from "next/image";
+
 export function HeaderHero() {
   return (
     <section className="hero">
       <div className="hero-inner">
         <div className="topbar">
-          <div className="brand">MANDATE402</div>
+          <div className="brand-lockup">
+            <Image
+              src="/images/Mandate402_logo.svg"
+              alt="Mandate402 logo"
+              width={42}
+              height={42}
+              className="brand-logo"
+              priority
+            />
+            <div className="brand-copy">
+              <div className="brand">MANDATE402</div>
+              <div className="brand-tagline">
+                Treasury Command for x402 Agentic Commerce
+              </div>
+            </div>
+          </div>
           <nav className="topnav" aria-label="Top navigation">
             <span>Overview</span>
             <span>Mandates</span>
@@ -23,6 +40,11 @@ export function HeaderHero() {
               approval policy, reservation controls, receipt evidence, and a
               Morph-native revoke path.
             </p>
+            <div className="hero-chips" aria-label="Platform summary">
+              <span className="hero-chip">Morph-native</span>
+              <span className="hero-chip">x402 Guardrails</span>
+              <span className="hero-chip">Pyth Budget Limits</span>
+            </div>
             <div className="cta-row">
               <a className="pill pill-primary" href="#mandate-form">
                 Issue Mandate
@@ -33,6 +55,7 @@ export function HeaderHero() {
             </div>
           </div>
           <div className="panel terminal">
+            <div className="terminal-title">Live Treasury Trace</div>
             <pre>{`> issueMandate("Research Agent")
 mandate_id: mdt_demo_001
 anchor_chain: Morph

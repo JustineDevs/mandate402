@@ -34,9 +34,35 @@ Mandatory rule:
 - one branch = one worktree
 - do not stack unrelated work inside one branch
 
+## Mandatory Sync Strategy
+
+Do not rely on blind `git pull` on feature branches.
+
+Required strategy:
+
+- use `git pull --ff-only origin main` on `main`
+- use `git fetch origin` + `git rebase origin/main` on ownership branches
+
+Avoid by default:
+
+```bash
+git pull
+```
+
+because it may create implicit merge commits depending on local config.
+
+## Branch Freshness Rule
+
+- A PR branch must be reasonably fresh against `main` before final review.
+- If `main` changed in a shared or related surface, the branch owner must sync before continuing implementation.
+- Branches behind `main` should be rebased before merge unless Justine explicitly approves review on a stale branch.
+
 ## Merge Rule
 
 - No direct pushes to `main`
 - No merge without PR
 - No merge without passing required checks
 - No merge without Justine review on protected lanes
+- Use squash merge by default
+- Every ownership branch must map to one issue
+- Every merged branch must be releasable only through `main`

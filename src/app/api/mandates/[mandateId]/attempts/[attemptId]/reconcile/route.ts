@@ -13,7 +13,7 @@ export async function POST(
   },
 ) {
   try {
-    requireOperator(request);
+    await requireOperator(request);
     const correlationId = readCorrelationId(request);
     const { mandateId, attemptId } = await params;
     const attempt = await reconcileAttempt({

@@ -18,6 +18,24 @@
 > Mandate402 is the treasury governance and guardrail layer for x402 agentic commerce on Morph.
 > It does **not** replace the x402 facilitator and it does **not** replace the paid vendor service.
 
+<details>
+<summary><strong>Why Morph Matters</strong></summary>
+
+<div align="center">
+  <img src="./public/images/Morph_Logo.png" alt="Morph Network logo" width="100%" />
+</div>
+
+Morph is the chain environment that gives Mandate402 its web3-native treasury and execution context.
+
+In practical terms, Morph matters here because it provides:
+
+- a real settlement environment for treasury-aware machine payments
+- a public chain surface for mandate lifecycle anchoring
+- an ecosystem-aligned home for x402 and agentic commerce experiments that need to look like real infrastructure, not simulated web2-only flows
+
+For Mandate402, Morph is not decorative branding. It is part of the trust, settlement, and verification story behind governed agent spend.
+</details>
+
 > [!WARNING]
 > Never commit `.env.local`, private keys, Morph x402 HMAC credentials, or deployment cache files.
 

@@ -158,6 +158,29 @@ Recommended branch forms:
 - `ui/<issue>-<slug>`
 - `chore/<issue>-<slug>`
 
+### Sync Rule
+
+All implementers must keep their ownership branch current with `main`.
+
+Required sync moments:
+
+- before starting work for the day
+- before opening a PR
+- after `main` changes in a related lane
+- after a branch sits stale during active work
+
+Use:
+
+```bash
+git fetch origin
+git switch main
+git pull --ff-only origin main
+git switch <branch>
+git rebase origin/main
+```
+
+Avoid implicit merge-commit syncs from plain `git pull` on feature branches.
+
 ### Frontend Lane Rule
 
 Frontend ownership is intentionally split:
@@ -202,6 +225,7 @@ without explicit authority from the tracked scope documents.
 - `main` is the only release-authoritative branch.
 - Release tags and release notes are automation-owned artifacts from `main`.
 - Every meaningful change must originate from its own ownership branch and land through PR.
+- Branches must be synced from latest `main` before final review unless Justine explicitly waives that requirement.
 
 ### Before Commit
 

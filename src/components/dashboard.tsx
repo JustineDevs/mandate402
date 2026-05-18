@@ -21,7 +21,9 @@ export function Dashboard({ data }: DashboardProps) {
         <div className="card">
           <div className="eyebrow">Live Mandates</div>
           <div className="metric">{data.metrics.liveMandates}</div>
-          <div className="footer-note">Morph-issued and operator visible.</div>
+          <div className="footer-note">
+            Morph-issued treasury lanes with operator oversight.
+          </div>
         </div>
         <div className="card">
           <div className="eyebrow">Reserved + Consumed</div>
@@ -29,21 +31,22 @@ export function Dashboard({ data }: DashboardProps) {
             {formatUsd(data.metrics.spendReservedPlusConsumed)}
           </div>
           <div className="footer-note">
-            Held reservation remains separate from confirmed charge.
+            Reservation accounting stays separate from final settlement truth.
           </div>
         </div>
         <div className="card">
           <div className="eyebrow">Blocked Attempts</div>
           <div className="metric">{data.metrics.blockedAttempts}</div>
           <div className="footer-note">
-            Verified no-call failures before vendor dispatch.
+            No-call failures are enforced before vendor dispatch.
           </div>
         </div>
         <div className="card">
           <div className="eyebrow">Fallback Gate</div>
           <div className="metric">{data.fallbackGate.decision_status}</div>
           <div className="footer-note">
-            Primary vendors stay ecosystem-first until gate activates.
+            Ecosystem-first stays active until the tracked gate explicitly
+            opens.
           </div>
         </div>
       </div>
@@ -191,6 +194,98 @@ export function Dashboard({ data }: DashboardProps) {
               </tbody>
             </table>
           </div>
+
+          <div className="card pricing-card-shell">
+            <div className="eyebrow">Pricing</div>
+            <div className="section-heading">
+              Operational tiers for governed agent spend
+            </div>
+            <div className="pricing-grid">
+              <div className="pricing-card">
+                <div className="pricing-name">Starter</div>
+                <div className="pricing-price">Free</div>
+                <p className="pricing-copy">
+                  Local prototypes and internal experimentation with mandate
+                  controls.
+                </p>
+                <ul className="pricing-list">
+                  <li>Single workspace</li>
+                  <li>Basic mandate policies</li>
+                  <li>Manual operator oversight</li>
+                </ul>
+              </div>
+              <div className="pricing-card pricing-card-featured">
+                <div className="badge-featured">Recommended</div>
+                <div className="pricing-name">Growth</div>
+                <div className="pricing-price">
+                  $199<span>/mo</span>
+                </div>
+                <p className="pricing-copy">
+                  Production agent teams with audit, reconciliation, and
+                  treasury guardrails.
+                </p>
+                <ul className="pricing-list">
+                  <li>Multiple agents</li>
+                  <li>x402 vendor governance</li>
+                  <li>Audit timeline and correlation</li>
+                </ul>
+              </div>
+              <div className="pricing-card">
+                <div className="pricing-name">Command</div>
+                <div className="pricing-price">Custom</div>
+                <p className="pricing-copy">
+                  Governance-heavy organizations with stricter treasury and
+                  compliance controls.
+                </p>
+                <ul className="pricing-list">
+                  <li>Custom policies</li>
+                  <li>Advanced approval flows</li>
+                  <li>Explorer / release alignment</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="card academy-shell">
+            <div className="eyebrow">Mandate402 Academy</div>
+            <div className="section-heading">
+              Playbooks for safe autonomous spending
+            </div>
+            <div className="academy-grid">
+              <article className="academy-card">
+                <span className="academy-tag governance">Governance</span>
+                <h3>Policy Design</h3>
+                <p>
+                  Model limits, facilitators, and revocation rules before agents
+                  touch money.
+                </p>
+              </article>
+              <article className="academy-card">
+                <span className="academy-tag payments">Payments</span>
+                <h3>x402 Payment Loops</h3>
+                <p>
+                  Understand challenge, pay, vendor response, and correlation
+                  status lifecycles.
+                </p>
+              </article>
+              <article className="academy-card">
+                <span className="academy-tag compliance">Compliance</span>
+                <h3>Audit and Receipts</h3>
+                <p>
+                  Keep financial truth and receipt truth visible without
+                  collapsing one into the other.
+                </p>
+              </article>
+              <article className="academy-card">
+                <span className="academy-tag agents">Agents</span>
+                <h3>Unknown Attempt Recovery</h3>
+                <p>
+                  Handle delayed vendor settlement safely with reservation and
+                  explicit reconciliation.
+                </p>
+              </article>
+            </div>
+          </div>
         </div>
 
         <div className="stack">
@@ -261,6 +356,65 @@ export function Dashboard({ data }: DashboardProps) {
           </div>
         </div>
       </div>
+
+      <section className="cta-banner">
+        <div>
+          <div className="eyebrow">Command Layer</div>
+          <h2>Give your agents a budget, not your bank account.</h2>
+          <p>
+            Use Morph settlement, x402 payment rails, and mandate-driven
+            treasury controls without handing raw funds to untrusted automation.
+          </p>
+        </div>
+        <div className="cta-row">
+          <a className="pill pill-primary" href="#mandate-form">
+            Start from Mandates
+          </a>
+          <a className="pill pill-secondary-on-dark" href="#transactions">
+            Review the audit proof
+          </a>
+        </div>
+      </section>
+
+      <footer className="footer-region">
+        <div className="footer-grid">
+          <div>
+            <div className="footer-heading">Product</div>
+            <a className="footer-link" href="#mandate-form">
+              Mandates
+            </a>
+            <a className="footer-link" href="#transactions">
+              Audit Trail
+            </a>
+            <a className="footer-link" href="#transactions">
+              Reconciliation
+            </a>
+          </div>
+          <div>
+            <div className="footer-heading">Infra</div>
+            <span className="footer-link">Morph Hoodi</span>
+            <span className="footer-link">x402</span>
+            <span className="footer-link">Pyth</span>
+          </div>
+          <div>
+            <div className="footer-heading">Docs</div>
+            <span className="footer-link">README</span>
+            <span className="footer-link">AGENTS</span>
+            <span className="footer-link">Contributing</span>
+          </div>
+          <div>
+            <div className="footer-heading">Remote</div>
+            <a
+              className="footer-link"
+              href="https://github.com/JustineDevs/mandate402"
+            >
+              GitHub
+            </a>
+            <span className="footer-link">Release automation</span>
+            <span className="footer-link">Contract verify</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as reconcileAttempt } from "@/app/api/mandates/[mandateId]/attempts/[attemptId]/reconcile/route";
 import { POST as createAttempt } from "@/app/api/mandates/[mandateId]/attempts/route";
 import { POST as revokeMandate } from "@/app/api/mandates/[mandateId]/revoke/route";
+import { GET as getMandates } from "@/app/api/mandates/route";
 import { POST as createMandate } from "@/app/api/mandates/route";
 import { GET as getSystem } from "@/app/api/system/route";
 import { DEMO_OPERATOR_TOKEN } from "@/lib/infrastructure/env";
@@ -44,6 +45,20 @@ afterEach(() => {
 });
 
 describe("API routes", () => {
+  it("rejects unauthorized mandate listing", async () => {
+    const response = await getMandates(
+      new Request("http://localhost/api/mandates", {
+        method: "GET",
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "Unauthorized operator request.",
+    });
+  });
+
   it("rejects unauthorized mandate creation", async () => {
     const request = new Request("http://localhost/api/mandates", {
       method: "POST",

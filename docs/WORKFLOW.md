@@ -28,6 +28,44 @@ No meaningful work should skip the issue or PR stage.
 8. Justine performs final integration/release review.
 9. Required checks must pass before merge.
 
+## Mandatory Sync Rule
+
+Every implementer must sync from the latest `main` before meaningful work continues.
+
+Required sync moments:
+
+1. before starting work for the day
+2. before opening a PR
+3. after `main` changes in a related lane
+4. after a branch sits stale during active work
+
+Recommended stale thresholds:
+
+- more than `4 hours` during active parallel work
+- definitely stale after `1 day`
+
+## Mandatory Sync Commands
+
+For `main`:
+
+```bash
+git fetch origin
+git switch main
+git pull --ff-only origin main
+```
+
+For an ownership branch:
+
+```bash
+git fetch origin
+git switch <branch>
+git rebase origin/main
+```
+
+## Sync Verification Rule
+
+After rebasing or syncing from `main`, rerun the relevant checks before requesting review.
+
 ## Non-Negotiable Rules
 
 - No direct work on `main`.
@@ -36,6 +74,9 @@ No meaningful work should skip the issue or PR stage.
 - No frontend implementation without Sherwin handoff when visual changes are involved.
 - No AI-generated infra, auth, contract, or release change merges without human review.
 - No merge while CI is failing.
+- No merge to `main` until all required workflows are green.
+- No release from any branch except `main`.
+- No stale branch should be sent for final review without syncing from latest `main`.
 
 ## Frontend Rule
 
@@ -55,3 +96,5 @@ The merge/release decision belongs to Justine after:
 - CI success
 - repo safety success
 - release-readiness success
+
+Release automation, tags, and release notes belong to `main` only.

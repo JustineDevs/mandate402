@@ -11,6 +11,7 @@
 ### Repository Audit & Implementation Notes
 
 - [ ] I synced and built the repository locally.
+- [ ] I synced/rebased from latest `main` before requesting review.
 - [ ] I audited the existing code structure before making changes.
 - [ ] I stayed within my frontend lane ownership or documented any cross-lane edits.
 
