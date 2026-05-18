@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
 
 import type { StoreData } from "@/lib/domain/types";
 import { nowIso } from "@/lib/infrastructure/clock";
@@ -18,6 +18,24 @@ import {
 
 const dataDir = path.join(process.cwd(), "data");
 const testDataDir = path.join(process.cwd(), ".tmp", "test-sqlite");
+const require = createRequire(import.meta.url);
+
+type SqliteDatabase = {
+  exec(sql: string): void;
+  prepare(sql: string): {
+    get(): unknown;
+    all(): unknown[];
+    run(...values: unknown[]): void;
+  };
+};
+
+let sqliteDatabaseSyncCtor:
+  | (new (
+      path: string,
+    ) => SqliteDatabase)
+  | null
+  | undefined;
+let memoryStoreData: StoreData | null = null;
 
 function getSqlitePath() {
   const workerId = process.env.VITEST_POOL_ID;
@@ -27,6 +45,23 @@ function getSqlitePath() {
   }
 
   return path.join(dataDir, "mandate402.sqlite");
+}
+
+function getSqliteDatabaseSyncCtor() {
+  if (sqliteDatabaseSyncCtor !== undefined) {
+    return sqliteDatabaseSyncCtor;
+  }
+
+  try {
+    const module = require("node:sqlite") as {
+      DatabaseSync: new (path: string) => SqliteDatabase;
+    };
+    sqliteDatabaseSyncCtor = module.DatabaseSync;
+  } catch {
+    sqliteDatabaseSyncCtor = null;
+  }
+
+  return sqliteDatabaseSyncCtor;
 }
 
 const seedData: StoreData = {
@@ -117,7 +152,7 @@ const seedData: StoreData = {
 };
 
 let lock = Promise.resolve();
-let database: DatabaseSync | null = null;
+let database: SqliteDatabase | null = null;
 
 function ensureDatabase() {
   const persistenceMode = getPersistenceMode();
@@ -140,8 +175,13 @@ function ensureDatabase() {
     return database;
   }
 
+  const DatabaseSyncCtor = getSqliteDatabaseSyncCtor();
+  if (!DatabaseSyncCtor) {
+    return null;
+  }
+
   mkdirSync(dataDir, { recursive: true });
-  database = new DatabaseSync(getSqlitePath());
+  database = new DatabaseSyncCtor(getSqlitePath());
   database.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
@@ -229,6 +269,11 @@ function ensureDatabase() {
 
 function writeStoreSync(data: StoreData) {
   const db = ensureDatabase();
+  if (!db) {
+    memoryStoreData = storeDataClone(data);
+    return;
+  }
+
   const store = storeDataClone(data);
   db.exec("BEGIN");
   try {
@@ -365,6 +410,13 @@ export async function readStore(): Promise<StoreData> {
   }
 
   const db = ensureDatabase();
+  if (!db) {
+    if (!memoryStoreData) {
+      memoryStoreData = createSeedStoreData();
+    }
+
+    return storeDataClone(memoryStoreData);
+  }
 
   const agents = db
     .prepare(`
@@ -543,4 +595,5 @@ export async function withStoreLock<T>(work: (data: StoreData) => Promise<T>) {
 export async function resetPersistenceForTests() {
   await resetPostgresStoreForTests();
   database = null;
+  memoryStoreData = null;
 }
