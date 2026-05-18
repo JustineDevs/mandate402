@@ -44,7 +44,7 @@ Primary lanes:
 
 - Use environment variables for all secrets and deployment-specific values.
 - Keep runtime-critical files under tracked repo paths.
-- Keep `.omx/` for local planning/orchestration only.
+- Keep local planning/orchestration state out of runtime-critical tracked behavior.
 - Add tests for behavioral changes, especially around policy, reconciliation, or treasury accounting.
 - Keep changes small, reviewable, and reversible where possible.
 - Use `lefthook` as the Git hook manager.
