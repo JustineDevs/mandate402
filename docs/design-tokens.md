@@ -1,6 +1,6 @@
 # Mandate402 Design Tokens
 
-This document is for Sherwin and Edward. It turns the visual system into an implementation-friendly token reference instead of leaving it only as descriptive prose.
+This document is for Sherwin, Edward, and John. It turns the visual system into an implementation-friendly token reference instead of leaving it only as descriptive prose.
 
 ## Usage Notes
 
@@ -139,4 +139,5 @@ This document is for Sherwin and Edward. It turns the visual system into an impl
 ## Implementation Rule
 
 - Sherwin should design against these names and values.
-- Edward should prefer implementing the token names as CSS variables or equivalent shared constants instead of scattering raw values.
+- Edward and John should implement against one shared token system instead of per-lane style duplication.
+- Frontend lanes should prefer centralized CSS variables or shared constants instead of scattering raw values.

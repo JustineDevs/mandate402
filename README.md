@@ -35,11 +35,14 @@ Mandate402 is a Morph-native governance and treasury control layer for x402 comm
 |---|---|---|---|
 | Justine | `@JustineDevs` | Project Manager / Full Stack | Product direction, infra, sprint, release, socials |
 | Sherwin | `@owenlim225` | UI/UX Designer | Wireframes, user experience, design system |
-| Edward Joseph | `@automatewithedward` | Frontend Developer | Repo audit, UI implementation, client logic |
+| Edward Joseph | `@automatewithedward` | Frontend - Transactional UI | Mandate flows, auth-aware UI, API-connected interactions |
+| John Abrahm | `@bam841` | Frontend - Observability UI | Dashboard, audit, receipts, read-heavy UI, shared presentation |
 
 Operational pipeline:
 
-`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Audit & Implement)` -> `Justine (Review & Merge)`
+`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Transactional UI) + John (Observability UI)` -> `Justine (Review & Merge)`
+
+These workflow, ownership, PR, and release rules are mandatory, not optional.
 
 ## Problem
 
@@ -84,6 +87,14 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | [docs/GLOSSARY.md](./docs/GLOSSARY.md) | Shared definitions for product and system terms |
 | [docs/design-tokens.md](./docs/design-tokens.md) | UI token reference for design and frontend implementation |
 | [docs/STATUS.md](./docs/STATUS.md) | Current MVP state, real vs demo-shaped boundaries, and next priorities |
+| [docs/WORKFLOW.md](./docs/WORKFLOW.md) | Mandatory issue-to-merge workflow |
+| [docs/BRANCHING.md](./docs/BRANCHING.md) | Mandatory branching and worktree strategy |
+| [docs/LANES.md](./docs/LANES.md) | Mandatory ownership split by team lane |
+| [docs/AI-POLICY.md](./docs/AI-POLICY.md) | Mandatory AI usage and review rules |
+| [docs/LABELS.md](./docs/LABELS.md) | Mandatory issue and PR label taxonomy |
+| [docs/RELEASE-POLICY.md](./docs/RELEASE-POLICY.md) | Mandatory main-only release, tagging, and release-note rules |
+| [docs/HOTFIX.md](./docs/HOTFIX.md) | Mandatory emergency hotfix policy |
+| [docs/PR-POLICY.md](./docs/PR-POLICY.md) | Mandatory PR rules and merge expectations |
 | [docs/TEAM.md](./docs/TEAM.md) | Team ownership model and anti-silo collaboration rules |
 | [docs/adr/ADR-0001-justine-scope-documents.md](./docs/adr/ADR-0001-justine-scope-documents.md) | Defines the explicit scope-authority surface for Justine-led tasks |
 | [docs/adr/ADR-0002-sherwin-ui-wireframe-task.md](./docs/adr/ADR-0002-sherwin-ui-wireframe-task.md) | Defines the canonical wireframe and design brief for Sherwin's task |

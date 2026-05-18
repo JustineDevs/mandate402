@@ -8,7 +8,7 @@ This document is for contributors who need to know which architecture or workflo
 |---|---|---|---|
 | [ADR-0001](./ADR-0001-justine-scope-documents.md) | Justine Scope Documents as the Explicit Authorization Surface | Accepted | Defines what counts as explicit scope authority for Justine-led work |
 | [ADR-0002](./ADR-0002-sherwin-ui-wireframe-task.md) | Sherwin UI Wireframe Task for Mandate402 Operator Surfaces | Accepted | Defines the canonical wireframe, palette, and design handoff for Sherwin |
-| [ADR-0003](./ADR-0003-edward-frontend-implementation-task.md) | Edward Frontend Implementation Task and Repo Audit Boundary | Accepted | Defines Edward's repo-audit-first implementation lane and escalation boundaries |
+| [ADR-0003](./ADR-0003-edward-frontend-implementation-task.md) | Edward Frontend Implementation Task and Repo Audit Boundary | Accepted | Defines Edward's transactional frontend lane and escalation boundaries |
 
 ## How To Use ADRs
 
@@ -20,4 +20,4 @@ This document is for contributors who need to know which architecture or workflo
 
 - Justine scope authority: [ADR-0001](./ADR-0001-justine-scope-documents.md)
 - Sherwin design task: [ADR-0002](./ADR-0002-sherwin-ui-wireframe-task.md)
-- Edward implementation task: [ADR-0003](./ADR-0003-edward-frontend-implementation-task.md)
+- Edward transactional implementation task: [ADR-0003](./ADR-0003-edward-frontend-implementation-task.md)

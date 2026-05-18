@@ -49,6 +49,7 @@ It proves the control model first:
 - Justine scope authority is defined in [ADR-0001](./adr/ADR-0001-justine-scope-documents.md)
 - Sherwin's wireframe task is defined in [ADR-0002](./adr/ADR-0002-sherwin-ui-wireframe-task.md)
 - Edward's implementation boundary is defined in [ADR-0003](./adr/ADR-0003-edward-frontend-implementation-task.md)
+- The frontend is split into transactional UI and observability/presentation UI lanes.
 
 ## Current Documentation State
 
@@ -59,6 +60,8 @@ Available:
 - business model
 - technical system design
 - team contract
+- workflow, branching, lane, AI policy, and label docs
+- release, hotfix, and PR policy docs
 - ADR set
 - glossary
 - design token reference
@@ -73,6 +76,6 @@ Still useful to add later:
 
 Likely next product or documentation steps:
 
-1. keep design tokens and actual frontend implementation aligned
+1. keep one shared design-token and primitive system aligned across both frontend lanes
 2. expand vendor-path documentation only when the real vendor shape stabilizes
 3. add more deployment and operations guidance when the runtime becomes less demo-shaped

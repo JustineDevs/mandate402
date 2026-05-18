@@ -14,6 +14,14 @@ This document is for anyone trying to understand which Mandate402 document to re
 | Understand current release shape and what is still demo-shaped | [STATUS.md](./STATUS.md) |
 | Look up domain terms | [GLOSSARY.md](./GLOSSARY.md) |
 | Implement the visual system | [design-tokens.md](./design-tokens.md) |
+| Understand mandatory delivery workflow | [WORKFLOW.md](./WORKFLOW.md) |
+| Understand mandatory branch rules | [BRANCHING.md](./BRANCHING.md) |
+| Understand mandatory lane ownership | [LANES.md](./LANES.md) |
+| Understand mandatory AI usage rules | [AI-POLICY.md](./AI-POLICY.md) |
+| Understand mandatory label taxonomy | [LABELS.md](./LABELS.md) |
+| Understand mandatory release rules | [RELEASE-POLICY.md](./RELEASE-POLICY.md) |
+| Understand emergency release exceptions | [HOTFIX.md](./HOTFIX.md) |
+| Understand mandatory PR policy | [PR-POLICY.md](./PR-POLICY.md) |
 | Review formal decisions | [adr/README.md](./adr/README.md) |
 
 ## Reading Paths
@@ -56,8 +64,16 @@ This document is for anyone trying to understand which Mandate402 document to re
 
 - [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md): implementation-grounded runtime and system design
 - [GLOSSARY.md](./GLOSSARY.md): normalized definitions for shared terms
-- [design-tokens.md](./design-tokens.md): UI design token reference for Sherwin and Edward
+- [design-tokens.md](./design-tokens.md): UI design token reference for Sherwin, Edward, and John
 - [STATUS.md](./STATUS.md): current MVP status, known boundaries, next-documentation priorities
+- [WORKFLOW.md](./WORKFLOW.md): mandatory issue-to-merge execution flow
+- [BRANCHING.md](./BRANCHING.md): mandatory branch and worktree rules
+- [LANES.md](./LANES.md): mandatory ownership split by team lane
+- [AI-POLICY.md](./AI-POLICY.md): mandatory AI usage rules
+- [LABELS.md](./LABELS.md): mandatory issue and PR label taxonomy
+- [RELEASE-POLICY.md](./RELEASE-POLICY.md): mandatory main-only release and tagging rules
+- [HOTFIX.md](./HOTFIX.md): mandatory emergency hotfix rules
+- [PR-POLICY.md](./PR-POLICY.md): mandatory PR scope, review, and merge rules
 
 ### Team and process
 

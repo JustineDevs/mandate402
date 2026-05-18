@@ -18,7 +18,9 @@ assignees: []
 - [ ] Mobile behavior notes:
 - [ ] Special interaction notes:
 
-## Phase 3: Frontend Implementation (Edward Joseph `@EJ`)
+## Phase 3: Frontend Implementation
+
+### Transactional UI (Edward Joseph `@automatewithedward`)
 
 ### Repository Intake Checklist
 
@@ -28,12 +30,18 @@ assignees: []
 
 ### Development Subtasks
 
-- [ ] Create or update semantic layout components.
-- [ ] Implement client-side interaction logic.
+- [ ] Implement mandate/action/auth-aware UI flows.
 - [ ] Connect API endpoints or safe placeholder data as required.
+
+### Observability UI (John Abrahm `@bam841`)
+
+- [ ] Implement dashboard, audit, receipt, and status surfaces.
+- [ ] Reuse shared primitives instead of duplicating component systems.
+- [ ] Check for overlap with transactional screens before editing shared surfaces.
 
 ## Phase 4: Sign-Off Criteria
 
 - Sherwin: UI matches the visual design intent.
-- Edward: Frontend is interactive and does not break existing behavior.
+- Edward: Transactional UI is interactive and does not break existing behavior.
+- John: Observability UI is consistent, responsive, and aligned to the shared design system.
 - Justine: Code is reviewed, infrastructure is stable, and the PR is ready to merge.

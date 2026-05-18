@@ -1,0 +1,37 @@
+# Core authority
+* @JustineDevs
+
+# Design and shared visual language
+/src/app/globals.css @owenlim225 @JustineDevs
+/docs/design-tokens.md @owenlim225 @JustineDevs
+/docs/adr/ADR-0002-sherwin-ui-wireframe-task.md @owenlim225 @JustineDevs
+
+# Transactional frontend
+/src/components/operator-console.tsx @automatewithedward @JustineDevs
+/src/app/api/mandates/** @automatewithedward @JustineDevs
+/docs/adr/ADR-0003-edward-frontend-implementation-task.md @automatewithedward @JustineDevs
+
+# Observability / presentation frontend
+/src/components/dashboard.tsx @bam841 @JustineDevs
+/src/components/header-hero.tsx @bam841 @owenlim225 @JustineDevs
+
+# Governance / process
+/docs/TEAM.md @JustineDevs
+/docs/WORKFLOW.md @JustineDevs
+/docs/BRANCHING.md @JustineDevs
+/docs/LANES.md @JustineDevs
+/docs/AI-POLICY.md @JustineDevs
+/docs/LABELS.md @JustineDevs
+/team-structure.yml @JustineDevs
+/.github/ISSUE_TEMPLATE/** @JustineDevs
+/.github/PULL_REQUEST_TEMPLATE.md @JustineDevs
+/.github/BRANCH_PROTECTION.md @JustineDevs
+/.cursorrules @JustineDevs
+/.clauderules @JustineDevs
+/.devinrules @JustineDevs
+
+# Runtime and security-critical surfaces
+/src/lib/modules/auth.ts @JustineDevs
+/src/lib/infrastructure/** @JustineDevs
+/contracts/** @JustineDevs
+/.github/workflows/** @JustineDevs

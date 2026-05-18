@@ -6,18 +6,18 @@
 
 ## Context
 
-Mandate402 needs a durable design-task artifact for Sherwin so the UI/UX scope is explicit, reviewable, and reusable by Edward during frontend implementation.
+Mandate402 needs a durable design-task artifact for Sherwin so the UI/UX scope is explicit, reviewable, and reusable by the frontend implementation lanes during execution.
 
 The team already agreed on a linear anti-silo flow:
 
-`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Audit & Implement)` -> `Justine (Review & Merge)`
+`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Transactional UI) + John (Observability UI)` -> `Justine (Review & Merge)`
 
 The missing piece is a tracked task-level ADR that captures:
 
 - what Sherwin is being asked to design
 - which screens are in scope
 - the visual language and operating constraints
-- the exact handoff package Edward should implement from
+- the exact handoff package the frontend implementation lanes should implement from
 
 Without this, the wireframe task can drift into generic UI exploration, incomplete mobile treatment, or ambiguous design intent that Edward has to reinterpret later.
 
@@ -48,7 +48,7 @@ Sherwin's expected output includes:
 - button, table, card, and status treatment guidance
 - notes for any interaction behavior that is not obvious from static layouts
 
-The output must be implementable by Edward with minimal reinterpretation.
+The output must be implementable by Edward and John with minimal reinterpretation inside their separate lanes.
 
 ## In-Scope Screens
 
@@ -310,7 +310,7 @@ Sherwin is designing wireframes, not backend logic, but the wireframes must refl
 - agent actions are constrained by mandate boundaries
 - blocked vs successful outcomes must be visually distinct
 
-The wireframes should help Edward preserve those product truths during implementation.
+The wireframes should help Edward and John preserve those product truths during implementation.
 
 ## Explicit Non-Goals
 
@@ -324,7 +324,7 @@ This task does not authorize Sherwin to redefine:
 
 If the UI exposes a product ambiguity, the correct action is to escalate it back to Justine rather than silently redefining the flow.
 
-## Handoff to Edward
+## Handoff to Frontend Implementation
 
 Sherwin's handoff package should include:
 
@@ -334,12 +334,12 @@ Sherwin's handoff package should include:
 - state notes for badges, buttons, and status treatments
 - any interaction notes that affect implementation
 
-Edward's responsibility begins after that handoff:
+Frontend implementation responsibility begins after that handoff:
 
-1. audit the existing repository
-2. map the wireframe to current architecture
-3. implement the frontend faithfully
-4. surface architectural conflicts before widening scope
+1. Edward audits and implements the transactional UI lane
+2. John implements the observability and presentation lane
+3. both map the wireframe to the current architecture
+4. both surface architectural or shared-surface conflicts before widening scope
 
 ## Acceptance Criteria
 
@@ -347,7 +347,7 @@ This ADR is satisfied when:
 
 1. Sherwin can produce a complete wireframe package from this brief alone
 2. Justine can review the package against product and technical fit
-3. Edward can implement from the package without inventing missing layout structure
+3. Edward and John can implement from the package without inventing missing layout structure
 4. desktop and mobile intent are both covered
 5. the design remains consistent with Mandate402's high-trust treasury-control identity
 
@@ -356,7 +356,7 @@ This ADR is satisfied when:
 ### Positive
 
 - Sherwin has a stable, repo-tracked task brief
-- Edward receives a clearer implementation handoff
+- Edward and John receive a clearer implementation handoff
 - Justine's design review is grounded in a durable artifact
 - the team reduces silo and tunnel-vision risk during UI work
 
