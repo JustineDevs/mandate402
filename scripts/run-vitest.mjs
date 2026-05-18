@@ -1,6 +1,6 @@
+import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import { spawn } from "node:child_process";
 
 const rootDir = process.cwd();
 const tempDir = path.join(rootDir, ".tmp", "vitest-tmp");
