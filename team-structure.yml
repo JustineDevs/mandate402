@@ -1,3 +1,4 @@
+---
 version: "0.1.0"
 project: "Mandate402"
 organization: "Core Dev Squad"
@@ -5,7 +6,8 @@ roles:
   - member: "Justine"
     github: "JustineDevs"
     title: "Full Stack & Project Manager"
-    domain: "Product Direction, Infrastructure, Sprint Management, Socials"
+    domain: >-
+      Product Direction, Infrastructure, Sprint Management, Socials
     responsibilities:
       - "Define sprint goals and product roadmaps"
       - "Manage cloud infrastructure and deployments"
@@ -19,28 +21,42 @@ roles:
     responsibilities:
       - "Create high-fidelity wireframes and user flows"
       - "Maintain design system and UI consistency"
-      - "Hand off visual assets and layout intent to frontend engineering"
+      - >-
+        Hand off visual assets and layout intent to frontend engineering
 
   - member: "Edward Joseph"
     github: "automatewithedward"
     title: "Frontend Developer - Transactional UI"
-    domain: "Stateful UI, API Integration, Action Flows"
+    domain: >-
+      Stateful UI, API Integration, Action Flows
     responsibilities:
       - "Clone or sync the repository and audit existing architecture"
-      - "Implement mandate creation, attempt, revoke, and auth-aware frontend flows"
-      - "Own API-connected and stateful UI behavior without widening runtime semantics"
+      - >-
+        Implement mandate creation, attempt, revoke, and auth-aware frontend
+        flows
+      - >-
+        Own API-connected and stateful UI behavior without widening runtime
+        semantics
 
   - member: "John Abrahm"
     github: "bam841"
     title: "Frontend Developer - Observability UI"
-    domain: "Dashboard, Audit Views, Presentation Components"
+    domain: >-
+      Dashboard, Audit Views, Presentation Components
     responsibilities:
       - "Implement dashboard, audit, receipt, and status surfaces"
-      - "Own reusable presentation components and responsive refinement in read-heavy surfaces"
-      - "Preserve shared design primitives instead of duplicating component systems"
+      - >-
+        Own reusable presentation components and responsive refinement in
+        read-heavy surfaces
+      - >-
+        Preserve shared design primitives instead of duplicating component
+        systems
 
 interaction_workflow:
   step_1: "Justine defines sprint goal and feature scope."
   step_2: "Sherwin designs the wireframe layout based on scope."
-  step_3: "Justine reviews design for technical and product alignment."
-  step_4: "Edward Joseph and John Abrahm implement separate frontend lanes from one shared design source."
+  step_3: >-
+    Justine reviews design for technical and product alignment.
+  step_4: >-
+    Edward Joseph and John Abrahm implement separate frontend lanes from one
+    shared design source.

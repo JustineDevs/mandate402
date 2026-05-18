@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "node scripts/run-vitest.mjs",
     "format": "biome format --write . --files-ignore-unknown=true",
     "check:biome": "biome check . --files-ignore-unknown=true",
     "check:repo-safety": "node scripts/check-repo-safety.mjs",
