@@ -8,6 +8,7 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   test: {
     environment: "node",
+    cacheDir: path.join(rootDir, ".tmp", "vitest-cache"),
   },
   resolve: {
     alias: {
