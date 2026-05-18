@@ -6,9 +6,9 @@ import { defineConfig } from "vitest/config";
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  cacheDir: path.join(rootDir, ".tmp", "vitest-cache"),
   test: {
     environment: "node",
-    cacheDir: path.join(rootDir, ".tmp", "vitest-cache"),
   },
   resolve: {
     alias: {
