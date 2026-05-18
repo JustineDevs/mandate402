@@ -17,7 +17,17 @@ import {
 } from "@/lib/infrastructure/postgres-store";
 
 const dataDir = path.join(process.cwd(), "data");
-const sqlitePath = path.join(dataDir, "mandate402.sqlite");
+const testDataDir = path.join(process.cwd(), ".tmp", "test-sqlite");
+
+function getSqlitePath() {
+  const workerId = process.env.VITEST_POOL_ID;
+  if (workerId) {
+    mkdirSync(testDataDir, { recursive: true });
+    return path.join(testDataDir, `mandate402-${workerId}.sqlite`);
+  }
+
+  return path.join(dataDir, "mandate402.sqlite");
+}
 
 const seedData: StoreData = {
   agents: [
@@ -131,7 +141,7 @@ function ensureDatabase() {
   }
 
   mkdirSync(dataDir, { recursive: true });
-  database = new DatabaseSync(sqlitePath);
+  database = new DatabaseSync(getSqlitePath());
   database.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
