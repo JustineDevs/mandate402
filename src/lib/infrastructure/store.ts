@@ -53,10 +53,10 @@ function getSqliteDatabaseSyncCtor() {
   }
 
   try {
-    const module = require("node:sqlite") as {
+    const sqliteModule = require("node:sqlite") as {
       DatabaseSync: new (path: string) => SqliteDatabase;
     };
-    sqliteDatabaseSyncCtor = module.DatabaseSync;
+    sqliteDatabaseSyncCtor = sqliteModule.DatabaseSync;
   } catch {
     sqliteDatabaseSyncCtor = null;
   }
