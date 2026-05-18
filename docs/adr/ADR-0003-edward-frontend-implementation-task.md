@@ -1,4 +1,4 @@
-# ADR-0003: Edward Frontend Implementation Task and Repo Audit Boundary
+# ADR-0003: Edward Transactional Frontend Implementation Boundary
 
 - Status: Accepted
 - Date: 2026-05-16
@@ -13,15 +13,15 @@ The team has a documented design lane for Sherwin, but implementation can still 
 - what he may implement directly from Sherwin's handoff
 - when he must escalate back to Justine instead of improvising
 
-Without this, frontend work can easily widen into backend, infra, or product-redefinition work under the pressure of "just making the UI function."
+Without this, frontend work can easily widen into backend, infra, or product-redefinition work under the pressure of "just making the UI function." It also creates overlap risk once a second frontend implementer is added.
 
 ## Decision
 
-Edward's frontend work will follow a repo-audit-first implementation model with explicit default ownership, escalation rules, and handoff expectations.
+Edward's frontend work will follow a repo-audit-first implementation model with explicit default ownership, escalation rules, and handoff expectations for the transactional UI lane.
 
 ## Edward Task Definition
 
-Edward is responsible for converting approved design handoffs into working frontend code while preserving the existing runtime and API semantics.
+Edward is responsible for converting approved design handoffs into working transactional frontend code while preserving the existing runtime and API semantics.
 
 This includes:
 
@@ -48,8 +48,8 @@ If a conflict is found, it should be written down and escalated before large imp
 Unless Justine scope documents explicitly widen the task, Edward's default implementation lane is:
 
 - `src/components/**`
-- `src/app/**` where the work is presentation-oriented or route-level UI
-- shared frontend styling surfaces such as app-level CSS
+- `src/app/**` where work touches mandate creation, attempts, revoke, or auth-aware flows
+- shared frontend styling surfaces only when a transactional lane change requires them
 - `public/**` for UI assets needed for implementation
 
 Edward may update these areas to complete frontend work, but should not silently widen into:
@@ -59,12 +59,13 @@ Edward may update these areas to complete frontend work, but should not silently
 - contract logic
 - release tooling
 - changes that redefine the product model itself
+- presentation-heavy screens already owned by John unless coordination is explicit
 
 ## What Sherwin's Handoff Authorizes
 
 Sherwin's design handoff authorizes Edward to implement:
 
-- layout structure
+- layout structure for transactional surfaces
 - spacing and hierarchy
 - visual states
 - responsive behavior
@@ -96,7 +97,7 @@ The goal is not to block progress; the goal is to keep product truth visible.
 
 Edward's implementation handoff should include:
 
-- working frontend changes
+- working transactional frontend changes
 - short repo-audit notes if a conflict was found
 - screenshots or recordings
 - responsive verification notes
@@ -106,7 +107,7 @@ Edward's implementation handoff should include:
 
 This ADR is satisfied when:
 
-1. Edward can implement frontend work without having to guess his authority boundary
+1. Edward can implement transactional frontend work without having to guess his authority boundary
 2. Sherwin's design handoff can be translated into code without redefining backend semantics
 3. Justine can review the output knowing where frontend authority ended and escalation began
 
@@ -117,7 +118,7 @@ This ADR is satisfied when:
 - clearer implementation ownership
 - less silent scope creep
 - fewer design-to-code misunderstandings
-- easier review of what is frontend-only versus product-semantic change
+- easier review of what is transactional frontend-only versus product-semantic change
 
 ### Tradeoffs
 

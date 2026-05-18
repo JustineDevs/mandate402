@@ -6,7 +6,7 @@ import { isFutureIsoTimestamp } from "@/lib/domain/time";
 import type { AuditEntry, DomainEvent, Mandate } from "@/lib/domain/types";
 import { nowIso } from "@/lib/infrastructure/clock";
 import { createId } from "@/lib/infrastructure/id";
-import { withStoreLock } from "@/lib/infrastructure/store";
+import { readStore, withStoreLock } from "@/lib/infrastructure/store";
 import {
   issueMandateAnchor,
   revokeMandateAnchor,
@@ -65,23 +65,28 @@ function makeDomainEvent(input: {
 }
 
 export async function listMandates() {
-  return withStoreLock(async (data) => data.mandates);
+  const data = await readStore();
+  return data.mandates;
 }
 
 export async function listAgents() {
-  return withStoreLock(async (data) => data.agents);
+  const data = await readStore();
+  return data.agents;
 }
 
 export async function listAttempts() {
-  return withStoreLock(async (data) => data.attempts);
+  const data = await readStore();
+  return data.attempts;
 }
 
 export async function listAuditEntries() {
-  return withStoreLock(async (data) => data.auditEntries);
+  const data = await readStore();
+  return data.auditEntries;
 }
 
 export async function listDomainEvents() {
-  return withStoreLock(async (data) => data.domainEvents);
+  const data = await readStore();
+  return data.domainEvents;
 }
 
 export async function createMandate(input: CreateMandateInput) {

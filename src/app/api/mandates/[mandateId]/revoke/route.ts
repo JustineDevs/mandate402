@@ -8,7 +8,7 @@ export async function POST(
   { params }: { params: Promise<{ mandateId: string }> },
 ) {
   try {
-    const operator = requireOperator(request);
+    const operator = await requireOperator(request);
     const { mandateId } = await params;
     const mandate = await revokeMandate(mandateId);
     logEvent("info", "api.mandate.revoked", {

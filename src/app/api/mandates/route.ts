@@ -19,14 +19,23 @@ const createMandateSchema = z.object({
   requiresReceiptCapability: z.boolean(),
 });
 
-export async function GET() {
-  const mandates = await listMandates();
-  return jsonOk({ mandates });
+export async function GET(request: Request) {
+  try {
+    await requireOperator(request);
+    const mandates = await listMandates();
+    return jsonOk({ mandates });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return jsonError(error.message, 401);
+    }
+
+    throw error;
+  }
 }
 
 export async function POST(request: Request) {
   try {
-    requireOperator(request);
+    await requireOperator(request);
     const correlationId = readCorrelationId(request);
     const body = await request.json();
     const input = createMandateSchema.parse(body);

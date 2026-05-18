@@ -18,6 +18,24 @@
 > Mandate402 is the treasury governance and guardrail layer for x402 agentic commerce on Morph.
 > It does **not** replace the x402 facilitator and it does **not** replace the paid vendor service.
 
+<details>
+<summary><strong>Why Morph Matters</strong></summary>
+
+<div align="center">
+  <img src="./public/images/Morph_Logo.png" alt="Morph Network logo" width="100%" />
+</div>
+
+Morph is the chain environment that gives Mandate402 its web3-native treasury and execution context.
+
+In practical terms, Morph matters here because it provides:
+
+- a real settlement environment for treasury-aware machine payments
+- a public chain surface for mandate lifecycle anchoring
+- an ecosystem-aligned home for x402 and agentic commerce experiments that need to look like real infrastructure, not simulated web2-only flows
+
+For Mandate402, Morph is not decorative branding. It is part of the trust, settlement, and verification story behind governed agent spend.
+</details>
+
 > [!WARNING]
 > Never commit `.env.local`, private keys, Morph x402 HMAC credentials, or deployment cache files.
 
@@ -35,11 +53,14 @@ Mandate402 is a Morph-native governance and treasury control layer for x402 comm
 |---|---|---|---|
 | Justine | `@JustineDevs` | Project Manager / Full Stack | Product direction, infra, sprint, release, socials |
 | Sherwin | `@owenlim225` | UI/UX Designer | Wireframes, user experience, design system |
-| Edward Joseph | `@automatewithedward` | Frontend Developer | Repo audit, UI implementation, client logic |
+| Edward Joseph | `@automatewithedward` | Frontend - Transactional UI | Mandate flows, auth-aware UI, API-connected interactions |
+| John Abrahm | `@bam841` | Frontend - Observability UI | Dashboard, audit, receipts, read-heavy UI, shared presentation |
 
 Operational pipeline:
 
-`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Audit & Implement)` -> `Justine (Review & Merge)`
+`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Transactional UI) + John (Observability UI)` -> `Justine (Review & Merge)`
+
+These workflow, ownership, PR, and release rules are mandatory, not optional.
 
 ## Problem
 
@@ -84,6 +105,19 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | [docs/GLOSSARY.md](./docs/GLOSSARY.md) | Shared definitions for product and system terms |
 | [docs/design-tokens.md](./docs/design-tokens.md) | UI token reference for design and frontend implementation |
 | [docs/STATUS.md](./docs/STATUS.md) | Current MVP state, real vs demo-shaped boundaries, and next priorities |
+| [docs/WORKFLOW.md](./docs/WORKFLOW.md) | Mandatory issue-to-merge workflow |
+| [docs/BRANCHING.md](./docs/BRANCHING.md) | Mandatory branching and worktree strategy |
+| [docs/LANES.md](./docs/LANES.md) | Mandatory ownership split by team lane |
+| [docs/AI-POLICY.md](./docs/AI-POLICY.md) | Mandatory AI usage and review rules |
+| [docs/LABELS.md](./docs/LABELS.md) | Mandatory issue and PR label taxonomy |
+| [docs/RELEASE-POLICY.md](./docs/RELEASE-POLICY.md) | Mandatory main-only release, tagging, and release-note rules |
+| [docs/HOTFIX.md](./docs/HOTFIX.md) | Mandatory emergency hotfix policy |
+| [docs/PR-POLICY.md](./docs/PR-POLICY.md) | Mandatory PR rules and merge expectations |
+| [docs/CONTRIBUTOR-PROMPT.md](./docs/CONTRIBUTOR-PROMPT.md) | Copy-paste-ready contributor onboarding prompt |
+| [docs/REPO-INGESTION.md](./docs/REPO-INGESTION.md) | Deterministic repo-ingestion checklist |
+| [docs/DEFINITION-OF-READY.md](./docs/DEFINITION-OF-READY.md) | Mandatory readiness gate for issues |
+| [docs/DEFINITION-OF-DONE.md](./docs/DEFINITION-OF-DONE.md) | Mandatory done gate for merge-ready changes |
+| [docs/FRONTEND-PRIMITIVES.md](./docs/FRONTEND-PRIMITIVES.md) | Shared primitive reuse rules for frontend lanes |
 | [docs/TEAM.md](./docs/TEAM.md) | Team ownership model and anti-silo collaboration rules |
 | [docs/adr/ADR-0001-justine-scope-documents.md](./docs/adr/ADR-0001-justine-scope-documents.md) | Defines the explicit scope-authority surface for Justine-led tasks |
 | [docs/adr/ADR-0002-sherwin-ui-wireframe-task.md](./docs/adr/ADR-0002-sherwin-ui-wireframe-task.md) | Defines the canonical wireframe and design brief for Sherwin's task |
@@ -150,6 +184,46 @@ If these roles are mixed together, the system becomes misleading:
 Mandate402 wins the x402 track by sitting **between** autonomous payment intent and actual settlement, enforcing policy before value leaves the treasury.
 
 </details>
+
+## Quick Start
+
+For a new contributor or AI-assisted workspace, use this prompt as the first repo-ingestion instruction:
+
+```text
+You are onboarding into the Mandate402 repository.
+
+Follow setup and operating instructions in these files first:
+- AGENTS.md
+- docs/WORKFLOW.md
+- docs/BRANCHING.md
+- docs/LANES.md
+- docs/AI-POLICY.md
+- docs/LABELS.md
+- docs/TEAM.md
+- docs/README.md
+- docs/STATUS.md
+- docs/adr/README.md
+
+Strictness:
+- These rules are mandatory, not optional.
+- Do not work directly on main.
+- Do not begin meaningful implementation without a tracked issue.
+- Stay inside the assigned lane and issue scope.
+- Follow PR-only merge flow.
+- Treat main as the only release-authoritative branch.
+- Do not widen auth, infra, contract, release, or runtime semantics without explicit approval from the tracked scope documents.
+
+Before making changes:
+1. Sync from latest main.
+2. Read the relevant ADRs and lane docs.
+3. Confirm the issue, lane owner, acceptance criteria, and out-of-scope boundaries.
+4. Reuse existing patterns before introducing new ones.
+
+When uncertain:
+- escalate early
+- do not assume permission
+- do not silently change architecture or release behavior
+```
 
 ## Commands
 

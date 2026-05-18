@@ -4,6 +4,17 @@ import { DatabaseSync } from "node:sqlite";
 
 import type { StoreData } from "@/lib/domain/types";
 import { nowIso } from "@/lib/infrastructure/clock";
+import {
+  getDatabaseUrl,
+  getPersistenceMode,
+  isProductionEnv,
+} from "@/lib/infrastructure/env";
+import {
+  readStorePostgres,
+  resetPostgresStoreForTests,
+  withPostgresStoreLock,
+  writeStorePostgres,
+} from "@/lib/infrastructure/postgres-store";
 
 const dataDir = path.join(process.cwd(), "data");
 const sqlitePath = path.join(dataDir, "mandate402.sqlite");
@@ -99,6 +110,22 @@ let lock = Promise.resolve();
 let database: DatabaseSync | null = null;
 
 function ensureDatabase() {
+  const persistenceMode = getPersistenceMode();
+
+  if (isProductionEnv() && persistenceMode !== "postgres") {
+    throw new Error(
+      "Production mode requires postgres persistence. SQLite is demo-only.",
+    );
+  }
+
+  if (persistenceMode === "postgres") {
+    if (!getDatabaseUrl()) {
+      throw new Error(
+        "Postgres persistence mode requires MANDATE402_DATABASE_URL or DATABASE_URL.",
+      );
+    }
+  }
+
   if (database) {
     return database;
   }
@@ -323,6 +350,10 @@ export function createSeedStoreData(): StoreData {
 }
 
 export async function readStore(): Promise<StoreData> {
+  if (getPersistenceMode() === "postgres") {
+    return readStorePostgres();
+  }
+
   const db = ensureDatabase();
 
   const agents = db
@@ -460,16 +491,29 @@ export async function readStore(): Promise<StoreData> {
 }
 
 export async function writeStore(data: StoreData) {
+  if (getPersistenceMode() === "postgres") {
+    return writeStorePostgres(data);
+  }
+
   writeStoreSync(data);
 }
 
 export async function resetStoreForTests(
   data: StoreData = createSeedStoreData(),
 ) {
+  if (getPersistenceMode() === "postgres") {
+    await writeStorePostgres(data);
+    return;
+  }
+
   writeStoreSync(data);
 }
 
 export async function withStoreLock<T>(work: (data: StoreData) => Promise<T>) {
+  if (getPersistenceMode() === "postgres") {
+    return withPostgresStoreLock(work);
+  }
+
   const previous = lock;
   let release!: () => void;
   lock = new Promise<void>((resolve) => {
@@ -484,4 +528,9 @@ export async function withStoreLock<T>(work: (data: StoreData) => Promise<T>) {
   } finally {
     release();
   }
+}
+
+export async function resetPersistenceForTests() {
+  await resetPostgresStoreForTests();
+  database = null;
 }

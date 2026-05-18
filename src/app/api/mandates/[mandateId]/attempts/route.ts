@@ -17,7 +17,7 @@ export async function POST(
   { params }: { params: Promise<{ mandateId: string }> },
 ) {
   try {
-    const operator = requireOperator(request);
+    const operator = await requireOperator(request);
     const correlationId = readCorrelationId(request);
     const { mandateId } = await params;
     const body = await request.json();

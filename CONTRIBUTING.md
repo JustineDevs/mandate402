@@ -1,8 +1,17 @@
 # CONTRIBUTING.md
 
-This repository is strict.
+This repository is strict internally, but we still want public contributors to have a clear, approachable path into the project.
 
-If you are contributing as a human or an autonomous coding agent, treat this file as a required execution protocol, not optional guidance.
+If you are a new contributor, start here first:
+
+1. [README.md](./README.md)
+2. [docs/OPEN-SOURCE-ONBOARDING.md](./docs/OPEN-SOURCE-ONBOARDING.md)
+3. [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+4. [docs/CONTRIBUTION-TYPES.md](./docs/CONTRIBUTION-TYPES.md)
+5. [docs/FIRST-PR.md](./docs/FIRST-PR.md)
+6. [docs/SUPPORT.md](./docs/SUPPORT.md)
+
+If you are a core team member or an autonomous coding agent, treat the rest of this file as a required execution protocol, not optional guidance.
 
 ## Mandatory Read Order
 

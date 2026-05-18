@@ -117,6 +117,116 @@ Current persistence is lightweight, but the code must still behave as if data we
 
 ## Workflow Rules
 
+### Mandatory Orchestration Model
+
+All meaningful work in this repository must follow the tracked workflow documents:
+
+- `docs/WORKFLOW.md`
+- `docs/BRANCHING.md`
+- `docs/LANES.md`
+- `docs/AI-POLICY.md`
+- `docs/LABELS.md`
+- `docs/TEAM.md`
+
+These are mandatory operating rules, not optional references.
+
+### Issue-First Rule
+
+Do not begin meaningful implementation without a tracked issue or equivalent scoped work item.
+
+Every meaningful issue must define:
+
+- problem
+- goal
+- owner
+- lane
+- acceptance criteria
+- out of scope
+
+### Branch and Worktree Rule
+
+- Do not work directly on `main`.
+- One issue must map to one branch.
+- One branch should map to one worktree when parallel work is active.
+- Do not stack unrelated work in one branch.
+
+Recommended branch forms:
+
+- `feat/<issue>-<slug>`
+- `fix/<issue>-<slug>`
+- `docs/<issue>-<slug>`
+- `ui/<issue>-<slug>`
+- `chore/<issue>-<slug>`
+
+### Sync Rule
+
+All implementers must keep their ownership branch current with `main`.
+
+Required sync moments:
+
+- before starting work for the day
+- before opening a PR
+- after `main` changes in a related lane
+- after a branch sits stale during active work
+
+Use:
+
+```bash
+git fetch origin
+git switch main
+git pull --ff-only origin main
+git switch <branch>
+git rebase origin/main
+```
+
+Avoid implicit merge-commit syncs from plain `git pull` on feature branches.
+
+### Frontend Lane Rule
+
+Frontend ownership is intentionally split:
+
+- Sherwin = design authority
+- Edward = transactional frontend
+- John = observability / presentation frontend
+- Justine = final integration / release authority
+
+Edward and John must not silently co-own the same screen or feature surface by default.
+
+Shared frontend primitives must be centralized and reused:
+
+- cards
+- badges
+- tables
+- pills
+- form controls
+- layout shells
+
+### AI Scope Rule
+
+AI-assisted work must remain inside the assigned issue scope and lane scope.
+
+AI must not silently widen:
+
+- auth
+- infra
+- contracts
+- release workflows
+- runtime semantics
+
+without explicit authority from the tracked scope documents.
+
+### Review Rule
+
+- No direct merge to `main`.
+- No PR without a linked issue.
+- No frontend implementation without Sherwin handoff when visual changes are involved.
+- No AI-generated high-risk change may merge without human review.
+- No merge to `main` until all required workflows are green.
+- `main` is the only release-authoritative branch.
+- Release tags and release notes are automation-owned artifacts from `main`.
+- Every meaningful change must originate from its own ownership branch and land through PR.
+- Branches must be synced from latest `main` before final review unless Justine explicitly waives that requirement.
+
 ### Before Commit
 
 Run:
@@ -178,6 +288,7 @@ For `main`, maintain:
 - required status checks
 - no force-push for non-maintainers
 - no direct merge with failing CI
+- squash merge by default
 
 ## PR Expectations
 
@@ -188,6 +299,9 @@ Every PR or review-ready change should include:
 3. verification run
 4. deployment or credential assumptions
 5. any remaining external blockers
+6. linked issue
+7. owner lane
+8. AI usage note when AI assisted the change
 
 ## Public Remote Safety
 

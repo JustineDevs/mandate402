@@ -11,6 +11,14 @@ All notable changes to this project will be documented in this file.
   - `docs/GLOSSARY.md`
   - `docs/design-tokens.md`
   - `docs/STATUS.md`
+  - `docs/WORKFLOW.md`
+  - `docs/BRANCHING.md`
+  - `docs/LANES.md`
+  - `docs/AI-POLICY.md`
+  - `docs/LABELS.md`
+  - `docs/RELEASE-POLICY.md`
+  - `docs/HOTFIX.md`
+  - `docs/PR-POLICY.md`
   - `docs/EXPLAIN.md`
   - `docs/TEAM.md`
   - `docs/adr/ADR-0001-justine-scope-documents.md`
@@ -27,12 +35,15 @@ All notable changes to this project will be documented in this file.
   - `.github/ISSUE_TEMPLATE/feature_handoff.md`
   - `.github/PULL_REQUEST_TEMPLATE.md`
   - `.github/workflows/validate-team.yml`
+  - `.github/CODEOWNERS`
+  - `.github/CODEOWNERS`
 
 ### Changed
 
-- expanded the team operating model to make Justine the integration/release hub, Sherwin the design handoff owner, and Edward the repo-audit-first frontend implementer
+- expanded the team operating model to make Justine the integration/release hub, Sherwin the design handoff owner, and the frontend lane explicitly owned through separate transactional and observability implementers
 - formalized a linear workflow to prevent silo mentality, hyper-specialization, tunnel vision, and "us vs. them" collaboration failures
 - added an audience map, ADR index, glossary, status page, and design-token reference so the docs set can be used as a coherent documentation system instead of isolated files
+- split frontend ownership into two lanes: Edward for transactional UI and John Abrahm (`@bam841`) for observability/presentation UI
 
 ## 0.1.0
 
