@@ -133,7 +133,7 @@ Mandate402 is built with and for the broader agentic payments ecosystem:
 
 ## Status
 
-This repo is scaffolded for the approved plan in `.omx/plans/mandate402-v0-1-0-consensus-approved.md`.
+This repo follows the approved architecture and delivery plan documented in the tracked repository docs and ADRs.
 
 Current implementation includes:
 

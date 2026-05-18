@@ -98,7 +98,7 @@ All contributors must preserve these invariants:
 - `execution_unknown` is unresolved until correlation proves final truth
 - reservation stays held until reconciliation completes
 - `paymentIdentifier` collisions with different semantics must fail
-- runtime-critical files must not depend on ignored `.omx/` state
+- runtime-critical files must not depend on ignored local planning or orchestration state
 
 If your change weakens any of these, it is wrong.
 
