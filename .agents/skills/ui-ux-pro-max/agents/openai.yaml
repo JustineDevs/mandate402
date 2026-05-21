@@ -1,0 +1,6 @@
+interface:
+  display_name: "UI UX Pro Max"
+  short_description: "planning, building, reviewing, or improving UI/UX, layouts, palettes, typography, components, interaction states, accessibility, or responsive design"
+  default_prompt: "Use $ui-ux-pro-max for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

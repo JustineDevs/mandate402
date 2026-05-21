@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Backend Runtime"
+  short_description: "changing Mandate402 APIs, auth, validation, persistence, request-path logic, database behavior, limits, expected traffic handling, CI/CD, or deployment-grade backend runtime semantics"
+  default_prompt: "Use $mandate402-backend-runtime for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

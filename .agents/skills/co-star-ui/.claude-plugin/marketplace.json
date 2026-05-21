@@ -1,0 +1,19 @@
+{
+  "name": "co-star-ui",
+  "owner": {
+    "name": "JustineDevs",
+    "email": "tradergofficial@gmail.com"
+  },
+  "metadata": {
+    "description": "CO-STAR UI Creator: structured prompting (Context, Objective, Style, Tone, Audience, Response) for building or integrating React/Next.js UI, design systems, and registries (shadcn, Magic UI, Aceternity), or for creating custom CO-STAR prompts.",
+    "pluginRoot": "."
+  },
+  "plugins": [
+    {
+      "name": "co-star-ui",
+      "source": ".",
+      "description": "CO STAR UI: discovery-first UI builds (components, pages, design systems) and custom CO-STAR prompt creation; supports Newsprint integration and modern React registries.",
+      "category": "UI"
+    }
+  ]
+}

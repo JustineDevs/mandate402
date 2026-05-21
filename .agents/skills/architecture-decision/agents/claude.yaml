@@ -1,0 +1,6 @@
+interface:
+  display_name: "Architecture Decision"
+  short_description: "architecture choices, ADRs, trade-off evaluation, technical debt, or pattern selection need explicit decision records for Mandate402."
+  default_prompt: "Use $architecture-decision for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

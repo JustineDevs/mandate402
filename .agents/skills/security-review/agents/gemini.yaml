@@ -1,0 +1,6 @@
+interface:
+  display_name: "Security Review"
+  short_description: "reviewing Mandate402 for security risks across API, auth, database, payment, x402, worker, Morph, contract, or release boundaries."
+  default_prompt: "Use $security-review for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

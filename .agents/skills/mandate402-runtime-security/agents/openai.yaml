@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Runtime Security"
+  short_description: "changing Mandate402 auth, secrets, worker auth, production env gates, vendor/facilitator boundaries, security headers, sensitive errors, or fail-closed runtime behavior"
+  default_prompt: "Use $mandate402-runtime-security for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

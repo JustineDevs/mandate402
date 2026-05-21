@@ -1,0 +1,6 @@
+interface:
+  display_name: "Software Crypto Web3"
+  short_description: "Mandate402 work touches EVM contracts, chain integration, signing, custody, onchain/offchain boundaries, audits, or blockchain operations."
+  default_prompt: "Use $software-crypto-web3 for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

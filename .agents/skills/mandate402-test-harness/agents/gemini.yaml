@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Test Harness"
+  short_description: "choosing, adding, fixing, or reporting Mandate402 verification across Vitest, route tests, store tests, Foundry, Go tests, smoke checks, typecheck, lint, or build"
+  default_prompt: "Use $mandate402-test-harness for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

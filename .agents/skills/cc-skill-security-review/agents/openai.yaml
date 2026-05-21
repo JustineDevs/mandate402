@@ -1,0 +1,6 @@
+interface:
+  display_name: "Security Review"
+  short_description: "reviewing Mandate402 code for secrets, auth, authorization, input validation, payment safety, blockchain integration, or release security risks."
+  default_prompt: "Use $cc-skill-security-review for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

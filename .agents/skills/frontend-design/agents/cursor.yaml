@@ -1,0 +1,6 @@
+interface:
+  display_name: "Frontend Design"
+  short_description: "creating or reviewing production-grade frontend components, pages, layouts, visual polish, interaction design, or non-generic UI aesthetics"
+  default_prompt: "Use $frontend-design for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

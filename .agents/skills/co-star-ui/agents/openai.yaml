@@ -1,0 +1,6 @@
+interface:
+  display_name: "Co Star UI"
+  short_description: "planning or building React/Next.js UI with CO-STAR structure, design tokens, dashboards, hero sections, or custom UI prompts"
+  default_prompt: "Use $co-star-ui for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

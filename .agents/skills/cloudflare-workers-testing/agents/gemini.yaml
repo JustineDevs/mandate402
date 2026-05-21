@@ -1,0 +1,6 @@
+interface:
+  display_name: "Cloudflare Workers Testing"
+  short_description: "testing Cloudflare Workers, Vitest worker pools, binding mocks, integration tests, coverage, or worker test failures"
+  default_prompt: "Use $cloudflare-workers-testing for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true
