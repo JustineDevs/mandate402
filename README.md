@@ -4,7 +4,6 @@
   <p><strong>The autonomous governance and treasury command center for x402 machine commerce on Morph.</strong></p>
 
   <p>
-    <a href="https://github.com/JustineDevs/mandate402"><img alt="Repository" src="https://img.shields.io/badge/GitHub-JustineDevs%2Fmandate402-181717?logo=github" /></a>
     <img alt="License" src="https://img.shields.io/badge/license-MIT-22c55e" />
     <img alt="Next.js" src="https://img.shields.io/badge/Next.js-15-black?logo=next.js" />
     <img alt="Foundry" src="https://img.shields.io/badge/Foundry-Solidity-orange" />
