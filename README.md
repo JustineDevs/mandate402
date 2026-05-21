@@ -11,6 +11,7 @@
     <img alt="Morph Hoodi" src="https://img.shields.io/badge/Morph-Hoodi%20Testnet-06b6d4" />
     <img alt="Pyth" src="https://img.shields.io/badge/Oracle-Pyth-8b5cf6" />
     <img alt="x402" src="https://img.shields.io/badge/Protocol-x402-0f172a" />
+    <a href="https://deepwiki.com/JustineDevs/mandate402"><img alt="DeepWiki" src="https://img.shields.io/badge/Docs-DeepWiki-2563eb" /></a>
   </p>
 </div>
 
