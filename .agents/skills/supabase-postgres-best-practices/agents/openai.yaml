@@ -1,0 +1,6 @@
+interface:
+  display_name: "Supabase Postgres Best Practices"
+  short_description: "working on Postgres schema, migrations, Supabase pooling, query performance, indexes, RLS, or database scaling decisions."
+  default_prompt: "Use $supabase-postgres-best-practices for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

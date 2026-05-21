@@ -1,0 +1,6 @@
+interface:
+  display_name: "Core Engineering"
+  short_description: "applying core engineering principles such as SOLID, OOP, encapsulation, abstraction, DRY, KISS, YAGNI, composition, or dependency design"
+  default_prompt: "Use $core-engineering for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

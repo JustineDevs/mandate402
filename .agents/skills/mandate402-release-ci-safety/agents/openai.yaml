@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Release CI Safety"
+  short_description: "changing Mandate402 GitHub Actions, semantic-release, changesets, repo safety checks, branch protection, smoke tests, release notes, or public-remote safety"
+  default_prompt: "Use $mandate402-release-ci-safety for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 x402 Vendor Go"
+  short_description: "changing Mandate402 main.go, Go x402 vendor routes, Morph HMAC signing, facilitator config, provider data, status endpoints, or Go verification"
+  default_prompt: "Use $mandate402-x402-vendor-go for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

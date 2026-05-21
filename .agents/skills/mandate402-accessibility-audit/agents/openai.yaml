@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Accessibility Audit"
+  short_description: "reviewing or changing Mandate402 accessibility, keyboard flow, focus states, modals, tables, status semantics, color contrast, aria labels, or destructive UI flows"
+  default_prompt: "Use $mandate402-accessibility-audit for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Postgres Persistence"
+  short_description: "changing Mandate402 Postgres, Supabase pooler/direct URLs, migrations, store integrity, locking, transactions, read/write scaling, or persistence tests"
+  default_prompt: "Use $mandate402-postgres-persistence for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

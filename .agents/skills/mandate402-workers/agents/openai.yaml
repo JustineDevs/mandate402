@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Workers"
+  short_description: "changing Mandate402 worker execution, durable task queues, leases, retries, internal worker routes, background processing, reconciliation ownership, or scheduler-facing runtime behavior"
+  default_prompt: "Use $mandate402-workers for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

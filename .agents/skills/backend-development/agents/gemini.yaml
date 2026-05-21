@@ -1,0 +1,6 @@
+interface:
+  display_name: "Backend Development"
+  short_description: "designing or reviewing backend systems, APIs, auth, databases, security, performance, scalability, CI/CD, monitoring, or production runtime patterns"
+  default_prompt: "Use $backend-development for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

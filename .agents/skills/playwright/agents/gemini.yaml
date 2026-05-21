@@ -1,0 +1,6 @@
+interface:
+  display_name: "Playwright Browser Automation"
+  short_description: "a task needs real browser automation, UI flow debugging, screenshots, form interaction, visual checks, or frontend behavior validation."
+  default_prompt: "Use $playwright for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

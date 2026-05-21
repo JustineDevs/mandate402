@@ -1,0 +1,6 @@
+interface:
+  display_name: "Typescript Advanced Types"
+  short_description: "implementing complex TypeScript types, generics, conditional types, mapped types, template literals, utility types, or compile-time safety"
+  default_prompt: "Use $typescript-advanced-types for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Typescript Expert"
+  short_description: "solving advanced TypeScript or JavaScript issues involving type-level programming, performance, migrations, tooling, or complex diagnostics"
+  default_prompt: "Use $typescript-expert for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

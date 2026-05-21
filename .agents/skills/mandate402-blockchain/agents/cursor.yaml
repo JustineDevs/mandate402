@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Blockchain"
+  short_description: "changing Mandate402 chain-facing code on Morph such as network manifests, RPC handling, contract registry, ABI ownership, treasury execution, chain health, or frontend/backend boundaries that depend on onchain truth"
+  default_prompt: "Use $mandate402-blockchain for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

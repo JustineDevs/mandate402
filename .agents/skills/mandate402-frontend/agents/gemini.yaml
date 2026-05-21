@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Frontend"
+  short_description: "changing Mandate402 frontend pages, components, visual states, responsive behavior, landing layout, or UI polish and you need strict project-specific implementation rules for stack, tokens, page scope, accessibility, performance, and lane ownership"
+  default_prompt: "Use $mandate402-frontend for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

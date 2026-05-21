@@ -1,0 +1,6 @@
+interface:
+  display_name: "Test Cases"
+  short_description: "turning PRDs, requirements, acceptance criteria, sprint scope, or feature specs into structured test cases and coverage matrices."
+  default_prompt: "Use $test-cases for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Developer Onboarding"
+  short_description: "creating or updating contributor onboarding, setup docs, README guidance, local development instructions, or new maintainer handoff material."
+  default_prompt: "Use $developer-onboarding for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

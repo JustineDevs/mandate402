@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 API Contracts"
+  short_description: "changing Mandate402 API routes, request/response envelopes, status codes, Zod validation, idempotency, correlation IDs, auth failures, or route-level tests"
+  default_prompt: "Use $mandate402-api-contracts for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

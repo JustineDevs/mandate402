@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Frontend Testing"
+  short_description: "adding or changing Mandate402 frontend tests, UI regression checks, React state assertions, form flows, route-driven UI behavior, or frontend verification strategy"
+  default_prompt: "Use $mandate402-frontend-testing for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

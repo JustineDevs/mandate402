@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 x402 Payment Boundary"
+  short_description: "changing Mandate402 x402 payment attempts, vendor dispatch, facilitator separation, payment identifiers, receipts, execution_unknown, status correlation, or reconciliation truth"
+  default_prompt: "Use $mandate402-x402-payment-boundary for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

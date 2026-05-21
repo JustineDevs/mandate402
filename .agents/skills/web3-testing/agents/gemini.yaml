@@ -1,0 +1,6 @@
+interface:
+  display_name: "Web3 Testing"
+  short_description: "testing Solidity contracts, Foundry suites, fork tests, gas behavior, contract verification, or blockchain integration scenarios."
+  default_prompt: "Use $web3-testing for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

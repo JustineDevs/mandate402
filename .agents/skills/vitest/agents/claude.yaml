@@ -1,0 +1,6 @@
+interface:
+  display_name: "Vitest"
+  short_description: "writing or debugging Vitest unit tests, mocks, fixtures, coverage, filtering, or Next.js TypeScript test harness behavior."
+  default_prompt: "Use $vitest for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

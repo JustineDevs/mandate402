@@ -1,0 +1,6 @@
+interface:
+  display_name: "System Design"
+  short_description: "Mandate402 requirements need architecture boundaries, component design, interface contracts, scaling choices, or integration trade-offs."
+  default_prompt: "Use $system-design for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true

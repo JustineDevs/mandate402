@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mandate402 Contract Deploy Verify"
+  short_description: "changing Mandate402 Solidity contracts, Foundry tests, deploy scripts, ABI ownership, Morph explorer verification, contract metadata, or artifact hygiene"
+  default_prompt: "Use $mandate402-contract-deploy-verify for this task and follow its SKILL.md, references, and TESTS.md before implementing."
+policy:
+  allow_implicit_invocation: true

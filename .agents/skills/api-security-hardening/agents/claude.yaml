@@ -1,0 +1,6 @@
+interface:
+  display_name: "API Security Hardening"
+  short_description: "backend API work touches authentication, authorization, rate limiting, CORS, input validation, public endpoints, or security remediation in Mandate402."
+  default_prompt: "Use $api-security-hardening for this task and follow its SKILL.md, references, and TESTS.md when present before implementing."
+policy:
+  allow_implicit_invocation: true
