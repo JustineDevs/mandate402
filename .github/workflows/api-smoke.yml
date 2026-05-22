@@ -82,9 +82,9 @@ jobs:
           MORPH_HOODI_TOKEN_NAME=HoodiTestToken
           MORPH_HOODI_TOKEN_VERSION=1.0
           MORPH_HOODI_TOKEN_DECIMALS=18
-          PRIMARY_X402_VENDOR_A_URL=http://127.0.0.1:8000/x402_demo/api/market-data
-          PRIMARY_X402_VENDOR_B_URL=http://127.0.0.1:8000/x402_demo/api/research
-          MANDATE402_MARKET_PROVIDER=demo
+          PRIMARY_X402_VENDOR_A_URL=http://127.0.0.1:8000/x402_vendor/api/market-data
+          PRIMARY_X402_VENDOR_B_URL=http://127.0.0.1:8000/x402_vendor/api/research
+          MANDATE402_MARKET_PROVIDER=smoke
           CMC_BASE_URL=https://pro-api.coinmarketcap.com
           CMC_API_KEY=replace-me
           COINAPI_BASE_URL=https://rest.coinapi.io
@@ -118,9 +118,9 @@ jobs:
             MORPH_HOODI_TOKEN_NAME=HoodiTestToken \
             MORPH_HOODI_TOKEN_VERSION=1.0 \
             MORPH_HOODI_TOKEN_DECIMALS=18 \
-            PRIMARY_X402_VENDOR_A_URL=http://127.0.0.1:8000/x402_demo/api/market-data \
-            PRIMARY_X402_VENDOR_B_URL=http://127.0.0.1:8000/x402_demo/api/research \
-            MANDATE402_MARKET_PROVIDER=demo \
+            PRIMARY_X402_VENDOR_A_URL=http://127.0.0.1:8000/x402_vendor/api/market-data \
+            PRIMARY_X402_VENDOR_B_URL=http://127.0.0.1:8000/x402_vendor/api/research \
+            MANDATE402_MARKET_PROVIDER=smoke \
             CMC_BASE_URL=https://pro-api.coinmarketcap.com \
             CMC_API_KEY=replace-me \
             COINAPI_BASE_URL=https://rest.coinapi.io \
@@ -141,12 +141,12 @@ jobs:
 
       - name: Smoke vendor A 402
         run: |
-          code=$(curl -s -o /tmp/vendor-a.out -w "%{http_code}" -X POST http://127.0.0.1:8000/x402_demo/api/market-data)
+          code=$(curl -s -o /tmp/vendor-a.out -w "%{http_code}" -X POST http://127.0.0.1:8000/x402_vendor/api/market-data)
           test "$code" = "402"
 
       - name: Smoke vendor B 402
         run: |
-          code=$(curl -s -o /tmp/vendor-b.out -w "%{http_code}" -X POST http://127.0.0.1:8000/x402_demo/api/research)
+          code=$(curl -s -o /tmp/vendor-b.out -w "%{http_code}" -X POST http://127.0.0.1:8000/x402_vendor/api/research)
           test "$code" = "402"
 
       - name: Cleanup

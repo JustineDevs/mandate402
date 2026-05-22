@@ -833,12 +833,12 @@ export async function processReconciliationQueue(
       break;
     }
     if (!attempt && before > after) {
-      requeued += 1;
+      failed += 1;
       processed += 1;
       continue;
     }
     if (!attempt && before === after) {
-      failed += 1;
+      requeued += 1;
       processed += 1;
       continue;
     }

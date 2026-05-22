@@ -151,6 +151,16 @@ func (p *providerClient) fetchJSON(req *http.Request, target any) error {
 
 func (p *providerClient) fetchMarketData() (marketPayload, error) {
 	switch strings.ToLower(provider) {
+	case "smoke", "test":
+		return marketPayload{
+			Provider:         "smoke",
+			Asset:            "ETH",
+			QuoteCurrency:    "USD",
+			Price:            "3200.00",
+			PercentChange1h:  "0.15",
+			PercentChange24h: "1.42",
+			Timestamp:        time.Now().UTC().Format(time.RFC3339),
+		}, nil
 	case "coinmarketcap", "cmc":
 		return p.fetchCoinMarketCapMarketData()
 	case "coinapi":
