@@ -12,7 +12,7 @@ This document defines the required Git branching model for Mandate402.
 
 Normal path:
 
-`main` -> auto-sync into `development` -> ownership branch -> PR into `development` -> promotion PR from `development` into `main`
+`ownership branch` -> `PR into development` -> `promotion PR from development into main` -> `semantic-release on main` -> `auto-sync main back into development`
 
 ## Branch Naming
 
