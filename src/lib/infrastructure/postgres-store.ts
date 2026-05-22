@@ -9,7 +9,7 @@ import { getDatabaseDirectUrl, getDatabaseUrl } from "@/lib/infrastructure/env";
 import { assertStoreIntegrity } from "@/lib/infrastructure/store-integrity";
 
 const POSTGRES_LOCK_KEY = 402001;
-const migrationsDir = path.join(process.cwd(), "db", "migrations");
+const migrationsDir = path.join(process.cwd(), "drizzle");
 
 let pool: Pool | null = null;
 let schemaPool: Pool | null = null;
