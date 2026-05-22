@@ -53,12 +53,12 @@ Mandate402 is a Morph-native governance and treasury control layer for x402 comm
 |---|---|---|---|
 | Justine | `@JustineDevs` | Project Manager / Full Stack | Product direction, infra, sprint, release, socials |
 | Sherwin | `@owenlim225` | UI/UX Designer | Wireframes, user experience, design system |
-| Edward Joseph | `@automatewithedward` | Frontend - Transactional UI | Mandate flows, auth-aware UI, API-connected interactions |
-| John Abrahm | `@bam841` | Frontend - Observability UI | Dashboard, audit, receipts, read-heavy UI, shared presentation |
+| John Abrahm | `@bam841` | Frontend - Transactional UI | Mandate flows, auth-aware UI, API-connected interactions |
+| Edward Joseph | `@automatewithedward` | Frontend - Observability UI | Dashboard, audit, receipts, read-heavy UI, shared presentation |
 
 Operational pipeline:
 
-`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Transactional UI) + John (Observability UI)` -> `Justine (Review & Merge)`
+`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `John (Transactional UI) + Edward (Observability UI)` -> `Justine (Review & Merge)`
 
 These workflow, ownership, PR, and release rules are mandatory, not optional.
 
@@ -122,7 +122,7 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | [docs/TEAM.md](./docs/TEAM.md) | Team ownership model and anti-silo collaboration rules |
 | [docs/adr/ADR-0001-justine-scope-documents.md](./docs/adr/ADR-0001-justine-scope-documents.md) | Defines the explicit scope-authority surface for Justine-led tasks |
 | [docs/adr/ADR-0002-sherwin-ui-wireframe-task.md](./docs/adr/ADR-0002-sherwin-ui-wireframe-task.md) | Defines the canonical wireframe and design brief for Sherwin's task |
-| [docs/adr/ADR-0003-edward-frontend-implementation-task.md](./docs/adr/ADR-0003-edward-frontend-implementation-task.md) | Defines Edward's repo-audit-first implementation boundary |
+| [docs/adr/ADR-0003-john-frontend-implementation-task.md](./docs/adr/ADR-0003-john-frontend-implementation-task.md) | Defines John's repo-audit-first transactional implementation boundary |
 
 </details>
 

@@ -1,6 +1,6 @@
 # Frontend Primitives
 
-This document defines the shared frontend primitives that Edward and John must reuse instead of duplicating.
+This document defines the shared frontend primitives that John and Edward must reuse instead of duplicating.
 
 ## Shared Primitive Classes
 
@@ -19,8 +19,8 @@ If a new frontend need can be satisfied by extending a shared primitive, do that
 
 ## Lane Reminder
 
-- Edward owns transactional UI
-- John owns observability/presentation UI
+- John owns transactional UI
+- Edward owns observability/presentation UI
 
 But neither lane owns a private duplicate primitive system.
 

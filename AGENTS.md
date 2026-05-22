@@ -190,8 +190,8 @@ Avoid implicit merge-commit syncs from plain `git pull` on feature branches.
 Frontend ownership is intentionally split:
 
 - Sherwin = design authority
-- Edward = transactional frontend
-- John = observability / presentation frontend
+- John = transactional frontend
+- Edward = observability / presentation frontend
 - Justine = final integration / release authority
 
 Edward and John must not silently co-own the same screen or feature surface by default.

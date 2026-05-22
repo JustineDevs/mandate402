@@ -119,8 +119,8 @@ After rebasing or syncing from `development`, rerun the relevant checks before r
 
 The frontend is split into two lanes:
 
-- Edward: transactional UI
-- John: observability and presentation UI
+- John: transactional UI
+- Edward: observability and presentation UI
 
 They must not silently co-own the same screen by default.
 
