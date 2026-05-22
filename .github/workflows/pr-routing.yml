@@ -51,12 +51,42 @@ jobs:
             }
 
             if (reviewersToAdd.length > 0) {
-              await github.rest.pulls.requestReviewers({
-                owner,
-                repo,
-                pull_number,
-                reviewers: reviewersToAdd,
-              });
+              try {
+                await github.rest.pulls.requestReviewers({
+                  owner,
+                  repo,
+                  pull_number,
+                  reviewers: reviewersToAdd,
+                });
+              } catch (error) {
+                if (error.status !== 422) {
+                  throw error;
+                }
+
+                const requestableReviewers = [];
+                for (const reviewer of reviewersToAdd) {
+                  try {
+                    await github.rest.pulls.requestReviewers({
+                      owner,
+                      repo,
+                      pull_number,
+                      reviewers: [reviewer],
+                    });
+                    requestableReviewers.push(reviewer);
+                  } catch (innerError) {
+                    if (innerError.status !== 422) {
+                      throw innerError;
+                    }
+                    core.warning(
+                      `Skipping reviewer '${reviewer}' because GitHub does not currently allow requesting that identity on this repository.`,
+                    );
+                  }
+                }
+
+                core.info(
+                  `Successfully requested reviewers: ${requestableReviewers.join(", ") || "none"}`,
+                );
+              }
             }
 
             await github.rest.issues.setAssignees({
