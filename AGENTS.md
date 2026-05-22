@@ -146,6 +146,7 @@ Every meaningful issue must define:
 ### Branch and Worktree Rule
 
 - Do not work directly on `main`.
+- Do not work directly on `development`.
 - One issue must map to one branch.
 - One branch should map to one worktree when parallel work is active.
 - Do not stack unrelated work in one branch.
@@ -160,23 +161,26 @@ Recommended branch forms:
 
 ### Sync Rule
 
-All implementers must keep their ownership branch current with `main`.
+`main` remains the release-authoritative branch.
+`development` is the protected integration branch for normal team work.
+
+All implementers must keep their ownership branch current with `development`.
 
 Required sync moments:
 
 - before starting work for the day
 - before opening a PR
-- after `main` changes in a related lane
+- after `development` changes in a related lane
 - after a branch sits stale during active work
 
 Use:
 
 ```bash
 git fetch origin
-git switch main
-git pull --ff-only origin main
+git switch development
+git pull --ff-only origin development
 git switch <branch>
-git rebase origin/main
+git rebase origin/development
 ```
 
 Avoid implicit merge-commit syncs from plain `git pull` on feature branches.
@@ -186,8 +190,8 @@ Avoid implicit merge-commit syncs from plain `git pull` on feature branches.
 Frontend ownership is intentionally split:
 
 - Sherwin = design authority
-- Edward = transactional frontend
-- John = observability / presentation frontend
+- John = transactional frontend
+- Edward = observability / presentation frontend
 - Justine = final integration / release authority
 
 Edward and John must not silently co-own the same screen or feature surface by default.
@@ -225,7 +229,8 @@ without explicit authority from the tracked scope documents.
 - `main` is the only release-authoritative branch.
 - Release tags and release notes are automation-owned artifacts from `main`.
 - Every meaningful change must originate from its own ownership branch and land through PR.
-- Branches must be synced from latest `main` before final review unless Justine explicitly waives that requirement.
+- Ownership branches must be synced from latest `development` before final review unless Justine explicitly waives that requirement.
+- Promotion from `development` to `main` is the normal path to release-authoritative history.
 
 ### Before Commit
 
@@ -281,6 +286,16 @@ No merge to `main` unless all required checks are green.
 ## Branch Protection
 
 For `main`, maintain:
+
+- PR required before merge
+- at least 1 approval
+- stale approvals dismissed on new commits
+- required status checks
+- no force-push for non-maintainers
+- no direct merge with failing CI
+- squash merge by default
+
+For `development`, maintain:
 
 - PR required before merge
 - at least 1 approval

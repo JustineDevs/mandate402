@@ -73,7 +73,7 @@ They do not authorize:
 
 ### 4. Escalation rule
 
-If Edward, Sherwin, or any AI tool cannot point to a valid Justine scope document for a risky change, the correct action is:
+If John, Edward, Sherwin, or any AI tool cannot point to a valid Justine scope document for a risky change, the correct action is:
 
 1. stop widening the change
 2. document the ambiguity
@@ -98,7 +98,7 @@ If a decision matters for later contributors, it should be written into one of t
 ### Positive
 
 - the team gets a concrete authorization surface instead of ambiguous “Justine said so” reasoning
-- Edward can audit scope before implementation
+- John and Edward can audit scope before implementation
 - Sherwin can distinguish design context from product authorization
 - AI rule files gain a stable repository reference
 - review conversations become easier to trace later

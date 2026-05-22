@@ -1,12 +1,12 @@
-# ADR-0003: Edward Transactional Frontend Implementation Boundary
+# ADR-0003: John Transactional Frontend Implementation Boundary
 
 - Status: Accepted
 - Date: 2026-05-16
-- Owners: Justine (`@JustineDevs`), Edward Joseph (`@automatewithedward`)
+- Owners: Justine (`@JustineDevs`), John Abrahm (`@bam841`)
 
 ## Context
 
-The team has a documented design lane for Sherwin, but implementation can still drift if Edward does not have an equally explicit boundary for:
+The team has a documented design lane for Sherwin, but implementation can still drift if John does not have an equally explicit boundary for:
 
 - what "repo audit first" means
 - which files are normally in his lane
@@ -17,11 +17,11 @@ Without this, frontend work can easily widen into backend, infra, or product-red
 
 ## Decision
 
-Edward's frontend work will follow a repo-audit-first implementation model with explicit default ownership, escalation rules, and handoff expectations for the transactional UI lane.
+John's frontend work will follow a repo-audit-first implementation model with explicit default ownership, escalation rules, and handoff expectations for the transactional UI lane.
 
-## Edward Task Definition
+## John Task Definition
 
-Edward is responsible for converting approved design handoffs into working transactional frontend code while preserving the existing runtime and API semantics.
+John is responsible for converting approved design handoffs into working transactional frontend code while preserving the existing runtime and API semantics.
 
 This includes:
 
@@ -33,7 +33,7 @@ This includes:
 
 ## Required Intake Checklist
 
-Before implementation, Edward should:
+Before implementation, John should:
 
 1. sync the latest repository state
 2. review the active scope source from Justine
@@ -45,25 +45,25 @@ If a conflict is found, it should be written down and escalated before large imp
 
 ## Default File Ownership
 
-Unless Justine scope documents explicitly widen the task, Edward's default implementation lane is:
+Unless Justine scope documents explicitly widen the task, John's default implementation lane is:
 
 - `src/components/**`
 - `src/app/**` where work touches mandate creation, attempts, revoke, or auth-aware flows
 - shared frontend styling surfaces only when a transactional lane change requires them
 - `public/**` for UI assets needed for implementation
 
-Edward may update these areas to complete frontend work, but should not silently widen into:
+John may update these areas to complete frontend work, but should not silently widen into:
 
 - infrastructure or workflow files
 - backend semantics
 - contract logic
 - release tooling
 - changes that redefine the product model itself
-- presentation-heavy screens already owned by John unless coordination is explicit
+- presentation-heavy screens already owned by Edward unless coordination is explicit
 
 ## What Sherwin's Handoff Authorizes
 
-Sherwin's design handoff authorizes Edward to implement:
+Sherwin's design handoff authorizes John to implement:
 
 - layout structure for transactional surfaces
 - spacing and hierarchy
@@ -71,7 +71,7 @@ Sherwin's design handoff authorizes Edward to implement:
 - responsive behavior
 - status badges and presentation logic
 
-It does not by itself authorize Edward to redefine:
+It does not by itself authorize John to redefine:
 
 - policy rules
 - backend validation rules
@@ -83,7 +83,7 @@ Those require scope authority from Justine as defined in [ADR-0001](./ADR-0001-j
 
 ## Escalation Triggers
 
-Edward must escalate instead of improvising when:
+John must escalate instead of improvising when:
 
 - the UI requires backend data the current API does not provide
 - the design implies a product rule not present in the scope documents
@@ -95,7 +95,7 @@ The goal is not to block progress; the goal is to keep product truth visible.
 
 ## Expected Output
 
-Edward's implementation handoff should include:
+John's implementation handoff should include:
 
 - working transactional frontend changes
 - short repo-audit notes if a conflict was found
@@ -107,7 +107,7 @@ Edward's implementation handoff should include:
 
 This ADR is satisfied when:
 
-1. Edward can implement transactional frontend work without having to guess his authority boundary
+1. John can implement transactional frontend work without having to guess his authority boundary
 2. Sherwin's design handoff can be translated into code without redefining backend semantics
 3. Justine can review the output knowing where frontend authority ended and escalation began
 
@@ -122,5 +122,5 @@ This ADR is satisfied when:
 
 ### Tradeoffs
 
-- Edward may need to pause sooner on ambiguous work
+- John may need to pause sooner on ambiguous work
 - some "quick fixes" become explicit scope conversations instead of silent implementation choices

@@ -47,21 +47,6 @@ Core responsibilities:
 
 Scope:
 
-- transactional frontend implementation
-- client-side behavior for action-heavy surfaces
-- API-safe UI integration
-
-Core responsibilities:
-
-- clone and audit the repository before implementing UI work
-- implement mandate creation, attempt, revoke, and auth-aware UI flows
-- preserve runtime, API, and policy semantics while improving action-heavy UI
-- raise structural conflicts early instead of coding around them silently
-
-### John Abrahm (`@bam841`) - Frontend Developer
-
-Scope:
-
 - dashboard and read-heavy frontend implementation
 - reusable presentation components
 - responsive refinement for observability surfaces
@@ -72,6 +57,21 @@ Core responsibilities:
 - own read-model and presentation-heavy UI lanes
 - reuse shared primitives instead of duplicating frontend component systems
 - raise cross-lane collisions early when presentation changes affect transactional UI
+
+### John Abrahm (`@bam841`) - Frontend Developer
+
+Scope:
+
+- transactional frontend implementation
+- client-side behavior for action-heavy surfaces
+- API-safe UI integration
+
+Core responsibilities:
+
+- clone and audit the repository before implementing UI work
+- implement mandate creation, attempt, revoke, and auth-aware UI flows
+- preserve runtime, API, and policy semantics while improving action-heavy UI
+- raise structural conflicts early instead of coding around them silently
 
 ## Anti-Silo Contract
 
@@ -108,27 +108,27 @@ Sherwin does not own:
 - backend or API behavior
 - release truth
 
-### Edward owns
+### John owns
 
 - translating approved wireframes into transactional frontend flows
 - semantic HTML and component structure for action-heavy screens
 - frontend state and interaction wiring
 - auth-aware and API-connected UI behavior
 
-Edward does not own:
+John does not own:
 
 - silent changes to policy/runtime semantics
 - silent infra changes
 - bypassing product review because a UI is already coded
 
-### John owns
+### Edward owns
 
 - dashboard and read-heavy frontend surfaces
 - audit, receipts, and status views
 - reusable presentation components
 - responsive refinement for visibility-oriented screens
 
-John does not own:
+Edward does not own:
 
 - silent changes to transactional/API semantics
 - ad hoc duplication of shared primitives
@@ -150,7 +150,7 @@ For the explicit definition of what counts as Justine scope authority, see [ADR-
 
 All work should follow this handoff sequence:
 
-`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Transactional UI) + John (Observability UI)` -> `Justine (Review & Merge)`
+`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `John (Transactional UI) + Edward (Observability UI)` -> `Justine (Review & Merge)`
 
 ### Phase 1: Scope
 
@@ -187,7 +187,7 @@ Output:
 
 ### Phase 4: Repo Intake and Implementation
 
-Owned by Edward and John in separate frontend lanes.
+Owned by John and Edward in separate frontend lanes.
 
 Output:
 
@@ -213,8 +213,7 @@ The frontend should not be treated as one undifferentiated lane.
 
 ### Frontend Lane A: Transactional UI
 
-Owner: Edward
-
+Owner: John
 Examples:
 
 - create mandate
@@ -225,7 +224,7 @@ Examples:
 
 ### Frontend Lane B: Observability UI
 
-Owner: John
+Owner: Edward
 
 Examples:
 
@@ -274,9 +273,9 @@ Operational rule:
 - design should feel precise, high-trust, and operational
 - design should not drift into generic SaaS polish, consumer-fintech softness, or crypto-casino styling
 
-## Edward Implementation Contract
+## John Implementation Contract
 
-Edward's task is not just to "code the UI." The expected sequence is:
+John's task is not just to "code the UI." The expected sequence is:
 
 1. clone or sync the latest repository state
 2. build and run the project locally
@@ -286,15 +285,15 @@ Edward's task is not just to "code the UI." The expected sequence is:
 6. preserve existing runtime and API semantics
 7. surface any architectural conflict before opening the PR
 
-Edward must not:
+John must not:
 
 - silently re-interpret the product scope
 - silently override design intent
 - silently change infra-facing config or runtime semantics
 
-## John Implementation Contract
+## Edward Implementation Contract
 
-John's task is to implement the presentation-heavy and read-model frontend lane without overlapping Edward's default action-heavy ownership.
+Edward's task is to implement the presentation-heavy and read-model frontend lane without overlapping John's default action-heavy ownership.
 
 The expected sequence is:
 
@@ -303,9 +302,9 @@ The expected sequence is:
 3. identify the read-heavy screens and shared primitives in scope
 4. implement dashboard, audit, receipt, and observability surfaces
 5. preserve shared component consistency across the frontend
-6. surface any overlap with Edward's lane before editing the same screen
+6. surface any overlap with John's lane before editing the same screen
 
-John must not:
+Edward must not:
 
 - silently take ownership of transactional flows
 - create duplicate primitive systems for cards, badges, tables, or status components

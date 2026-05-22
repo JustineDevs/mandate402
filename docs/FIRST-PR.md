@@ -31,7 +31,7 @@ Your first PR should be:
 
 ## Before Opening the PR
 
-- sync from latest `main`
+- sync from latest `development`
 - rerun the relevant checks
 - confirm your branch still matches the issue scope
 - mention any assumptions or blockers clearly

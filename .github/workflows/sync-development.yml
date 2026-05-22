@@ -1,0 +1,64 @@
+name: Sync Development
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: sync-development
+  cancel-in-progress: false
+
+jobs:
+  sync-development:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Ensure development exists
+        run: |
+          git fetch origin main development || true
+          if git show-ref --verify --quiet refs/remotes/origin/development; then
+            echo "development already exists"
+            exit 0
+          fi
+
+          git branch development origin/main
+          git push origin development:development
+
+      - name: Merge main into development
+        run: |
+          git fetch origin main development
+          git switch -c development-sync origin/development
+          before_sha="$(git rev-parse HEAD)"
+
+          if ! git merge --no-edit origin/main; then
+            echo "::error::Automatic sync from main into development hit a merge conflict. Resolve it manually before the branch drifts further."
+            exit 1
+          fi
+
+          after_sha="$(git rev-parse HEAD)"
+          if [ "$before_sha" = "$after_sha" ]; then
+            echo "development is already up to date with main"
+            exit 0
+          fi
+
+          git push origin HEAD:development
+
+      - name: Trigger development verification workflows
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+        run: |
+          gh workflow run ci.yml --ref development
+          gh workflow run api-smoke.yml --ref development

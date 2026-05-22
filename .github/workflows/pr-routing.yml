@@ -1,0 +1,67 @@
+name: PR Routing
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+      - synchronize
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  route-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.payload.pull_request.number;
+            const author = context.payload.pull_request.user.login;
+
+            const reviewerAllowlist = ["JustineDevs", "devin-ai-integration"];
+            const desiredReviewers = reviewerAllowlist.filter((login) => login !== author);
+
+            const { data: pull } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number,
+            });
+
+            const currentReviewers = pull.requested_reviewers.map((reviewer) => reviewer.login);
+            const reviewersToRemove = currentReviewers.filter(
+              (login) => !desiredReviewers.includes(login),
+            );
+            const reviewersToAdd = desiredReviewers.filter(
+              (login) => !currentReviewers.includes(login),
+            );
+
+            if (reviewersToRemove.length > 0) {
+              await github.rest.pulls.removeRequestedReviewers({
+                owner,
+                repo,
+                pull_number,
+                reviewers: reviewersToRemove,
+              });
+            }
+
+            if (reviewersToAdd.length > 0) {
+              await github.rest.pulls.requestReviewers({
+                owner,
+                repo,
+                pull_number,
+                reviewers: reviewersToAdd,
+              });
+            }
+
+            await github.rest.issues.setAssignees({
+              owner,
+              repo,
+              issue_number: pull_number,
+              assignees: ["JustineDevs"],
+            });

@@ -19,7 +19,7 @@ This document defines the required ownership map for Mandate402.
 - interaction intent
 - design authority
 
-### Edward
+### John
 
 - transactional frontend
 - auth-aware UI
@@ -33,7 +33,7 @@ Examples:
 - revoke flows
 - authenticated operator actions
 
-### John
+### Edward
 
 - observability frontend
 - dashboard

@@ -10,7 +10,7 @@ Mandate402 needs a durable design-task artifact for Sherwin so the UI/UX scope i
 
 The team already agreed on a linear anti-silo flow:
 
-`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `Edward (Transactional UI) + John (Observability UI)` -> `Justine (Review & Merge)`
+`Justine (Scope)` -> `Sherwin (Wireframe)` -> `Justine (Review)` -> `John (Transactional UI) + Edward (Observability UI)` -> `Justine (Review & Merge)`
 
 The missing piece is a tracked task-level ADR that captures:
 
@@ -19,7 +19,7 @@ The missing piece is a tracked task-level ADR that captures:
 - the visual language and operating constraints
 - the exact handoff package the frontend implementation lanes should implement from
 
-Without this, the wireframe task can drift into generic UI exploration, incomplete mobile treatment, or ambiguous design intent that Edward has to reinterpret later.
+Without this, the wireframe task can drift into generic UI exploration, incomplete mobile treatment, or ambiguous design intent that John has to reinterpret later.
 
 ## Decision
 
@@ -35,7 +35,7 @@ Sherwin is responsible for producing the wireframe and interaction-intent packag
 4. agent view
 5. mobile-friendly simplified layout
 
-The task is to turn these product surfaces into a coherent, high-trust control-plane design that Edward can implement without having to invent layout logic or visual hierarchy from scratch.
+The task is to turn these product surfaces into a coherent, high-trust control-plane design that John can implement without having to invent layout logic or visual hierarchy from scratch.
 
 ## Deliverables
 
@@ -48,7 +48,7 @@ Sherwin's expected output includes:
 - button, table, card, and status treatment guidance
 - notes for any interaction behavior that is not obvious from static layouts
 
-The output must be implementable by Edward and John with minimal reinterpretation inside their separate lanes.
+The output must be implementable by John and Edward with minimal reinterpretation inside their separate lanes.
 
 ## In-Scope Screens
 
@@ -58,7 +58,7 @@ Rules for use:
 
 - preserve the information hierarchy and relative grouping shown below
 - treat each block as a monospace wireframe reference, not prose
-- keep Edward's implementation aligned to these structures unless Justine approves a scope change
+- keep John's transactional implementation aligned to these structures unless Justine approves a scope change
 - if Sherwin improves the presentation, the underlying layout intent should still map back to these blocks
 
 ### 1. Main Dashboard
@@ -310,7 +310,7 @@ Sherwin is designing wireframes, not backend logic, but the wireframes must refl
 - agent actions are constrained by mandate boundaries
 - blocked vs successful outcomes must be visually distinct
 
-The wireframes should help Edward and John preserve those product truths during implementation.
+The wireframes should help John and Edward preserve those product truths during implementation.
 
 ## Explicit Non-Goals
 
@@ -336,8 +336,8 @@ Sherwin's handoff package should include:
 
 Frontend implementation responsibility begins after that handoff:
 
-1. Edward audits and implements the transactional UI lane
-2. John implements the observability and presentation lane
+1. John audits and implements the transactional UI lane
+2. Edward implements the observability and presentation lane
 3. both map the wireframe to the current architecture
 4. both surface architectural or shared-surface conflicts before widening scope
 
@@ -347,7 +347,7 @@ This ADR is satisfied when:
 
 1. Sherwin can produce a complete wireframe package from this brief alone
 2. Justine can review the package against product and technical fit
-3. Edward and John can implement from the package without inventing missing layout structure
+3. John and Edward can implement from the package without inventing missing layout structure
 4. desktop and mobile intent are both covered
 5. the design remains consistent with Mandate402's high-trust treasury-control identity
 
@@ -356,7 +356,7 @@ This ADR is satisfied when:
 ### Positive
 
 - Sherwin has a stable, repo-tracked task brief
-- Edward and John receive a clearer implementation handoff
+- John and Edward receive a clearer implementation handoff
 - Justine's design review is grounded in a durable artifact
 - the team reduces silo and tunnel-vision risk during UI work
 

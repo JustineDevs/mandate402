@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file.
   - `docs/TEAM.md`
   - `docs/adr/ADR-0001-justine-scope-documents.md`
   - `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md`
-  - `docs/adr/ADR-0003-edward-frontend-implementation-task.md`
+  - `docs/adr/ADR-0003-john-frontend-implementation-task.md`
   - `docs/adr/README.md`
   - `team-structure.yml`
   - `agentic-workflow.yml`
@@ -43,7 +43,7 @@ All notable changes to this project will be documented in this file.
 - expanded the team operating model to make Justine the integration/release hub, Sherwin the design handoff owner, and the frontend lane explicitly owned through separate transactional and observability implementers
 - formalized a linear workflow to prevent silo mentality, hyper-specialization, tunnel vision, and "us vs. them" collaboration failures
 - added an audience map, ADR index, glossary, status page, and design-token reference so the docs set can be used as a coherent documentation system instead of isolated files
-- split frontend ownership into two lanes: Edward for transactional UI and John Abrahm (`@bam841`) for observability/presentation UI
+- split frontend ownership into two lanes: John Abrahm (`@bam841`) for transactional UI and Edward Joseph (`@automatewithedward`) for observability/presentation UI
 
 ## 0.1.0
 

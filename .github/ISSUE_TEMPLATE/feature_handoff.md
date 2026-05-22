@@ -20,7 +20,7 @@ assignees: []
 
 ## Phase 3: Frontend Implementation
 
-### Transactional UI (Edward Joseph `@automatewithedward`)
+### Transactional UI (John Abrahm `@bam841`)
 
 ### Repository Intake Checklist
 
@@ -33,7 +33,7 @@ assignees: []
 - [ ] Implement mandate/action/auth-aware UI flows.
 - [ ] Connect API endpoints or safe placeholder data as required.
 
-### Observability UI (John Abrahm `@bam841`)
+### Observability UI (Edward Joseph `@automatewithedward`)
 
 - [ ] Implement dashboard, audit, receipt, and status surfaces.
 - [ ] Reuse shared primitives instead of duplicating component systems.
@@ -42,6 +42,6 @@ assignees: []
 ## Phase 4: Sign-Off Criteria
 
 - Sherwin: UI matches the visual design intent.
-- Edward: Transactional UI is interactive and does not break existing behavior.
-- John: Observability UI is consistent, responsive, and aligned to the shared design system.
+- John: Transactional UI is interactive and does not break existing behavior.
+- Edward: Observability UI is consistent, responsive, and aligned to the shared design system.
 - Justine: Code is reviewed, infrastructure is stable, and the PR is ready to merge.

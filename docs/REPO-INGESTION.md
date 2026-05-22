@@ -19,7 +19,7 @@ This document is for any human or AI contributor who needs a deterministic start
    - out of scope
 10. Identify the directories you may edit.
 11. Identify the directories you must not edit.
-12. Sync from latest `main`.
+12. Sync from latest `development`.
 
 ## Must Confirm Before Coding
 
@@ -34,5 +34,5 @@ This document is for any human or AI contributor who needs a deterministic start
 - issue review
 - lane confirmation
 - branch creation
-- sync from `main`
+- sync from `development`
 - review of shared primitives before creating new ones
