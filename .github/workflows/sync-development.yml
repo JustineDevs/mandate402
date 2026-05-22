@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN || github.token }}
 
       - name: Configure git
         run: |
@@ -43,7 +44,7 @@ jobs:
           git switch -c development-sync origin/development
           before_sha="$(git rev-parse HEAD)"
 
-          if ! git merge --no-edit origin/main; then
+          if ! git merge origin/main --no-ff -m "chore(sync): align development with main release state [skip ci]"; then
             echo "::error::Automatic sync from main into development hit a merge conflict. Resolve it manually before the branch drifts further."
             exit 1
           fi
