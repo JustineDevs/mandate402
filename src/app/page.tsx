@@ -1,4 +1,25 @@
+import type { Route } from "next";
+import Link from "next/link";
+
 import { HeaderHero } from "@/components/header-hero";
+
+const publicSurfaceCards = [
+  {
+    title: "Policies",
+    href: "/policies" as Route,
+    body: "Inspect the allowlist, fallback, and blocked-attempt posture without losing the difference between policy truth and operator action.",
+  },
+  {
+    title: "Vendors",
+    href: "/vendors" as Route,
+    body: "See the vendor registry as a first-class system boundary instead of folding it into treasury or facilitator behavior.",
+  },
+  {
+    title: "Build Diary",
+    href: "/build" as Route,
+    body: "Read the tracked hardening notes, architecture gates, and release blockers as living repo-native artifacts.",
+  },
+];
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +72,26 @@ export default async function HomePage() {
                 vendor and facilitator.
               </div>
             </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {publicSurfaceCards.map((card) => (
+              <article
+                key={card.href}
+                className="rounded-[26px] border border-[#d8e6dd] bg-white p-6 shadow-sm"
+              >
+                <div className="eyebrow">{card.title}</div>
+                <p className="mt-4 text-sm leading-7 text-[#475569]">
+                  {card.body}
+                </p>
+                <Link
+                  href={card.href}
+                  className="mt-6 inline-flex rounded-full bg-[#15803d] px-4 py-2 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+                >
+                  Open {card.title}
+                </Link>
+              </article>
+            ))}
           </div>
         </section>
       </section>

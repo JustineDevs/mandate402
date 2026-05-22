@@ -1,7 +1,7 @@
 "use client";
 
 import type { Session } from "@supabase/supabase-js";
-import { useEffect, useEffectEvent, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { Dashboard } from "@/components/dashboard";
 import type { DashboardData } from "@/lib/dashboard-data";
@@ -27,7 +27,7 @@ export function OperatorWorkspace() {
 
   const supabase = getSupabaseBrowserClient();
 
-  const loadDashboard = useEffectEvent(async (accessToken: string) => {
+  const loadDashboard = useCallback(async (accessToken: string) => {
     const response = await fetch("/api/operator/dashboard", {
       headers: {
         authorization: `Bearer ${accessToken}`,
@@ -43,7 +43,7 @@ export function OperatorWorkspace() {
       data: DashboardPayload;
     };
     setDashboard(json.data);
-  });
+  }, []);
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {

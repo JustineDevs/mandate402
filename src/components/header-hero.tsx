@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export function HeaderHero() {
   return (
@@ -22,11 +23,11 @@ export function HeaderHero() {
             </div>
           </div>
           <nav className="topnav" aria-label="Top navigation">
-            <span>Overview</span>
-            <span>Mandates</span>
-            <span>Vendors</span>
-            <span>Receipts</span>
-            <span>Fallback Gate</span>
+            <Link href="/">Overview</Link>
+            <Link href="/mandates">Mandates</Link>
+            <Link href="/vendors">Vendors</Link>
+            <Link href="/receipts">Receipts</Link>
+            <Link href="/build">Build</Link>
           </nav>
         </div>
         <div className="hero-grid">
@@ -48,6 +49,9 @@ export function HeaderHero() {
             <div className="cta-row">
               <a className="pill pill-primary" href="/operator">
                 Open Operator Workspace
+              </a>
+              <a className="pill pill-secondary" href="/build">
+                Open Build Diary
               </a>
               <a className="pill pill-secondary" href="#platform-summary">
                 Platform Summary

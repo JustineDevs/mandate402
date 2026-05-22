@@ -79,6 +79,7 @@ const defaultNavItems: NavigationItem[] = [
   },
   {
     name: "Vendors",
+    href: "/vendors",
     icon: (
       <svg
         className="w-5 h-5"
@@ -98,6 +99,7 @@ const defaultNavItems: NavigationItem[] = [
   },
   {
     name: "Transactions",
+    href: "/transactions",
     icon: (
       <svg
         className="w-5 h-5"
@@ -117,6 +119,7 @@ const defaultNavItems: NavigationItem[] = [
   },
   {
     name: "Receipts",
+    href: "/receipts",
     icon: (
       <svg
         className="w-5 h-5"
@@ -139,6 +142,7 @@ const defaultNavItems: NavigationItem[] = [
 const defaultBottomItems: NavigationItem[] = [
   {
     name: "Policies",
+    href: "/policies",
     icon: (
       <svg
         className="w-5 h-5"
@@ -158,6 +162,7 @@ const defaultBottomItems: NavigationItem[] = [
   },
   {
     name: "Settings",
+    href: "/settings",
     icon: (
       <svg
         className="w-5 h-5"
@@ -183,6 +188,27 @@ const defaultBottomItems: NavigationItem[] = [
   },
 ];
 
+const buildItem: NavigationItem = {
+  name: "Build",
+  href: "/build",
+  icon: (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M14.7 6.3a1 1 0 010 1.4L12.41 10l2.3 2.3a1 1 0 01-1.42 1.4l-3-3a1 1 0 010-1.4l3-3a1 1 0 011.41 0zM9.29 13.99a1 1 0 010-1.4L11.59 10l-2.3-2.3a1 1 0 011.42-1.4l3 3a1 1 0 010 1.4l-3 3a1 1 0 01-1.42 0z"
+      />
+    </svg>
+  ),
+};
+
 /**
  * Sidebar Component
  * Reusable navigation for Mandate402.
@@ -191,7 +217,7 @@ const defaultBottomItems: NavigationItem[] = [
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab = "Mandates",
   navigationItems = defaultNavItems,
-  bottomItems = defaultBottomItems,
+  bottomItems = [...defaultBottomItems, buildItem],
 }) => {
   return (
     <aside
