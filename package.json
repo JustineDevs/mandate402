@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
+    "dev": "next dev",
     "start": "next start",
     "lint": "pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts",
     "typecheck": "tsc --noEmit",
@@ -17,9 +17,14 @@
     "changeset": "changeset",
     "release:dry-run": "semantic-release --dry-run --no-ci",
     "release": "semantic-release",
-    "prepare": "lefthook install || true"
+    "prepare": "lefthook install || true",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.19.11",
     "@supabase/supabase-js": "^2.105.4",
     "@x402/core": "^2.12.0",
     "@x402/evm": "^2.12.0",
@@ -51,6 +56,7 @@
     "lefthook": "^1.7.21",
     "semantic-release": "^24.2.7",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.3"
+    "vitest": "^3.1.3",
+    "wrangler": "^4.94.0"
   }
 }
