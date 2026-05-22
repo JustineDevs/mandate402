@@ -7,7 +7,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.scope.outputs.app }}
+      go: ${{ steps.scope.outputs.go }}
+      contracts: ${{ steps.scope.outputs.contracts }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_BEFORE: ${{ github.event.before }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash scripts/ci/change-scope.sh github
+
   app:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +47,8 @@ jobs:
       - run: pnpm build
 
   contracts:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.contracts == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +58,8 @@ jobs:
       - run: cd contracts && FOUNDRY_CACHE_PATH=cache FOUNDRY_OUT=out forge test
 
   go:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
