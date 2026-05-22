@@ -18,9 +18,11 @@ Release automation is owned by CI on `main`.
 
 That means:
 
+- `main` is the production source-of-truth branch
 - tags are created automatically from `main`
 - release notes are created automatically from `main`
 - humans do not manually tag releases under normal operation
+- the release workflow uses `semantic-release` on every eligible push to `main`
 
 ## Merge-to-Release Rule
 
@@ -37,6 +39,18 @@ Hotfix exception:
 
 - urgent maintainer-approved hotfixes may branch from `main` and return directly to `main`
 - after a hotfix lands, `development` must be resynced from `main`
+
+## Main-To-Development Sync Rule
+
+After `main` changes, the repository sync workflow should merge the new release-authoritative state back into `development`.
+
+Expected behavior:
+
+- sync commit lands on `development`
+- sync commit uses `[skip ci]` because it is automation-only branch alignment work
+- the sync workflow explicitly dispatches the required `CI` and `API Smoke` workflows on `development`
+
+This keeps `development` aligned to released history without depending on duplicate push-triggered workflow runs.
 
 ## Required Conditions Before Merge To `main`
 
