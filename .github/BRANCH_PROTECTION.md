@@ -1,6 +1,6 @@
 # Branch Protection Recommendations
 
-Recommended protection for `main` on `JustineDevs/mandate402`:
+Recommended protection for `main` and `development` on `JustineDevs/mandate402`:
 
 ## Required status checks
 
@@ -24,6 +24,10 @@ Recommended protection for `main` on `JustineDevs/mandate402`:
 - Restrict direct pushes to maintainers only
 - Prefer squash merge only
 
+Apply the same protection baseline to `development`, with one extra expectation:
+
+- allow the repo-maintained sync workflow or designated maintainer automation to keep `development` current with `main`
+
 ## Team workflow alignment
 
 For the `v0.1.0` team process:
@@ -39,3 +43,4 @@ For the `v0.1.0` team process:
 - Create a Changeset for user-visible repo changes
 - Use semantic-release from `main` only
 - Treat `main` as the only branch allowed to produce release tags and notes
+- Treat `development` as the integration branch for team PRs, not a release branch

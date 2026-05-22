@@ -28,10 +28,15 @@ Every change that affects the shipped product must:
 
 1. originate from its own ownership branch
 2. be linked to an issue
-3. land through a PR
+3. normally merge into `development` first
 4. pass required checks
-5. be merged into `main`
+5. be promoted from `development` into `main`
 6. allow release automation to decide whether a release is produced
+
+Hotfix exception:
+
+- urgent maintainer-approved hotfixes may branch from `main` and return directly to `main`
+- after a hotfix lands, `development` must be resynced from `main`
 
 ## Required Conditions Before Merge To `main`
 

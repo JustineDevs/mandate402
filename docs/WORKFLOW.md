@@ -6,7 +6,7 @@ This document defines the required execution flow for all meaningful work in Man
 
 Every material change must move through this sequence:
 
-`Issue -> Scope -> Design or Technical Clarification -> Branch -> Implementation -> PR -> Review -> CI -> Merge`
+`Issue -> Scope -> Design or Technical Clarification -> Branch from development -> PR to development -> Review -> CI -> Merge -> Promotion PR to main`
 
 No meaningful work should skip the issue or PR stage.
 
@@ -32,12 +32,12 @@ No meaningful work should skip the issue or PR stage.
 
 Every contributor should start with:
 
-1. sync latest `main`
+1. sync latest `development`
 2. read [AGENTS.md](../AGENTS.md)
 3. read [WORKFLOW.md](./WORKFLOW.md), [BRANCHING.md](./BRANCHING.md), and [LANES.md](./LANES.md)
 4. open the linked issue
 5. confirm lane ownership and out-of-scope
-6. create a branch from the issue
+6. create a branch from `development` for the issue
 
 ## Example Issues
 
@@ -58,13 +58,13 @@ Every contributor should start with:
 
 ## Mandatory Sync Rule
 
-Every implementer must sync from the latest `main` before meaningful work continues.
+Every implementer must sync from the latest `development` before meaningful work continues.
 
 Required sync moments:
 
 1. before starting work for the day
 2. before opening a PR
-3. after `main` changes in a related lane
+3. after `development` changes in a related lane
 4. after a branch sits stale during active work
 
 Recommended stale thresholds:
@@ -82,29 +82,38 @@ git switch main
 git pull --ff-only origin main
 ```
 
+For `development`:
+
+```bash
+git fetch origin
+git switch development
+git pull --ff-only origin development
+```
+
 For an ownership branch:
 
 ```bash
 git fetch origin
 git switch <branch>
-git rebase origin/main
+git rebase origin/development
 ```
 
 ## Sync Verification Rule
 
-After rebasing or syncing from `main`, rerun the relevant checks before requesting review.
+After rebasing or syncing from `development`, rerun the relevant checks before requesting review.
 
 ## Non-Negotiable Rules
 
 - No direct work on `main`.
+- No direct work on `development`.
 - No meaningful implementation without an issue.
 - No PR without a linked issue.
 - No frontend implementation without Sherwin handoff when visual changes are involved.
 - No AI-generated infra, auth, contract, or release change merges without human review.
 - No merge while CI is failing.
-- No merge to `main` until all required workflows are green.
+- No merge to `development` or `main` until all required workflows are green.
 - No release from any branch except `main`.
-- No stale branch should be sent for final review without syncing from latest `main`.
+- No stale team branch should be sent for final review without syncing from latest `development`.
 
 ## Frontend Rule
 
@@ -147,3 +156,8 @@ The merge/release decision belongs to Justine after:
 - release-readiness success
 
 Release automation, tags, and release notes belong to `main` only.
+
+Normal promotion path:
+
+- ownership branch -> `development`
+- validated `development` -> `main`
