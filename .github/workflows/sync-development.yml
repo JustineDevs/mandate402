@@ -58,7 +58,7 @@ jobs:
 
       - name: Trigger development verification workflows
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
         run: |
           gh workflow run ci.yml --ref development
           gh workflow run api-smoke.yml --ref development
