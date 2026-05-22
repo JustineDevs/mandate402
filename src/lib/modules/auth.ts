@@ -1,9 +1,5 @@
-import {
-  DEMO_OPERATOR_TOKEN,
-  getOperatorToken,
-  getSupabaseRuntimeConfig,
-  isProductionEnv,
-} from "@/lib/infrastructure/env";
+import { UnauthorizedError } from "@/lib/domain/errors";
+import { getSupabaseRuntimeConfig } from "@/lib/infrastructure/env";
 import {
   getSupabaseRole,
   getSupabaseServerClient,
@@ -14,7 +10,7 @@ export type OperatorContext = {
   role: "operator" | "platform_admin";
 };
 
-export class AuthError extends Error {
+export class AuthError extends UnauthorizedError {
   constructor(message = "Unauthorized operator request.") {
     super(message);
     this.name = "AuthError";
@@ -23,7 +19,7 @@ export class AuthError extends Error {
 
 function readPresentedToken(request?: Request) {
   if (!request) {
-    return DEMO_OPERATOR_TOKEN;
+    return undefined;
   }
 
   const bearer = request.headers.get("authorization");
@@ -45,40 +41,25 @@ function assertProductionAuthReady() {
 
 export async function requireOperator(request?: Request) {
   const presented = readPresentedToken(request);
+  assertProductionAuthReady();
 
-  if (isProductionEnv()) {
-    assertProductionAuthReady();
-
-    if (!presented) {
-      throw new AuthError();
-    }
-
-    const client = getSupabaseServerClient();
-    const { data, error } = await client.auth.getUser(presented);
-    if (error || !data.user) {
-      throw new AuthError();
-    }
-
-    const role = getSupabaseRole(data.user);
-    if (!role) {
-      throw new AuthError("Operator role is not authorized.");
-    }
-
-    return {
-      operatorId: data.user.id,
-      role,
-    } satisfies OperatorContext;
-  }
-
-  const expected = getOperatorToken();
-
-  if (!presented || presented !== expected) {
+  if (!presented) {
     throw new AuthError();
   }
 
+  const client = getSupabaseServerClient();
+  const { data, error } = await client.auth.getUser(presented);
+  if (error || !data.user) {
+    throw new AuthError();
+  }
+
+  const role = getSupabaseRole(data.user);
+  if (!role) {
+    throw new AuthError("Operator role is not authorized.");
+  }
+
   return {
-    operatorId:
-      expected === DEMO_OPERATOR_TOKEN ? "operator_demo" : "operator_live",
-    role: "operator",
+    operatorId: data.user.id,
+    role,
   } satisfies OperatorContext;
 }

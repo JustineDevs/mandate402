@@ -7,17 +7,17 @@ describe("production environment guards", () => {
   });
 
   it("requires APP_ENV to be explicit when NODE_ENV is production", async () => {
+    vi.stubEnv("VITEST", "");
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("APP_ENV", "");
 
     const env = await import("@/lib/infrastructure/env");
 
-    expect(() => env.getAppEnv()).toThrow(
-      "APP_ENV must be explicitly set in production.",
-    );
+    expect(() => env.getAppEnv()).toThrow("APP_ENV must be explicitly set.");
   });
 
   it("requires an explicit MORPH_RPC_URL in production mode", async () => {
+    vi.stubEnv("VITEST", "");
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("APP_ENV", "production");
     vi.stubEnv("MORPH_RPC_URL", "");
@@ -29,6 +29,7 @@ describe("production environment guards", () => {
   });
 
   it("rejects invalid production chain id for Morph anchoring", async () => {
+    vi.stubEnv("VITEST", "");
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("APP_ENV", "production");
     vi.stubEnv("MORPH_RPC_URL", "https://rpc.example");
