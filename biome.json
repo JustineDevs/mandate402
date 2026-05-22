@@ -22,7 +22,8 @@
       "contracts/broadcast",
       ".tmp",
       "data/store.json",
-      ".env.local"
+      ".env.local",
+      ".agents"
     ]
   }
 }
