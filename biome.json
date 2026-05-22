@@ -13,6 +13,7 @@
   },
   "files": {
     "ignore": [
+      ".agents",
       ".omx",
       ".next",
       "node_modules",
