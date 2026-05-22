@@ -7,7 +7,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      smoke: ${{ steps.scope.outputs.smoke }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_BEFORE: ${{ github.event.before }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash scripts/ci/change-scope.sh github
+
   smoke:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.smoke == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
