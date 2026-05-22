@@ -25,10 +25,7 @@ import {
   issueMandateAnchor,
   revokeMandateAnchor,
 } from "@/lib/modules/morph-anchor";
-import {
-  correlateAttemptStatus,
-  materializeAttempt,
-} from "@/lib/modules/payments";
+import { materializeAttempt } from "@/lib/modules/payments";
 import { evaluatePolicy } from "@/lib/modules/policy";
 import { vendorRegistry } from "@/lib/vendor-registry";
 
