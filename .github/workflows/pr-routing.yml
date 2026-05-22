@@ -24,7 +24,7 @@ jobs:
             const pull_number = context.payload.pull_request.number;
             const author = context.payload.pull_request.user.login;
 
-            const reviewerAllowlist = ["JustineDevs", "devin-ai-integration"];
+            const reviewerAllowlist = ["JustineDevs"];
             const desiredReviewers = reviewerAllowlist.filter((login) => login !== author);
 
             const { data: pull } = await github.rest.pulls.get({
