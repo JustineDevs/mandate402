@@ -2,6 +2,12 @@
   "name": "mandate402",
   "version": "0.1.0",
   "private": true,
+  "pnpm": {
+    "overrides": {
+      "postcss": "8.5.10",
+      "ws": "8.20.1"
+    }
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,6 +15,7 @@
     "lint": "pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/run-vitest.mjs",
+    "workers:dry-run": "npx --yes wrangler@4.22.0 deploy --dry-run --outdir .tmp/wrangler-dry-run",
     "format": "biome format --write . --files-ignore-unknown=true",
     "check:biome": "biome check . --files-ignore-unknown=true",
     "check:repo-safety": "node scripts/check-repo-safety.mjs",
@@ -41,15 +48,19 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^11.0.1",
     "@semantic-release/release-notes-generator": "^14.1.0",
+    "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^22.15.21",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
+    "autoprefixer": "^10.5.0",
     "eslint": "^9.26.0",
     "lefthook": "^1.7.21",
+    "postcss": "^8.5.10",
     "semantic-release": "^24.2.7",
+    "tailwindcss": "^4.3.0",
     "typescript": "^5.8.3",
     "vitest": "^3.1.3"
   }

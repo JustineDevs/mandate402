@@ -219,6 +219,40 @@ AI must not silently widen:
 
 without explicit authority from the tracked scope documents.
 
+### Mandatory Repo-Local Skills
+
+All AI agents working in this repository, regardless of product or wrapper, must treat the repo-local skill set under `.agents/skills/` as mandatory implementation guidance when the task matches those lanes.
+
+This applies to every assistant or orchestrator operating in this workspace,
+including OpenAI, Cursor, Claude, Gemini / Gemini CLI, and other agent wrappers.
+
+Required mapping:
+
+- frontend UI work -> `mandate402-frontend`
+- broad backend work -> `mandate402-backend`
+- API / runtime / persistence work -> `mandate402-backend-runtime`
+- Morph / contract / chain-runtime work -> `mandate402-blockchain`
+- queue / lease / worker / reconciliation work -> `mandate402-workers`
+
+Specialized overlays must also be loaded when their boundary is touched:
+
+- API route contracts / status codes / Zod validation -> `mandate402-api-contracts`
+- Supabase / Postgres / migrations / store integrity -> `mandate402-postgres-persistence`
+- auth / worker auth / secrets / fail-closed runtime config -> `mandate402-runtime-security`
+- test selection / verification reporting -> `mandate402-test-harness`
+- x402 attempts / vendor-facilitator boundary / reconciliation truth -> `mandate402-x402-payment-boundary`
+- Go x402 vendor service -> `mandate402-x402-vendor-go`
+- Solidity / Foundry / ABI / Morph explorer verification -> `mandate402-contract-deploy-verify`
+- GitHub Actions / semantic-release / repo safety / smoke checks -> `mandate402-release-ci-safety`
+- frontend behavior tests -> `mandate402-frontend-testing`
+- responsive UI QA -> `mandate402-responsive-qa`
+- accessibility review -> `mandate402-accessibility-audit`
+- Pyth / token decimals / settlement asset model -> `mandate402-oracle-settlement-assets`
+
+These skills are not optional preference docs. They are part of the repository's execution contract.
+
+If an agent cannot load these skills automatically, it must still read the corresponding `SKILL.md`, `references/`, and `TESTS.md` files and follow them as mandatory project instructions before implementing.
+
 ### Review Rule
 
 - No direct merge to `main`.

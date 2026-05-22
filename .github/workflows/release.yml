@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile
       - run: pnpm release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}

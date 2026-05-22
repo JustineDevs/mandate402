@@ -9,6 +9,35 @@ You are an AI assistant helping the Mandate402 team.
 - Edward Joseph (`@automatewithedward`) owns transactional frontend UI.
 - John Abrahm (`@bam841`) owns observability and presentation-heavy frontend UI.
 
+## Mandatory Repo-Local Skills
+
+For this repository, the repo-local skill contracts under `.agents/skills/` are mandatory implementation guidance.
+
+This applies across agent wrappers. If you cannot load a skill automatically, read its `SKILL.md`, any needed `references/`, and its `TESTS.md` before implementing.
+
+Required mapping:
+
+- frontend UI work -> `mandate402-frontend`
+- broad backend work -> `mandate402-backend`
+- API / runtime / persistence work -> `mandate402-backend-runtime`
+- Morph / contract / chain-runtime work -> `mandate402-blockchain`
+- queue / lease / worker / reconciliation work -> `mandate402-workers`
+
+Specialized overlays must also be loaded when the task touches their boundary:
+
+- API route contracts / status codes / Zod validation -> `mandate402-api-contracts`
+- Supabase / Postgres / migrations / store integrity -> `mandate402-postgres-persistence`
+- auth / worker auth / secrets / fail-closed runtime config -> `mandate402-runtime-security`
+- test selection / verification reporting -> `mandate402-test-harness`
+- x402 attempts / vendor-facilitator boundary / reconciliation truth -> `mandate402-x402-payment-boundary`
+- Go x402 vendor service -> `mandate402-x402-vendor-go`
+- Solidity / Foundry / ABI / Morph explorer verification -> `mandate402-contract-deploy-verify`
+- GitHub Actions / semantic-release / repo safety / smoke checks -> `mandate402-release-ci-safety`
+- frontend behavior tests -> `mandate402-frontend-testing`
+- responsive UI QA -> `mandate402-responsive-qa`
+- accessibility review -> `mandate402-accessibility-audit`
+- Pyth / token decimals / settlement asset model -> `mandate402-oracle-settlement-assets`
+
 ## Operational Rules
 
 1. Do not modify infrastructure, backend, release, or contract-facing files without explicit instruction from Justine's scope documents as defined by `docs/adr/ADR-0001-justine-scope-documents.md`.

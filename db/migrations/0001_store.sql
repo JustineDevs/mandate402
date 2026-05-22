@@ -48,6 +48,27 @@ CREATE TABLE IF NOT EXISTS attempts (
   FOREIGN KEY (mandate_id) REFERENCES mandates(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS worker_tasks (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL,
+  attempt_id TEXT NOT NULL,
+  mandate_id TEXT NOT NULL,
+  operator_id TEXT,
+  correlation_id TEXT,
+  lease_owner TEXT,
+  lease_expires_at TEXT,
+  available_at TEXT NOT NULL,
+  status TEXT NOT NULL,
+  attempt_count INTEGER NOT NULL,
+  last_error TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  started_at TEXT,
+  completed_at TEXT,
+  FOREIGN KEY (attempt_id) REFERENCES attempts(id) ON DELETE CASCADE,
+  FOREIGN KEY (mandate_id) REFERENCES mandates(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS audit_entries (
   id TEXT PRIMARY KEY,
   mandate_id TEXT NOT NULL,

@@ -1,3 +1,4 @@
+import { InvalidStateError } from "@/lib/domain/errors";
 import type {
   Mandate,
   MandateStatus,
@@ -20,8 +21,10 @@ const allowedAttemptTransitions: Record<
   created: ["auth_validated", "policy_denied"],
   auth_validated: ["policy_denied", "reserved"],
   policy_denied: [],
-  reserved: ["cancelled_released", "dispatching"],
+  reserved: ["cancelled_released", "dispatch_queued"],
+  dispatch_queued: ["dispatching", "cancelled_released"],
   dispatching: [
+    "cancelled_released",
     "executed_charge_failed",
     "executed_charge_succeeded",
     "execution_unknown",
@@ -48,7 +51,7 @@ export function ensureMandateTransition(
   to: MandateStatus,
 ) {
   if (!canTransitionMandate(from, to)) {
-    throw new Error(`Invalid mandate transition: ${from} -> ${to}`);
+    throw new InvalidStateError(`Invalid mandate transition: ${from} -> ${to}`);
   }
 }
 
@@ -57,7 +60,9 @@ export function ensureAttemptTransition(
   to: PaymentAttemptStatus,
 ) {
   if (!canTransitionAttempt(from, to)) {
-    throw new Error(`Invalid payment attempt transition: ${from} -> ${to}`);
+    throw new InvalidStateError(
+      `Invalid payment attempt transition: ${from} -> ${to}`,
+    );
   }
 }
 

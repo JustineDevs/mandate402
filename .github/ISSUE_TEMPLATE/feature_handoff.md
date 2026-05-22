@@ -1,47 +1,41 @@
 ---
-name: "Feature Handoff Pipeline"
-description: "Follow the v0.1.0 workflow from scope to wireframe to implementation"
+name: "Scoped Feature Issue"
+description: "Create one issue with one owner, one lane, and one reviewable outcome"
 title: "[FEATURE] "
-labels: ["sprint-task"]
+labels: ["type:feature", "lane:scope", "prio:p1"]
 assignees: []
 ---
 
-## Phase 1: Product Direction & Scope (Justine `@JustineDevs`)
+## Scope
 
+- Problem:
 - Goal:
 - Target audience / impact:
 - Technical / infrastructure notes:
+- Acceptance criteria:
+- Out of scope:
+- PRD link (required for larger cross-lane work):
+- Sprint / milestone:
+- Required labels:
+  - `type:*`
+  - `lane:*`
+  - `prio:*`
+- Primary assignee (required):
+- Dependencies / blockers:
 
-## Phase 2: Design & Wireframe (Sherwin `@owenlim225`)
+## Design Handoff
 
 - [ ] High-fidelity wireframe link:
 - [ ] Mobile behavior notes:
 - [ ] Special interaction notes:
 
-## Phase 3: Frontend Implementation
-
-### Transactional UI (John Abrahm `@bam841`)
-
-### Repository Intake Checklist
-
 - [ ] Sync the latest state of the repository.
 - [ ] Run the local environment successfully.
-- [ ] Audit the codebase to fit the new UI into existing patterns.
+- [ ] Audit the codebase to fit the issue into existing patterns.
+- [ ] Stay inside one lane and one ownership branch.
 
-### Development Subtasks
+## Sign-Off Criteria
 
-- [ ] Implement mandate/action/auth-aware UI flows.
-- [ ] Connect API endpoints or safe placeholder data as required.
-
-### Observability UI (Edward Joseph `@automatewithedward`)
-
-- [ ] Implement dashboard, audit, receipt, and status surfaces.
-- [ ] Reuse shared primitives instead of duplicating component systems.
-- [ ] Check for overlap with transactional screens before editing shared surfaces.
-
-## Phase 4: Sign-Off Criteria
-
-- Sherwin: UI matches the visual design intent.
-- John: Transactional UI is interactive and does not break existing behavior.
-- Edward: Observability UI is consistent, responsive, and aligned to the shared design system.
+- Sherwin: if UI is involved, design intent is clear and reviewable.
+- Lane owner: implementation stays inside issue scope and lane ownership.
 - Justine: Code is reviewed, infrastructure is stable, and the PR is ready to merge.

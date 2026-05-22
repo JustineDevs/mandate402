@@ -5,15 +5,10 @@ import type {
 } from "@/lib/domain/types";
 import { nowIso } from "@/lib/infrastructure/clock";
 import {
-  getFallbackVendorEndpoint,
-  getFallbackVendorStatusEndpoint,
   getPrimaryVendorEndpoint,
   getPrimaryVendorStatusEndpoint,
+  getVendorStatusToken,
 } from "@/lib/infrastructure/env";
-import {
-  fallbackGateAllowsWrapper,
-  readFallbackGate,
-} from "@/lib/infrastructure/fallback-gate";
 import { createId } from "@/lib/infrastructure/id";
 import { getPaymentFetch } from "@/lib/infrastructure/x402-client";
 
@@ -117,11 +112,9 @@ async function runPrimaryVendorAdapter(
 ): Promise<DispatchResult> {
   const endpoint = getPrimaryVendorEndpoint(input.vendor.id);
   if (!endpoint) {
-    return {
-      status: "executed_charge_failed",
-      chargeReference: null,
-      receiptEvidence: "missing_timeout",
-    };
+    throw new Error(
+      `Primary vendor endpoint is not configured for ${input.vendor.id}.`,
+    );
   }
 
   return postToVendor(endpoint, input);
@@ -130,25 +123,9 @@ async function runPrimaryVendorAdapter(
 async function runFallbackVendorAdapter(
   input: DispatchInput,
 ): Promise<DispatchResult> {
-  const gate = await readFallbackGate();
-  if (!fallbackGateAllowsWrapper(gate)) {
-    return {
-      status: "executed_charge_failed",
-      chargeReference: null,
-      receiptEvidence: "missing_timeout",
-    };
-  }
-
-  const endpoint = getFallbackVendorEndpoint();
-  if (!endpoint) {
-    return {
-      status: "executed_charge_failed",
-      chargeReference: null,
-      receiptEvidence: "missing_timeout",
-    };
-  }
-
-  return postToVendor(endpoint, input);
+  throw new Error(
+    `Fallback vendor execution is disabled for live runtime (${input.vendor.id}).`,
+  );
 }
 
 async function readVendorStatus(
@@ -156,11 +133,13 @@ async function readVendorStatus(
   paymentIdentifier: string,
   chargeReference: string | null,
 ): Promise<CorrelationResult> {
+  const statusToken = getVendorStatusToken();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       "x-payment-identifier": paymentIdentifier,
+      ...(statusToken ? { authorization: `Bearer ${statusToken}` } : {}),
     },
     body: JSON.stringify({
       chargeReference,
@@ -190,7 +169,7 @@ export async function correlateAttemptStatus(input: {
 }) {
   const endpoint =
     input.vendor.mode === "fallback-only"
-      ? getFallbackVendorStatusEndpoint()
+      ? undefined
       : getPrimaryVendorStatusEndpoint(input.vendor.id);
 
   if (!endpoint) {

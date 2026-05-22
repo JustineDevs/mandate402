@@ -35,21 +35,22 @@ import (
 
 var (
 	serviceName    = "my-x402-service"
-	facilitatorURL = envOr("MORPH_HOODI_X402_FACILITATOR_URL", "https://morph-rails-hoodi.morph.network/x402/v2")
+	facilitatorURL = mustEnv("MORPH_HOODI_X402_FACILITATOR_URL")
 	accessKey      = mustEnv("MORPH_X402_ACCESS_KEY")
 	secretKey      = mustEnv("MORPH_X402_SECRET_KEY")
 
-	chainID      = mustEnvInt64("MORPH_HOODI_CHAIN_ID", 2910)
-	tokenAddress = envOr("MORPH_HOODI_TOKEN_ADDRESS", "0xEcF966Cc754BC411E1F1106fbb4e343b835E85E4")
-	tokenName    = envOr("MORPH_HOODI_TOKEN_NAME", "HoodiTestToken")
+	chainID      = mustEnvInt64Strict("MORPH_HOODI_CHAIN_ID")
+	tokenAddress = mustEnv("MORPH_HOODI_TOKEN_ADDRESS")
+	tokenName    = mustEnv("MORPH_HOODI_TOKEN_NAME")
 	// tokenVersion comes from the EIP-712 domain — it MUST match the token contract's version().
 	// How to find it: call tokenContract.version() on-chain, or read the contract source.
-	tokenVersion   = envOr("MORPH_HOODI_TOKEN_VERSION", "1.0")
-	tokenDecimals  = mustEnvInt("MORPH_HOODI_TOKEN_DECIMALS", 18)
+	tokenVersion   = mustEnv("MORPH_HOODI_TOKEN_VERSION")
+	tokenDecimals  = mustEnvIntStrict("MORPH_HOODI_TOKEN_DECIMALS")
 	payToAddress   = mustEnv("MORPH_X402_PAYTO_ADDRESS")
-	price          = envOr("MORPH_X402_PRICE", "0.001")
-	port           = envOr("MORPH_X402_DEMO_PORT", ":8000")
-	provider       = envOr("MANDATE402_MARKET_PROVIDER", "demo")
+	price          = mustEnv("MORPH_X402_PRICE")
+	port           = envOr("MORPH_X402_VENDOR_PORT", ":8000")
+	statusToken    = envOr("MANDATE402_STATUS_TOKEN", "")
+	provider       = mustEnv("MANDATE402_MARKET_PROVIDER")
 	syncFacilitatorOnStart = mustEnvBool("MORPH_X402_SYNC_FACILITATOR_ON_START", true)
 	cmcBaseURL     = envOr("CMC_BASE_URL", "https://pro-api.coinmarketcap.com")
 	cmcAPIKey      = envOr("CMC_API_KEY", "")
@@ -155,18 +156,7 @@ func (p *providerClient) fetchMarketData() (marketPayload, error) {
 	case "coinapi":
 		return p.fetchCoinAPIMarketData()
 	default:
-		return marketPayload{
-			Provider:        "demo",
-			Asset:           "ETH",
-			QuoteCurrency:   "USD",
-			Price:           "2500.00",
-			PercentChange1h: "0.32",
-			PercentChange24h:"4.91",
-			Timestamp:       time.Now().UTC().Format(time.RFC3339),
-			Raw: map[string]any{
-				"note": "demo fallback payload",
-			},
-		}, nil
+		return marketPayload{}, fmt.Errorf("unsupported MANDATE402_MARKET_PROVIDER: %s", provider)
 	}
 }
 
@@ -274,11 +264,37 @@ func mustEnvInt(key string, fallback int) int {
 	return parsed
 }
 
+func mustEnvIntStrict(key string) int {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		panic(fmt.Sprintf("missing required environment variable: %s", key))
+	}
+
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		panic(fmt.Sprintf("invalid integer for %s: %v", key, err))
+	}
+	return parsed
+}
+
 func mustEnvInt64(key string, fallback int64) int64 {
 	value := strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback
 	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		panic(fmt.Sprintf("invalid int64 for %s: %v", key, err))
+	}
+	return parsed
+}
+
+func mustEnvInt64Strict(key string) int64 {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		panic(fmt.Sprintf("missing required environment variable: %s", key))
+	}
+
 	parsed, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
 		panic(fmt.Sprintf("invalid int64 for %s: %v", key, err))
@@ -395,7 +411,7 @@ func main() {
 	network := x402.Network(fmt.Sprintf("eip155:%d", chainID))
 
 	routes := x402http.RoutesConfig{
-		"POST /x402_demo/api/market-data": {
+		"POST /x402_vendor/api/market-data": {
 			Accepts: x402http.PaymentOptions{
 				{
 					Scheme:            "exact",
@@ -408,7 +424,7 @@ func main() {
 			Description: "Mandate402 market data vendor",
 			MimeType:    "application/json",
 		},
-		"POST /x402_demo/api/research": {
+		"POST /x402_vendor/api/research": {
 			Accepts: x402http.PaymentOptions{
 				{
 					Scheme:            "exact",
@@ -435,7 +451,7 @@ func main() {
 		Timeout:                requestTimeout,
 	}))
 
-	router.POST("/x402_demo/api/market-data", func(c *gin.Context) {
+	router.POST("/x402_vendor/api/market-data", func(c *gin.Context) {
 		paymentIdentifier := c.GetHeader("X-Payment-Identifier")
 		chargeReference := fmt.Sprintf("market_%d", time.Now().UnixMilli())
 		payload, err := dataClient.fetchMarketData()
@@ -464,7 +480,7 @@ func main() {
 		})
 	})
 
-	router.POST("/x402_demo/api/research", func(c *gin.Context) {
+	router.POST("/x402_vendor/api/research", func(c *gin.Context) {
 		paymentIdentifier := c.GetHeader("X-Payment-Identifier")
 		chargeReference := fmt.Sprintf("research_%d", time.Now().UnixMilli())
 		payload, err := dataClient.fetchMarketData()
@@ -500,10 +516,10 @@ func main() {
 		})
 	})
 
-	router.POST("/x402_demo/api/market-data/status", func(c *gin.Context) {
+	router.POST("/x402_vendor/api/market-data/status", func(c *gin.Context) {
 		serveStatus(c, store)
 	})
-	router.POST("/x402_demo/api/research/status", func(c *gin.Context) {
+	router.POST("/x402_vendor/api/research/status", func(c *gin.Context) {
 		serveStatus(c, store)
 	})
 
@@ -513,6 +529,16 @@ func main() {
 }
 
 func serveStatus(c *gin.Context, store *paymentStore) {
+	if statusToken != "" {
+		expected := "Bearer " + statusToken
+		if c.GetHeader("Authorization") != expected {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "unauthorized",
+			})
+			return
+		}
+	}
+
 	paymentIdentifier := c.GetHeader("X-Payment-Identifier")
 	var body statusRequest
 	_ = c.ShouldBindJSON(&body)

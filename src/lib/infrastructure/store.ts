@@ -8,6 +8,7 @@ import {
   getDatabaseUrl,
   getPersistenceMode,
   isProductionEnv,
+  isTestRuntime,
 } from "@/lib/infrastructure/env";
 import {
   readStorePostgres,
@@ -15,6 +16,7 @@ import {
   withPostgresStoreLock,
   writeStorePostgres,
 } from "@/lib/infrastructure/postgres-store";
+import { assertStoreIntegrity } from "@/lib/infrastructure/store-integrity";
 
 const dataDir = path.join(process.cwd(), "data");
 const testDataDir = path.join(process.cwd(), ".tmp", "test-sqlite");
@@ -64,7 +66,7 @@ function getSqliteDatabaseSyncCtor() {
   return sqliteDatabaseSyncCtor;
 }
 
-const seedData: StoreData = {
+const testStoreData: StoreData = {
   agents: [
     {
       id: "agent_research_alpha",
@@ -76,7 +78,7 @@ const seedData: StoreData = {
   ],
   mandates: [
     {
-      id: "mdt_demo_001",
+      id: "mdt_fixture_001",
       name: "Research Agent Spend",
       agentId: "agent_research_alpha",
       agentName: "Research Alpha",
@@ -95,40 +97,41 @@ const seedData: StoreData = {
   ],
   attempts: [
     {
-      id: "att_demo_success",
-      mandateId: "mdt_demo_001",
+      id: "att_fixture_success",
+      mandateId: "mdt_fixture_001",
       vendorId: "morph-market-data",
       amountCents: 1200,
-      operatorId: "operator_demo",
+      operatorId: "operator_fixture",
       status: "executed_charge_succeeded",
       financialOutcome: "executed_charge_succeeded",
       receiptEvidence: "received_valid",
       blockedReason: null,
       chargeReference: "charge_morph_001",
-      paymentIdentifier: "pid_demo_success",
+      paymentIdentifier: "pid_fixture_success",
       createdAt: nowIso(),
       updatedAt: nowIso(),
     },
     {
-      id: "att_demo_blocked",
-      mandateId: "mdt_demo_001",
+      id: "att_fixture_blocked",
+      mandateId: "mdt_fixture_001",
       vendorId: "rogue-vendor",
       amountCents: 1800,
-      operatorId: "operator_demo",
+      operatorId: "operator_fixture",
       status: "policy_denied",
       financialOutcome: "policy_denied",
       receiptEvidence: "not_required",
       blockedReason: "vendor_not_allowlisted",
       chargeReference: null,
-      paymentIdentifier: "pid_demo_blocked",
+      paymentIdentifier: "pid_fixture_blocked",
       createdAt: nowIso(),
       updatedAt: nowIso(),
     },
   ],
+  workerTasks: [],
   auditEntries: [
     {
-      id: "audit_issue_demo",
-      mandateId: "mdt_demo_001",
+      id: "audit_issue_fixture",
+      mandateId: "mdt_fixture_001",
       attemptId: null,
       type: "mandate_issued",
       message: "Mandate anchored on Morph.",
@@ -137,9 +140,9 @@ const seedData: StoreData = {
   ],
   domainEvents: [
     {
-      id: "evt_issue_demo",
+      id: "evt_issue_fixture",
       entityType: "mandate",
-      entityId: "mdt_demo_001",
+      entityId: "mdt_fixture_001",
       eventType: "mandate_issued",
       correlationId: null,
       occurredAt: nowIso(),
@@ -160,6 +163,12 @@ function ensureDatabase() {
   if (isProductionEnv() && persistenceMode !== "postgres") {
     throw new Error(
       "Production mode requires postgres persistence. SQLite is demo-only.",
+    );
+  }
+
+  if (!isTestRuntime() && persistenceMode !== "postgres") {
+    throw new Error(
+      "Live runtime requires postgres persistence. SQLite is test-only.",
     );
   }
 
@@ -236,6 +245,27 @@ function ensureDatabase() {
       FOREIGN KEY (mandate_id) REFERENCES mandates(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS worker_tasks (
+      id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      attempt_id TEXT NOT NULL,
+      mandate_id TEXT NOT NULL,
+      operator_id TEXT,
+      correlation_id TEXT,
+      lease_owner TEXT,
+      lease_expires_at TEXT,
+      available_at TEXT NOT NULL,
+      status TEXT NOT NULL,
+      attempt_count INTEGER NOT NULL,
+      last_error TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      started_at TEXT,
+      completed_at TEXT,
+      FOREIGN KEY (attempt_id) REFERENCES attempts(id) ON DELETE CASCADE,
+      FOREIGN KEY (mandate_id) REFERENCES mandates(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS audit_entries (
       id TEXT PRIMARY KEY,
       mandate_id TEXT NOT NULL,
@@ -257,17 +287,32 @@ function ensureDatabase() {
     );
   `);
 
+  const workerTaskColumns = new Set(
+    database
+      .prepare("PRAGMA table_info(worker_tasks)")
+      .all()
+      .map((column) => (column as { name: string }).name),
+  );
+  if (!workerTaskColumns.has("operator_id")) {
+    database.exec("ALTER TABLE worker_tasks ADD COLUMN operator_id TEXT;");
+  }
+  if (!workerTaskColumns.has("correlation_id")) {
+    database.exec("ALTER TABLE worker_tasks ADD COLUMN correlation_id TEXT;");
+  }
+
   const count = database
     .prepare("SELECT COUNT(*) as count FROM agents")
     .get() as { count: number };
-  if (count.count === 0) {
-    writeStoreSync(seedData);
+  if (count.count === 0 && isTestRuntime()) {
+    writeStoreSync(testStoreData);
   }
 
   return database;
 }
 
 function writeStoreSync(data: StoreData) {
+  assertStoreIntegrity(data);
+
   const db = ensureDatabase();
   if (!db) {
     memoryStoreData = storeDataClone(data);
@@ -280,6 +325,7 @@ function writeStoreSync(data: StoreData) {
     db.exec(`
       DELETE FROM domain_events;
       DELETE FROM audit_entries;
+      DELETE FROM worker_tasks;
       DELETE FROM attempts;
       DELETE FROM mandate_approved_vendors;
       DELETE FROM mandates;
@@ -358,6 +404,34 @@ function writeStoreSync(data: StoreData) {
       );
     }
 
+    const insertWorkerTask = db.prepare(`
+      INSERT INTO worker_tasks (
+        id, kind, attempt_id, mandate_id, operator_id, correlation_id,
+        lease_owner, lease_expires_at, available_at, status, attempt_count,
+        last_error, created_at, updated_at, started_at, completed_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    for (const workerTask of store.workerTasks) {
+      insertWorkerTask.run(
+        workerTask.id,
+        workerTask.kind,
+        workerTask.attemptId,
+        workerTask.mandateId,
+        workerTask.operatorId,
+        workerTask.correlationId,
+        workerTask.leaseOwner,
+        workerTask.leaseExpiresAt,
+        workerTask.availableAt,
+        workerTask.status,
+        workerTask.attemptCount,
+        workerTask.lastError,
+        workerTask.createdAt,
+        workerTask.updatedAt,
+        workerTask.startedAt,
+        workerTask.completedAt,
+      );
+    }
+
     const insertAudit = db.prepare(`
       INSERT INTO audit_entries (id, mandate_id, attempt_id, type, message, created_at)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -400,8 +474,8 @@ function storeDataClone(data: StoreData): StoreData {
   return structuredClone(data);
 }
 
-export function createSeedStoreData(): StoreData {
-  return structuredClone(seedData);
+export function createTestStoreData(): StoreData {
+  return structuredClone(testStoreData);
 }
 
 export async function readStore(): Promise<StoreData> {
@@ -412,10 +486,18 @@ export async function readStore(): Promise<StoreData> {
   const db = ensureDatabase();
   if (!db) {
     if (!memoryStoreData) {
-      memoryStoreData = createSeedStoreData();
+      if (!isTestRuntime()) {
+        throw new Error(
+          "Live runtime requires a real database. In-memory fallback is test-only.",
+        );
+      }
+
+      memoryStoreData = createTestStoreData();
     }
 
-    return storeDataClone(memoryStoreData);
+    const store = storeDataClone(memoryStoreData);
+    assertStoreIntegrity(store);
+    return store;
   }
 
   const agents = db
@@ -468,6 +550,17 @@ export async function readStore(): Promise<StoreData> {
   `)
     .all() as Array<Record<string, string | number | null>>;
 
+  const workerTasks = db
+    .prepare(`
+    SELECT
+      id, kind, attempt_id, mandate_id, operator_id, correlation_id,
+      lease_owner, lease_expires_at, available_at, status, attempt_count,
+      last_error, created_at, updated_at, started_at, completed_at
+    FROM worker_tasks
+    ORDER BY created_at DESC
+  `)
+    .all() as Array<Record<string, string | number | null>>;
+
   const auditEntries = db
     .prepare(`
     SELECT id, mandate_id, attempt_id, type, message, created_at
@@ -485,7 +578,7 @@ export async function readStore(): Promise<StoreData> {
   `)
     .all() as Array<Record<string, string | null>>;
 
-  return {
+  const store = {
     agents: agents.map((agent) => ({
       id: agent.id,
       name: agent.name,
@@ -528,6 +621,24 @@ export async function readStore(): Promise<StoreData> {
       createdAt: attempt.created_at as string,
       updatedAt: attempt.updated_at as string,
     })),
+    workerTasks: workerTasks.map((task) => ({
+      id: task.id as string,
+      kind: task.kind as StoreData["workerTasks"][number]["kind"],
+      attemptId: task.attempt_id as string,
+      mandateId: task.mandate_id as string,
+      operatorId: task.operator_id as string | null,
+      correlationId: task.correlation_id as string | null,
+      leaseOwner: task.lease_owner as string | null,
+      leaseExpiresAt: task.lease_expires_at as string | null,
+      availableAt: task.available_at as string,
+      status: task.status as StoreData["workerTasks"][number]["status"],
+      attemptCount: Number(task.attempt_count),
+      lastError: task.last_error as string | null,
+      createdAt: task.created_at as string,
+      updatedAt: task.updated_at as string,
+      startedAt: task.started_at as string | null,
+      completedAt: task.completed_at as string | null,
+    })),
     auditEntries: auditEntries.map((entry) => ({
       id: entry.id as string,
       mandateId: entry.mandate_id as string,
@@ -550,6 +661,9 @@ export async function readStore(): Promise<StoreData> {
       >,
     })),
   };
+
+  assertStoreIntegrity(store);
+  return store;
 }
 
 export async function writeStore(data: StoreData) {
@@ -561,7 +675,7 @@ export async function writeStore(data: StoreData) {
 }
 
 export async function resetStoreForTests(
-  data: StoreData = createSeedStoreData(),
+  data: StoreData = createTestStoreData(),
 ) {
   if (getPersistenceMode() === "postgres") {
     await writeStorePostgres(data);

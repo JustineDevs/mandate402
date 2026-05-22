@@ -136,7 +136,7 @@ The repository deliberately keeps the major roles separate:
 
 - Next.js app: operator UI, API routes, policy runtime
 - SQLite runtime store: local source of operational truth
-- Go x402 merchant: paid vendor behavior for demo and testing
+- Go x402 merchant: paid vendor behavior for development and testing
 - Morph contracts: lifecycle anchor and treasury-rule surface
 
 This makes it possible to demonstrate the full operator loop without pretending that the control layer and the vendor are the same thing.
@@ -187,8 +187,8 @@ In this repository today:
 
 - the operator app is implemented in Next.js
 - the runtime stores mandates, attempts, audit entries, and domain events in SQLite
-- the demo vendor service is implemented in Go with x402 middleware
-- mandate issue and revoke can be anchored on Morph when runtime credentials are configured, with demo tx identifiers used otherwise
+- the vendor service is implemented in Go with x402 middleware
+- mandate issue and revoke are anchored on Morph only when runtime credentials are configured; otherwise the write fails
 - the treasury contract models fiat-window guardrails and facilitator allowlists
 
 The project is therefore more than a concept note, but it is still an MVP with a deliberately constrained operating surface.

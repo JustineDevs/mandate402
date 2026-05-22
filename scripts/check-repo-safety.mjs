@@ -4,6 +4,7 @@ import path from "node:path";
 const root = process.cwd();
 const ignoredDirs = new Set([
   ".git",
+  ".agents",
   ".next",
   ".omx",
   ".tmp",
@@ -50,6 +51,21 @@ function scanFile(relPath) {
     {
       name: "Hardcoded CoinAPI key",
       regex: /^COINAPI_KEY=(?!replace-me\b|replace_me\b|\.\.\.$).+/m,
+    },
+    {
+      name: "Hardcoded worker token",
+      regex:
+        /^MANDATE402_WORKER_TOKEN=(?!replace-me\b|replace_me\b|\.\.\.$).+/m,
+    },
+    {
+      name: "Supabase service role secret",
+      regex:
+        /^SUPABASE_SERVICE_ROLE_KEY=(?!replace-me\b|replace_me\b|\.\.\.$).+/m,
+    },
+    {
+      name: "Hardcoded remote database URL with credentials",
+      regex:
+        /^(MANDATE402_DATABASE_URL|MANDATE402_DATABASE_DIRECT_URL|DATABASE_URL|DATABASE_DIRECT_URL)=(?!postgres:\/\/user:password@host:5432\/mandate402\b)(?!postgres:\/\/mandate402:mandate402@127\.0\.0\.1:5432\/mandate402_test\b)(?!replace-me\b).+@.+/m,
     },
     {
       name: "Hardcoded private key env",

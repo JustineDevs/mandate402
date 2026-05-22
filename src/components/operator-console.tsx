@@ -1,24 +1,24 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import type { Mandate, PaymentAttempt, Vendor } from "@/lib/domain/types";
-import { DEMO_OPERATOR_TOKEN } from "@/lib/infrastructure/env";
 
 type OperatorConsoleProps = {
+  accessToken: string;
   mandate: Mandate;
+  onChanged: () => Promise<void>;
   attempts: PaymentAttempt[];
   vendors: Vendor[];
 };
 
 export function OperatorConsole({
+  accessToken,
   mandate,
+  onChanged,
   attempts,
   vendors,
 }: OperatorConsoleProps) {
-  const router = useRouter();
-  const [token, setToken] = useState(DEMO_OPERATOR_TOKEN);
   const [mandateName, setMandateName] = useState("Fresh Research Mandate");
   const [agentName, setAgentName] = useState("Research Beta");
   const [budgetCapCents, setBudgetCapCents] = useState("3000");
@@ -46,7 +46,7 @@ export function OperatorConsole({
       ...init,
       headers: {
         "content-type": "application/json",
-        "x-operator-token": token,
+        authorization: `Bearer ${accessToken}`,
         ...(init.headers ?? {}),
       },
     });
@@ -62,12 +62,11 @@ export function OperatorConsole({
   return (
     <div className="form-grid" style={{ marginTop: 18 }}>
       <div className="field">
-        <label htmlFor="operator-token">Operator token</label>
-        <input
-          id="operator-token"
-          value={token}
-          onChange={(event) => setToken(event.target.value)}
-        />
+        <p style={{ margin: 0, fontWeight: 600 }}>Operator session</p>
+        <p style={{ margin: 0, opacity: 0.78 }}>
+          Authenticated operator session required. This console no longer
+          accepts a shared token in the UI.
+        </p>
       </div>
       <div className="inline-grid">
         <div className="field">
@@ -179,7 +178,7 @@ export function OperatorConsole({
                   }),
                 });
                 setMessage(`Mandate ${result.mandate.id} created.`);
-                router.refresh();
+                await onChanged();
               } catch (error) {
                 setMessage(
                   error instanceof Error
@@ -212,7 +211,7 @@ export function OperatorConsole({
                 setMessage(
                   `Attempt ${result.attempt.id}: ${result.attempt.financialOutcome}`,
                 );
-                router.refresh();
+                await onChanged();
               } catch (error) {
                 setMessage(
                   error instanceof Error ? error.message : "Attempt failed.",
@@ -234,7 +233,7 @@ export function OperatorConsole({
                   method: "POST",
                 });
                 setMessage("Mandate revoked.");
-                router.refresh();
+                await onChanged();
               } catch (error) {
                 setMessage(
                   error instanceof Error ? error.message : "Revoke failed.",
@@ -263,7 +262,7 @@ export function OperatorConsole({
                   setMessage(
                     `Attempt ${result.attempt.id} reconciled: ${result.attempt.financialOutcome}`,
                   );
-                  router.refresh();
+                  await onChanged();
                 } catch (error) {
                   setMessage(
                     error instanceof Error

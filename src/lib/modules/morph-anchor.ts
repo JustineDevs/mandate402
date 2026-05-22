@@ -1,43 +1,11 @@
-import {
-  http,
-  createPublicClient,
-  createWalletClient,
-  keccak256,
-  parseAbi,
-  stringToHex,
-} from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { keccak256, stringToHex } from "viem";
 
 import {
-  assertProductionMorphAnchoringConfig,
-  getMorphRuntimeConfig,
-} from "@/lib/infrastructure/env";
-import { createId } from "@/lib/infrastructure/id";
-
-const mandateRegistryAbi = parseAbi([
-  "function issueMandate(bytes32 mandateId, bytes32 specHash)",
-  "function revokeMandate(bytes32 mandateId, bytes32 revokeRef)",
-]);
-
-function createMorphChain(chainId: number) {
-  return {
-    id: chainId,
-    name: "Morph",
-    nativeCurrency: {
-      name: "ETH",
-      symbol: "ETH",
-      decimals: 18,
-    },
-    rpcUrls: {
-      default: {
-        http: [
-          getMorphRuntimeConfig().rpcUrl ??
-            "https://rpc-quicknode.morph.network",
-        ],
-      },
-    },
-  } as const;
-}
+  getMorphPublicClient,
+  getMorphWalletClient,
+} from "@/lib/blockchain/clients";
+import { getMandateRegistryContract } from "@/lib/blockchain/contracts";
+import { assertProductionMorphAnchoringConfig } from "@/lib/infrastructure/env";
 
 function mandateIdToBytes32(mandateId: string) {
   return keccak256(stringToHex(mandateId));
@@ -52,21 +20,24 @@ async function writeAnchor(
   mandateId: string,
   refValue: string,
 ) {
-  const { config, missingConfig } = assertMorphWriteReady();
+  const { missingConfig } = assertMorphWriteReady();
   if (missingConfig) {
-    return `demo_${action}_${mandateId}_${createId("tx")}`;
+    throw new Error("Morph anchoring is not fully configured.");
   }
 
-  const account = privateKeyToAccount(config.privateKey as `0x${string}`);
-  const chain = createMorphChain(config.chainId);
-  const transport = http(config.rpcUrl);
-  const contractAddress = config.contractAddress as `0x${string}`;
-  const walletClient = createWalletClient({ account, chain, transport });
-  const publicClient = createPublicClient({ chain, transport });
+  const contract = getMandateRegistryContract();
+  if (!contract.address) {
+    throw new Error(
+      "MANDATE_REGISTRY_ADDRESS is required for Morph anchor writes.",
+    );
+  }
+
+  const walletClient = getMorphWalletClient();
+  const publicClient = getMorphPublicClient();
 
   const hash = await walletClient.writeContract({
-    address: contractAddress,
-    abi: mandateRegistryAbi,
+    address: contract.address,
+    abi: contract.abi,
     functionName: action,
     args: [mandateIdToBytes32(mandateId), keccak256(stringToHex(refValue))],
   });

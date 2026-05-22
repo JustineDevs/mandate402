@@ -100,13 +100,13 @@ The operator-facing API surface is small and explicit:
 
 `main.go` exposes two x402-paid vendor routes:
 
-- `POST /x402_demo/api/market-data`
-- `POST /x402_demo/api/research`
+- `POST /x402_vendor/api/market-data`
+- `POST /x402_vendor/api/research`
 
 And two reconciliation routes:
 
-- `POST /x402_demo/api/market-data/status`
-- `POST /x402_demo/api/research/status`
+- `POST /x402_vendor/api/market-data/status`
+- `POST /x402_vendor/api/research/status`
 
 The market-data route returns quickly. The research route intentionally sleeps for nine seconds so the Next.js app times out after eight seconds, forcing an `execution_unknown` state and later reconciliation.
 
@@ -220,7 +220,7 @@ A charge can succeed while receipt evidence is still pending or later marked inv
 2. `requireOperator` validates the operator token.
 3. Request body is validated with `zod`.
 4. `createMandate` checks that the expiry is in the future and the agent exists and is active.
-5. `issueMandateAnchor` writes a Morph anchor through `MandateRegistry`, or emits a synthetic `demo_*` tx id if runtime chain credentials are missing.
+5. `issueMandateAnchor` writes a Morph anchor through `MandateRegistry`, and fails if runtime chain credentials are missing.
 6. The mandate transitions `draft -> issued_active`.
 7. The mandate is stored.
 8. A `mandate_issued` audit entry and domain event are recorded.
@@ -309,7 +309,7 @@ This is the core distributed-systems rule in the project:
 
 1. Operator calls `POST /api/mandates/:mandateId/revoke`.
 2. `revokeMandate` transitions `issued_active/issued_reserved -> revoking`.
-3. `revokeMandateAnchor` writes the revoke anchor to Morph, or emits a synthetic `demo_*` tx id when chain credentials are missing.
+3. `revokeMandateAnchor` writes the revoke anchor to Morph, and fails if chain credentials are missing.
 4. The mandate transitions `revoking -> revoked`.
 5. Audit and domain-event evidence is written.
 
@@ -424,14 +424,14 @@ Pyth is used in the treasury contract for:
 
 ### CoinMarketCap / CoinAPI
 
-These are upstream data sources for the Go demo vendor. They are not treasury infrastructure and they are not the payment facilitator.
+These are upstream data sources for the Go vendor service. They are not treasury infrastructure and they are not the payment facilitator.
 
 ### Environment defaults
 
 The app and the Go demo merchant do not share the same defaults:
 
 - the Next.js app defaults to Morph mainnet-style RPC and chain settings unless env overrides are supplied
-- the Go demo merchant defaults to Hoodi testnet chain `2910` and Hoodi facilitator URLs
+- the Go vendor service now requires explicit chain and facilitator configuration
 
 For a coherent local or demo environment, those values should be aligned explicitly through environment configuration.
 
@@ -452,7 +452,7 @@ The runtime keeps three evidence channels:
 ## 15. Security and Trust Assumptions
 
 - Mutating routes require an operator token.
-- The default operator token is a demo value and is not sufficient for production.
+- Operator authentication requires real Supabase-backed identity; there is no runtime demo token path.
 - Private keys for Morph anchor writes and x402 buying come from environment variables.
 - Reconciliation trusts vendor status endpoints, not caller-supplied final status.
 - Secrets and private keys must remain out of tracked files.
@@ -466,7 +466,7 @@ The current repository is intentionally narrow:
 - write serialization is single-process only and not multi-instance safe
 - vendor endpoints are environment-configured
 - `/api/vendors` returns static registry metadata, not live vendor health
-- the Go vendor is a demo merchant, not a marketplace of independent vendors
+- the Go vendor service is a development vendor implementation, not a marketplace of independent vendors
 - the app anchors lifecycle onchain but keeps primary spend authorization offchain
 - the treasury contract is implemented, tested, and deployable, but not yet invoked inside each Next.js payment attempt
 

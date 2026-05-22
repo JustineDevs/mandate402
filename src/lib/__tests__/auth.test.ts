@@ -1,8 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { DEMO_OPERATOR_TOKEN } from "@/lib/infrastructure/env";
-import { AuthError, requireOperator } from "@/lib/modules/auth";
-
 function makeRequest(headers: Record<string, string>) {
   return new Request("http://localhost/api/test", {
     headers,
@@ -16,24 +13,56 @@ describe("requireOperator", () => {
     vi.restoreAllMocks();
   });
 
-  it("accepts the configured demo token", async () => {
+  it("accepts a valid Supabase-backed operator token", async () => {
+    vi.stubEnv("APP_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
+    vi.doMock("@/lib/infrastructure/supabase-server", () => ({
+      getSupabaseRole: () => "operator",
+      getSupabaseServerClient: () => ({
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: {
+              user: {
+                id: "operator_fixture",
+                app_metadata: { role: "operator" },
+              },
+            },
+            error: null,
+          }),
+        },
+      }),
+    }));
+    vi.resetModules();
+
+    const { requireOperator } = await import("@/lib/modules/auth");
+
     await expect(
       requireOperator(
         makeRequest({
-          "x-operator-token": DEMO_OPERATOR_TOKEN,
+          authorization: "Bearer valid-token",
         }),
       ),
     ).resolves.toEqual({
-      operatorId: "operator_demo",
+      operatorId: "operator_fixture",
       role: "operator",
     });
   });
 
   it("rejects missing credentials", async () => {
-    await expect(requireOperator(makeRequest({}))).rejects.toThrow(AuthError);
+    vi.stubEnv("APP_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
+    vi.resetModules();
+
+    const { requireOperator } = await import("@/lib/modules/auth");
+
+    await expect(requireOperator(makeRequest({}))).rejects.toThrow(
+      "Unauthorized operator request.",
+    );
   });
 
-  it("rejects demo token auth in production mode", async () => {
+  it("rejects invalid token auth in production mode", async () => {
     vi.stubEnv("APP_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
@@ -56,7 +85,7 @@ describe("requireOperator", () => {
     await expect(
       requireOperatorProd(
         makeRequest({
-          "x-operator-token": DEMO_OPERATOR_TOKEN,
+          authorization: "Bearer invalid-token",
         }),
       ),
     ).rejects.toThrow(AuthErrorProd);
@@ -101,5 +130,5 @@ describe("requireOperator", () => {
         }),
       ),
     ).rejects.toThrow(AuthErrorProd);
-  });
+  }, 30_000);
 });

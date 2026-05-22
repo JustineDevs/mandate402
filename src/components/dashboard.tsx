@@ -2,7 +2,9 @@ import { OperatorConsole } from "@/components/operator-console";
 import type { DashboardData } from "@/lib/dashboard-data";
 
 type DashboardProps = {
+  accessToken: string;
   data: DashboardData;
+  onChanged: () => Promise<void>;
 };
 
 function formatUsd(cents: number) {
@@ -12,7 +14,7 @@ function formatUsd(cents: number) {
   }).format(cents / 100);
 }
 
-export function Dashboard({ data }: DashboardProps) {
+export function Dashboard({ accessToken, data, onChanged }: DashboardProps) {
   const activeMandate = data.mandates[0];
 
   return (
@@ -58,10 +60,50 @@ export function Dashboard({ data }: DashboardProps) {
               Issue New Mandate
             </div>
             <OperatorConsole
+              accessToken={accessToken}
               mandate={activeMandate}
               attempts={data.attempts}
+              onChanged={onChanged}
               vendors={data.vendors}
             />
+          </div>
+
+          <div className="card">
+            <div className="eyebrow">Open Incidents</div>
+            {data.incidents.length === 0 ? (
+              <p className="muted" style={{ marginTop: 12 }}>
+                No open reconciliation incidents.
+              </p>
+            ) : (
+              <table className="table" style={{ marginTop: 12 }}>
+                <thead>
+                  <tr>
+                    <th>Severity</th>
+                    <th>Title</th>
+                    <th>Detail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.incidents.map((incident) => (
+                    <tr key={incident.id}>
+                      <td>
+                        <span
+                          className={`badge ${
+                            incident.severity === "danger"
+                              ? "danger"
+                              : "warning"
+                          }`}
+                        >
+                          {incident.severity}
+                        </span>
+                      </td>
+                      <td>{incident.title}</td>
+                      <td className="muted">{incident.detail}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           <div className="card">

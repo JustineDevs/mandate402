@@ -10,8 +10,9 @@ This document is for anyone trying to understand which Mandate402 document to re
 | Understand the product, scope, and why it exists | [PROJECT.md](./PROJECT.md) |
 | Understand the business model and stakeholders | [BM.md](./BM.md) |
 | Understand the runtime, contracts, and architecture | [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) |
+| Understand the target Morph-first hybrid architecture direction | [MORPH-FIRST-HYBRID-ARCHITECTURE.md](./MORPH-FIRST-HYBRID-ARCHITECTURE.md) |
 | Understand team roles and collaboration rules | [TEAM.md](./TEAM.md) |
-| Understand current release shape and what is still demo-shaped | [STATUS.md](./STATUS.md) |
+| Understand current release shape and what runtime surfaces are already real | [STATUS.md](./STATUS.md) |
 | Look up domain terms | [GLOSSARY.md](./GLOSSARY.md) |
 | Implement the visual system | [design-tokens.md](./design-tokens.md) |
 | Understand mandatory delivery workflow | [WORKFLOW.md](./WORKFLOW.md) |
@@ -22,7 +23,12 @@ This document is for anyone trying to understand which Mandate402 document to re
 | Understand mandatory release rules | [RELEASE-POLICY.md](./RELEASE-POLICY.md) |
 | Understand emergency release exceptions | [HOTFIX.md](./HOTFIX.md) |
 | Understand mandatory PR policy | [PR-POLICY.md](./PR-POLICY.md) |
+| Understand product planning format | [PRD.md](./PRD.md) |
+| Understand sprint rhythm | [SCRUM.md](./SCRUM.md) |
+| Understand feature-to-issue agile flow | [AGILE-FLOW.md](./AGILE-FLOW.md) |
+| Understand the current active sprint | [SPRINT-2026-05-18-to-2026-05-25.md](./SPRINT-2026-05-18-to-2026-05-25.md) |
 | Copy a ready-made onboarding prompt | [CONTRIBUTOR-PROMPT.md](./CONTRIBUTOR-PROMPT.md) |
+| Use repo-local AI development skills | `mandate402-frontend`, `mandate402-backend`, `mandate402-backend-runtime`, `mandate402-blockchain`, and `mandate402-workers` |
 | Follow deterministic repo startup steps | [REPO-INGESTION.md](./REPO-INGESTION.md) |
 | Check if an issue is ready | [DEFINITION-OF-READY.md](./DEFINITION-OF-READY.md) |
 | Check if a change is done | [DEFINITION-OF-DONE.md](./DEFINITION-OF-DONE.md) |
@@ -54,8 +60,9 @@ This document is for anyone trying to understand which Mandate402 document to re
 
 1. [PROJECT.md](./PROJECT.md)
 2. [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md)
-3. [STATUS.md](./STATUS.md)
-4. [GLOSSARY.md](./GLOSSARY.md)
+3. [MORPH-FIRST-HYBRID-ARCHITECTURE.md](./MORPH-FIRST-HYBRID-ARCHITECTURE.md)
+4. [STATUS.md](./STATUS.md)
+5. [GLOSSARY.md](./GLOSSARY.md)
 
 ### Team member onboarding
 
@@ -82,6 +89,7 @@ This document is for anyone trying to understand which Mandate402 document to re
 ### Technical
 
 - [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md): implementation-grounded runtime and system design
+- [MORPH-FIRST-HYBRID-ARCHITECTURE.md](./MORPH-FIRST-HYBRID-ARCHITECTURE.md): target Morph-first production architecture and migration direction
 - [GLOSSARY.md](./GLOSSARY.md): normalized definitions for shared terms
 - [design-tokens.md](./design-tokens.md): UI design token reference for Sherwin, Edward, and John
 - [STATUS.md](./STATUS.md): current MVP status, known boundaries, next-documentation priorities
@@ -93,7 +101,18 @@ This document is for anyone trying to understand which Mandate402 document to re
 - [RELEASE-POLICY.md](./RELEASE-POLICY.md): mandatory main-only release and tagging rules
 - [HOTFIX.md](./HOTFIX.md): mandatory emergency hotfix rules
 - [PR-POLICY.md](./PR-POLICY.md): mandatory PR scope, review, and merge rules
+- [PRD.md](./PRD.md): canonical product requirements format for larger work
+- [SCRUM.md](./SCRUM.md): lightweight sprint model for the team
+- [AGILE-FLOW.md](./AGILE-FLOW.md): idea-to-issue-to-PR execution flow
+- [SPRINT-2026-05-18-to-2026-05-25.md](./SPRINT-2026-05-18-to-2026-05-25.md): current sprint goal, expected outcome, and lane board
 - [CONTRIBUTOR-PROMPT.md](./CONTRIBUTOR-PROMPT.md): copy-paste-ready contributor onboarding prompt
+- repo-local skills:
+  - `mandate402-frontend`: strict frontend implementation skill for layout, tokens, responsiveness, and UI behavior
+  - `mandate402-backend`: backend router skill for broad backend tasks
+  - `mandate402-backend-runtime`: strict API, validation, persistence, DB, and runtime behavior skill
+  - `mandate402-blockchain`: strict Morph, ABI, contract, RPC, and chain-truth skill
+  - `mandate402-workers`: strict durable task, lease, retry, and worker-owned reconciliation skill
+  - specialized overlays: `mandate402-api-contracts`, `mandate402-postgres-persistence`, `mandate402-runtime-security`, `mandate402-test-harness`, `mandate402-x402-payment-boundary`, `mandate402-x402-vendor-go`, `mandate402-contract-deploy-verify`, `mandate402-release-ci-safety`, `mandate402-frontend-testing`, `mandate402-responsive-qa`, `mandate402-accessibility-audit`, and `mandate402-oracle-settlement-assets`
 - [REPO-INGESTION.md](./REPO-INGESTION.md): deterministic repo startup checklist
 - [DEFINITION-OF-READY.md](./DEFINITION-OF-READY.md): start gate for issues
 - [DEFINITION-OF-DONE.md](./DEFINITION-OF-DONE.md): finish gate for PR-ready work

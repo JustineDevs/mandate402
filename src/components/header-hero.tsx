@@ -46,35 +46,28 @@ export function HeaderHero() {
               <span className="hero-chip">Pyth Budget Limits</span>
             </div>
             <div className="cta-row">
-              <a className="pill pill-primary" href="#mandate-form">
-                Issue Mandate
+              <a className="pill pill-primary" href="/operator">
+                Open Operator Workspace
               </a>
-              <a className="pill pill-secondary" href="#transactions">
-                Review Audit Trail
+              <a className="pill pill-secondary" href="#platform-summary">
+                Platform Summary
               </a>
             </div>
           </div>
           <div className="panel terminal">
             <div className="terminal-title">Live Treasury Trace</div>
-            <pre>{`> issueMandate("Research Agent")
-mandate_id: mdt_demo_001
-anchor_chain: Morph
-budget_cap: $50.00
-approved_vendors: ["morph-market-data", "morph-research-net"]
-receipt_gate: required
+            <pre>{`> production posture
+operator_controls: authenticated
+worker_controls: internal_only
+database: postgres
+queue_delivery: at_least_once
+reconciliation: explicit
 
-> runAttempt("morph-market-data", $12.00)
-auth: ok
-policy: approved
-reservation: held
-execution: charge_succeeded
-receipt: received_valid
-
-> runAttempt("rogue-vendor", $18.00)
-auth: ok
-policy: denied
-reason: vendor_not_allowlisted
-dispatch: prevented`}</pre>
+> current sprint
+aa_scope: deferred
+security_gate: active
+release_status: blocked
+next_slice: worker_control_hardening`}</pre>
           </div>
         </div>
       </div>

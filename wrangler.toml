@@ -1,0 +1,42 @@
+name = "mandate402-workers"
+main = "src/workers/mandate402.ts"
+compatibility_date = "2025-05-21"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+MANDATE402_CONTROL_API_URL = "http://127.0.0.1:3000"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[queues.producers]]
+binding = "EXECUTION_QUEUE"
+queue = "mandate402-execution"
+
+[[queues.producers]]
+binding = "RECONCILIATION_QUEUE"
+queue = "mandate402-reconciliation"
+
+[[queues.consumers]]
+queue = "mandate402-execution"
+max_batch_size = 10
+max_batch_timeout = 5
+
+[[queues.consumers]]
+queue = "mandate402-reconciliation"
+max_batch_size = 10
+max_batch_timeout = 5
+
+[[durable_objects.bindings]]
+name = "MANDATE_BUDGET_LOCKS"
+class_name = "MandateBudgetLockDurableObject"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["MandateBudgetLockDurableObject"]
+
+[[d1_databases]]
+binding = "MANDATE402_WORKER_CACHE"
+database_name = "mandate402-worker-cache"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "workers/d1/migrations"

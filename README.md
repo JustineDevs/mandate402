@@ -4,6 +4,7 @@
   <p><strong>The autonomous governance and treasury command center for x402 machine commerce on Morph.</strong></p>
 
   <p>
+    <a href="https://github.com/JustineDevs/mandate402"><img alt="Repository" src="https://img.shields.io/badge/GitHub-JustineDevs%2Fmandate402-181717?logo=github" /></a>
     <img alt="License" src="https://img.shields.io/badge/license-MIT-22c55e" />
     <img alt="Next.js" src="https://img.shields.io/badge/Next.js-15-black?logo=next.js" />
     <img alt="Foundry" src="https://img.shields.io/badge/Foundry-Solidity-orange" />
@@ -62,6 +63,8 @@ Operational pipeline:
 
 These workflow, ownership, PR, and release rules are mandatory, not optional.
 
+Feature and sprint planning should use the tracked PRD, Scrum, and Agile flow docs instead of ad hoc chat-only planning.
+
 ## Problem
 
 Autonomous agents can pay through `HTTP 402`, but organizations still lack a safe treasury layer between:
@@ -90,8 +93,8 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | Next.js operator console | Ready locally | Mandate create / attempt / revoke / reconcile flows implemented |
 | Treasury contracts | Ready locally | `MandateRegistry` and `Mandate402Treasury` tested with Foundry |
 | Morph Hoodi treasury deploy | Deployed | `0xD08301fEAc731dDe33b81059A59A69c1A1B5DD60` |
-| Go x402 demo merchant | Runnable | Uses Morph Hoodi facilitator via env |
-| Real external vendors | Not yet live | Local demo vendors are provided |
+| Go x402 vendor service | Runnable | Uses explicit Morph and provider env values |
+| Runtime defaults | Fail-closed | Missing live config now blocks execution instead of falling back |
 
 <details>
 <summary><strong>Core Documents</strong></summary>
@@ -105,7 +108,7 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | [docs/BM.md](./docs/BM.md) | Business model and stakeholder framing |
 | [docs/GLOSSARY.md](./docs/GLOSSARY.md) | Shared definitions for product and system terms |
 | [docs/design-tokens.md](./docs/design-tokens.md) | UI token reference for design and frontend implementation |
-| [docs/STATUS.md](./docs/STATUS.md) | Current MVP state, real vs demo-shaped boundaries, and next priorities |
+| [docs/STATUS.md](./docs/STATUS.md) | Current MVP release state, real runtime boundaries, and next priorities |
 | [docs/WORKFLOW.md](./docs/WORKFLOW.md) | Mandatory issue-to-merge workflow |
 | [docs/BRANCHING.md](./docs/BRANCHING.md) | Mandatory branching and worktree strategy |
 | [docs/LANES.md](./docs/LANES.md) | Mandatory ownership split by team lane |
@@ -114,6 +117,10 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | [docs/RELEASE-POLICY.md](./docs/RELEASE-POLICY.md) | Mandatory main-only release, tagging, and release-note rules |
 | [docs/HOTFIX.md](./docs/HOTFIX.md) | Mandatory emergency hotfix policy |
 | [docs/PR-POLICY.md](./docs/PR-POLICY.md) | Mandatory PR rules and merge expectations |
+| [docs/PRD.md](./docs/PRD.md) | Canonical product requirements format for larger work |
+| [docs/SCRUM.md](./docs/SCRUM.md) | Lightweight sprint model for the team |
+| [docs/AGILE-FLOW.md](./docs/AGILE-FLOW.md) | Feature-to-issue-to-PR execution flow |
+| [docs/SPRINT-2026-05-18-to-2026-05-25.md](./docs/SPRINT-2026-05-18-to-2026-05-25.md) | Current sprint goal, expected outcome, and lane board |
 | [docs/CONTRIBUTOR-PROMPT.md](./docs/CONTRIBUTOR-PROMPT.md) | Copy-paste-ready contributor onboarding prompt |
 | [docs/REPO-INGESTION.md](./docs/REPO-INGESTION.md) | Deterministic repo-ingestion checklist |
 | [docs/DEFINITION-OF-READY.md](./docs/DEFINITION-OF-READY.md) | Mandatory readiness gate for issues |
@@ -141,28 +148,22 @@ This repo follows the approved architecture and delivery plan documented in the 
 Current implementation includes:
 
 - a modular-monolith Next.js app
-- mandate, policy, payment, receipt, vendor, and auth modules
-- a canonical fallback-gate artifact
-- SQLite-backed local persistence
-- unit tests for the critical state machine and policy logic
+- mandate, policy, payment, receipt, vendor, auth, and blockchain modules
+- fail-closed runtime config validation
+- Postgres-first live persistence semantics
+- unit tests for the critical state machine, policy, auth, treasury, and blockchain logic
 
 The contract workspace lives under `contracts/`.
 
 <details>
-<summary><strong>What is already production-shaped vs still demo-shaped?</strong></summary>
-
-Production-shaped:
+<summary><strong>What is real now</strong></summary>
 
 - contract architecture
-- local policy / reconciliation logic
-- deployed treasury contract on Morph Hoodi
-- x402 merchant sample with real 402 challenges
-
-Still demo-shaped:
-
-- local file persistence
-- local controlled vendor endpoints
-- environment-driven live vendor URLs not yet replaced with third-party services
+- on-chain anchor wiring
+- treasury guard contract surface
+- fail-closed auth and persistence boundaries
+- explicit vendor endpoint requirements
+- x402 vendor service with real 402 challenges
 
 </details>
 
@@ -170,7 +171,7 @@ Still demo-shaped:
 
 | Layer | Responsibility | Current implementation |
 |---|---|---|
-| Vendor | The paid service being purchased | Local Go x402 demo merchant endpoints |
+| Vendor | The paid service being purchased | Explicit x402 vendor endpoints |
 | Facilitator | x402 discover / verify / settle infra | Morph facilitator URLs |
 | Mandate402 | Treasury guardrails and policy | Next app + Solidity contracts |
 | Oracle | Fiat-denominated safety checks | Pyth in `Mandate402Treasury.sol` |
@@ -339,7 +340,6 @@ These values are still project-specific and cannot be truthfully prefilled:
 - `MANDATE_REGISTRY_ADDRESS`
 - `PRIMARY_X402_VENDOR_A_URL`
 - `PRIMARY_X402_VENDOR_B_URL`
-- `MANDATE402_X402_DEMO_VENDOR_URL`
 - `MORPH_X402_ACCESS_KEY`
 - `MORPH_X402_SECRET_KEY`
 
@@ -363,18 +363,15 @@ That means:
 > [!CAUTION]
 > If you point `PRIMARY_X402_VENDOR_A_URL` or `PRIMARY_X402_VENDOR_B_URL` at the Morph facilitator, your architecture becomes conceptually wrong. The facilitator is settlement infra, not the paid service being purchased.
 
-The onboarding wizard `main.go` in this repo is a sample paid x402 merchant server. If you run it locally, it can serve as controlled demo vendor endpoints:
+The `main.go` service in this repo is a sample paid x402 vendor server. If you run it locally, it can stand in as a development vendor while still requiring explicit facilitator and provider configuration:
 
-- vendor A: `http://localhost:8000/x402_demo/api/market-data`
-- vendor B: `http://localhost:8000/x402_demo/api/research`
-- fallback demo vendor: `http://localhost:8000/x402_demo/api/resource`
+- vendor A: `http://localhost:8000/x402_vendor/api/market-data`
+- vendor B: `http://localhost:8000/x402_vendor/api/research`
 - payment infra: Morph Hoodi facilitator with HMAC credentials from env
-
-That is useful for demo/fallback validation, but it does not magically create two real third-party data vendors.
 
 ## External Provider Integration
 
-The local x402 demo vendors can pull upstream crypto market data from either:
+The local x402 vendor service can pull upstream crypto market data from either:
 
 | Provider | Role in this repo | Auth shape |
 |---|---|---|
@@ -390,7 +387,7 @@ Important:
 The Go merchant chooses provider behavior using:
 
 ```bash
-MANDATE402_MARKET_PROVIDER=demo|coinmarketcap|coinapi
+MANDATE402_MARKET_PROVIDER=coinmarketcap|coinapi
 CMC_API_KEY=...
 COINAPI_KEY=...
 ```
@@ -400,19 +397,18 @@ Provider mapping in code:
 - [main.go](./main.go) -> `fetchCoinMarketCapMarketData()`
 - [main.go](./main.go) -> `fetchCoinAPIMarketData()`
 
-If no provider key is configured, the merchant falls back to deterministic demo payloads.
+If no provider key is configured, the vendor service fails fast.
 
-## Local Demo Vendors
+## Local Vendor Service
 
-The repo now provides concrete local vendor endpoints through the Go x402 demo merchant:
+The repo provides concrete local vendor endpoints through the Go x402 vendor service:
 
 | Role | Endpoint | Purpose |
 |---|---|---|
-| Vendor A | `http://localhost:8000/x402_demo/api/market-data` | fast successful paid response |
-| Vendor B | `http://localhost:8000/x402_demo/api/research` | intentionally slow response to trigger `execution_unknown` then reconciliation |
-| Vendor status A | `http://localhost:8000/x402_demo/api/market-data/status` | correlation endpoint |
-| Vendor status B | `http://localhost:8000/x402_demo/api/research/status` | correlation endpoint |
-| Fallback vendor | `http://localhost:8000/x402_demo/api/resource` | controlled fallback path |
+| Vendor A | `http://localhost:8000/x402_vendor/api/market-data` | fast successful paid response |
+| Vendor B | `http://localhost:8000/x402_vendor/api/research` | intentionally slow response to trigger `execution_unknown` then reconciliation |
+| Vendor status A | `http://localhost:8000/x402_vendor/api/market-data/status` | correlation endpoint |
+| Vendor status B | `http://localhost:8000/x402_vendor/api/research/status` | correlation endpoint |
 
 ## Verification Matrix
 
@@ -429,7 +425,7 @@ The repo now provides concrete local vendor endpoints through the Go x402 demo m
 | Go module sanity | `go test ./...` |
 
 <details>
-<summary>How the unknown-attempt demo works</summary>
+<summary>How the unknown-attempt flow works</summary>
 
 The `research` route deliberately sleeps longer than the Next app correlation timeout. That makes Mandate402 record:
 
@@ -459,23 +455,15 @@ You still need to provide:
 ```bash
 MORPH_PRIVATE_KEY=0x...
 MANDATE_REGISTRY_ADDRESS=0x...
-PRIMARY_X402_VENDOR_A_URL=http://localhost:8000/x402_demo/api/market-data
-PRIMARY_X402_VENDOR_B_URL=http://localhost:8000/x402_demo/api/research
+PRIMARY_X402_VENDOR_A_URL=http://localhost:8000/x402_vendor/api/market-data
+PRIMARY_X402_VENDOR_B_URL=http://localhost:8000/x402_vendor/api/research
 ```
 
-Backward-compatible aliases still work:
-
-```bash
-MORPH_MARKET_DATA_URL=...
-MORPH_RESEARCH_NET_URL=...
-MANDATE402_DEMO_WRAPPER_URL=...
-```
-
-## Go Demo Vendor
+## Go Vendor Service
 
 This repo includes a minimal Go x402 merchant sample in [main.go](./main.go).
 
-Use it as a controlled demo vendor:
+Use it as a controlled development vendor:
 
 ```bash
 go mod tidy
@@ -484,11 +472,10 @@ go run .
 
 The Next app can treat:
 
-- `PRIMARY_X402_VENDOR_A_URL=http://localhost:8000/x402_demo/api/market-data`
-- `PRIMARY_X402_VENDOR_B_URL=http://localhost:8000/x402_demo/api/research`
-- `MANDATE402_X402_DEMO_VENDOR_URL=http://localhost:8000/x402_demo/api/resource`
+- `PRIMARY_X402_VENDOR_A_URL=http://localhost:8000/x402_vendor/api/market-data`
+- `PRIMARY_X402_VENDOR_B_URL=http://localhost:8000/x402_vendor/api/research`
 
-as local controlled demo vendors.
+as local controlled development vendors.
 
 ## Hackathon Fit
 

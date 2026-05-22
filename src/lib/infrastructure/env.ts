@@ -1,4 +1,3 @@
-export const DEMO_OPERATOR_TOKEN = "mandate402-demo-token";
 export const DEFAULT_MORPH_MAINNET_RPC_URL =
   "https://rpc-quicknode.morph.network";
 export const DEFAULT_MORPH_MAINNET_CHAIN_ID = 2818;
@@ -6,20 +5,24 @@ export const DEFAULT_MORPH_EXPLORER_URL = "https://explorer.morph.network";
 export const DEFAULT_MORPH_X402_FACILITATOR_URL =
   "https://morph-rails.morph.network/x402";
 
-export type AppEnv = "demo" | "production";
+export type AppEnv = "test" | "production";
 export type PersistenceMode = "sqlite" | "postgres";
+
+export function isTestRuntime() {
+  return process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+}
 
 export function getAppEnv(): AppEnv {
   const value = process.env.APP_ENV?.trim().toLowerCase();
   if (!value) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("APP_ENV must be explicitly set in production.");
+    if (isTestRuntime()) {
+      return "test";
     }
 
-    return "demo";
+    throw new Error("APP_ENV must be explicitly set.");
   }
 
-  if (value === "demo" || value === "production") {
+  if (value === "test" || value === "production") {
     return value;
   }
 
@@ -33,7 +36,7 @@ export function isProductionEnv() {
 export function getPersistenceMode(): PersistenceMode {
   const value = process.env.MANDATE402_PERSISTENCE_MODE?.trim().toLowerCase();
   if (!value) {
-    return "sqlite";
+    return isTestRuntime() ? "sqlite" : "postgres";
   }
 
   if (value === "sqlite" || value === "postgres") {
@@ -49,6 +52,19 @@ export function getDatabaseUrl() {
   return process.env.MANDATE402_DATABASE_URL ?? process.env.DATABASE_URL;
 }
 
+export function getDatabaseDirectUrl() {
+  return (
+    process.env.MANDATE402_DATABASE_DIRECT_URL ??
+    process.env.DATABASE_DIRECT_URL ??
+    getDatabaseUrl()
+  );
+}
+
+export function getWorkerToken() {
+  const token = process.env.MANDATE402_WORKER_TOKEN?.trim();
+  return token || undefined;
+}
+
 export function getSupabaseRuntimeConfig() {
   return {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
@@ -58,18 +74,14 @@ export function getSupabaseRuntimeConfig() {
   };
 }
 
-export function getOperatorToken() {
-  return process.env.MANDATE402_OPERATOR_TOKEN ?? DEMO_OPERATOR_TOKEN;
-}
-
 export function getMorphRuntimeConfig() {
-  const chainIdValue = isProductionEnv()
-    ? process.env.MORPH_CHAIN_ID
-    : (process.env.MORPH_CHAIN_ID ?? String(DEFAULT_MORPH_MAINNET_CHAIN_ID));
+  const chainIdValue =
+    process.env.MORPH_CHAIN_ID ??
+    (isTestRuntime() ? String(DEFAULT_MORPH_MAINNET_CHAIN_ID) : undefined);
 
-  const rpcUrl = isProductionEnv()
-    ? process.env.MORPH_RPC_URL
-    : (process.env.MORPH_RPC_URL ?? DEFAULT_MORPH_MAINNET_RPC_URL);
+  const rpcUrl =
+    process.env.MORPH_RPC_URL ??
+    (isTestRuntime() ? DEFAULT_MORPH_MAINNET_RPC_URL : undefined);
 
   return {
     rpcUrl,
@@ -103,33 +115,31 @@ export function assertProductionMorphAnchoringConfig() {
 }
 
 export function getMorphExplorerUrl() {
-  return process.env.MORPH_EXPLORER_URL ?? DEFAULT_MORPH_EXPLORER_URL;
+  const explorerUrl =
+    process.env.MORPH_EXPLORER_URL ??
+    (isTestRuntime() ? DEFAULT_MORPH_EXPLORER_URL : undefined);
+  return explorerUrl ?? "";
 }
 
 export function getMorphX402FacilitatorUrl() {
   return (
-    process.env.MORPH_X402_FACILITATOR_URL ?? DEFAULT_MORPH_X402_FACILITATOR_URL
+    process.env.MORPH_X402_FACILITATOR_URL ??
+    (isTestRuntime() ? DEFAULT_MORPH_X402_FACILITATOR_URL : undefined) ??
+    ""
   );
 }
 
 export function getPrimaryVendorEndpoint(vendorId: string) {
   const mapping: Record<string, string | undefined> = {
-    "morph-market-data":
-      process.env.PRIMARY_X402_VENDOR_A_URL ??
-      process.env.MORPH_MARKET_DATA_URL,
-    "morph-research-net":
-      process.env.PRIMARY_X402_VENDOR_B_URL ??
-      process.env.MORPH_RESEARCH_NET_URL,
+    "morph-market-data": process.env.PRIMARY_X402_VENDOR_A_URL,
+    "morph-research-net": process.env.PRIMARY_X402_VENDOR_B_URL,
   };
 
   return mapping[vendorId];
 }
 
 export function getFallbackVendorEndpoint() {
-  return (
-    process.env.MANDATE402_X402_DEMO_VENDOR_URL ??
-    process.env.MANDATE402_DEMO_WRAPPER_URL
-  );
+  return undefined;
 }
 
 function appendStatusPath(endpoint: string | undefined) {
@@ -143,12 +153,10 @@ function appendStatusPath(endpoint: string | undefined) {
 export function getPrimaryVendorStatusEndpoint(vendorId: string) {
   const mapping: Record<string, string | undefined> = {
     "morph-market-data": appendStatusPath(
-      process.env.PRIMARY_X402_VENDOR_A_URL ??
-        process.env.MORPH_MARKET_DATA_URL,
+      process.env.PRIMARY_X402_VENDOR_A_URL,
     ),
     "morph-research-net": appendStatusPath(
-      process.env.PRIMARY_X402_VENDOR_B_URL ??
-        process.env.MORPH_RESEARCH_NET_URL,
+      process.env.PRIMARY_X402_VENDOR_B_URL,
     ),
   };
 
@@ -156,8 +164,10 @@ export function getPrimaryVendorStatusEndpoint(vendorId: string) {
 }
 
 export function getFallbackVendorStatusEndpoint() {
-  return appendStatusPath(
-    process.env.MANDATE402_X402_DEMO_VENDOR_URL ??
-      process.env.MANDATE402_DEMO_WRAPPER_URL,
-  );
+  return undefined;
+}
+
+export function getVendorStatusToken() {
+  const token = process.env.MANDATE402_STATUS_TOKEN?.trim();
+  return token || undefined;
 }

@@ -19,13 +19,4 @@ export const vendorRegistry: Vendor[] = [
     receiptCapability: true,
     adapterKey: "primary-sandbox",
   },
-  {
-    id: "mandate402-demo-wrapper",
-    name: "Mandate402 Demo Wrapper",
-    mode: "fallback-only",
-    status: "degraded",
-    morphNative: true,
-    receiptCapability: true,
-    adapterKey: "fallback-demo",
-  },
 ];
