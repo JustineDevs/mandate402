@@ -1,6 +1,8 @@
 node_modules
 .next
 .omx
+.ma
+docs/plan
 coverage
 dist
 out
