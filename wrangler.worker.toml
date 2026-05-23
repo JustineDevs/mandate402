@@ -4,7 +4,7 @@ compatibility_date = "2025-05-21"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-MANDATE402_CONTROL_API_URL = "http://127.0.0.1:3000"
+MANDATE402_CONTROL_API_URL = "https://your-app.example.com"
 
 [triggers]
 crons = ["*/5 * * * *"]

@@ -126,7 +126,7 @@ export function getMorphContractManifest(): MorphContractManifest {
       "Treasury address must be configured.",
       "Pyth oracle address must be configured.",
       "ETH/USD and USDC/USD Pyth feed IDs must be configured.",
-      "The Next.js attempt path is not yet invoking treasury enforcement on every payment attempt.",
+      "Treasury enforcement is wired into the attempt path, but full runtime settlement config is still incomplete.",
     ],
   };
 

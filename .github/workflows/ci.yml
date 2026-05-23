@@ -60,6 +60,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec vitest run src/workers/__tests__/mandate402-worker.test.ts src/lib/__tests__/worker-load.test.ts
       - run: pnpm workers:dry-run
+      - run: pnpm cloudflare:dry-run
 
   postgres:
     runs-on: ubuntu-latest

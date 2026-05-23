@@ -16,6 +16,7 @@
       ".agents",
       ".omx",
       ".next",
+      ".open-next",
       "node_modules",
       "contracts/out",
       "contracts/cache",

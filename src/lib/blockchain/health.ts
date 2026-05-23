@@ -105,7 +105,7 @@ export async function getBlockchainRuntimeHealth(
 
   if (!treasuryPrepared) {
     warnings.push(
-      "Treasury runtime is only structurally prepared; full treasury enforcement config is incomplete.",
+      "Treasury enforcement is wired, but the full runtime settlement configuration is still incomplete.",
     );
   }
   warnings.push(...treasuryRuntime.warnings);

@@ -11,6 +11,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "cloudflare:build": "opennextjs-cloudflare build",
+    "cloudflare:dry-run": "pnpm cloudflare:build && env XDG_CONFIG_HOME=.tmp/wrangler-config HOME=.tmp/wrangler-home pnpm exec wrangler deploy --config wrangler.jsonc --dry-run --outdir .tmp/wrangler-cloudflare-dry-run",
     "start": "next start",
     "lint": "pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts",
     "typecheck": "tsc --noEmit",
@@ -19,7 +21,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "workers:dry-run": "npx --yes wrangler@4.22.0 deploy --config wrangler.toml --dry-run --outdir .tmp/wrangler-dry-run",
+    "workers:dry-run": "env XDG_CONFIG_HOME=.tmp/wrangler-config HOME=.tmp/wrangler-home pnpm exec wrangler deploy --config wrangler.worker.toml --dry-run --outdir .tmp/wrangler-dry-run",
     "format": "biome format --write . --files-ignore-unknown=true",
     "check:biome": "biome check . --files-ignore-unknown=true",
     "check:repo-safety": "node scripts/check-repo-safety.mjs",
