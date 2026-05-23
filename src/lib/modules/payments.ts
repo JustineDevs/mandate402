@@ -20,11 +20,13 @@ export type DispatchResult =
       status: "executed_charge_succeeded";
       chargeReference: string;
       receiptEvidence: ReceiptEvidenceStatus;
+      finalAmountCents?: number | null;
     }
   | {
       status: "executed_charge_failed";
       chargeReference: string | null;
       receiptEvidence: ReceiptEvidenceStatus;
+      finalAmountCents?: number | null;
     }
   | {
       status: "execution_unknown";
@@ -51,6 +53,43 @@ type CorrelationResult = {
   finalAmountCents?: number | null;
 };
 
+const VENDOR_REQUEST_TIMEOUT_MS = 8_000;
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableJson(entry)).join(",")}]`;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).sort(
+      ([left], [right]) => left.localeCompare(right),
+    );
+    return `{${entries
+      .map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
+async function fetchWithTimeout(request: Request) {
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    VENDOR_REQUEST_TIMEOUT_MS,
+  );
+
+  try {
+    return await fetch(
+      new Request(request, {
+        signal: controller.signal,
+      }),
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function buildFacilitatorAuthHeaders(
   path: string,
   rawBody: string,
@@ -70,7 +109,7 @@ function buildFacilitatorAuthHeaders(
     "MORPH-ACCESS-BODY": JSON.parse(rawBody),
   };
   const sign = createHmac("sha256", secretKey)
-    .update(JSON.stringify(signMap))
+    .update(stableJson(signMap))
     .digest("base64");
 
   return {
@@ -133,8 +172,6 @@ async function postToVendor(
   endpoint: string,
   { vendor, amountCents, paymentIdentifier, mandateId }: DispatchInput,
 ): Promise<DispatchResult> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8_000);
   const { client, httpClient } = getPaymentRuntime();
   let paymentRequired: ReturnType<
     typeof httpClient.getPaymentRequiredResponse
@@ -146,22 +183,23 @@ async function postToVendor(
   try {
     const request = new Request(endpoint, {
       method: "POST",
-      signal: controller.signal,
       headers: {
         "content-type": "application/json",
         "x-payment-identifier": paymentIdentifier,
         "x-mandate-id": mandateId,
+        "x-mandate402-amount-cents": String(amountCents),
         "x-vendor-id": vendor.id,
       },
       body: JSON.stringify({
         amountCents,
       }),
     });
-    const firstResponse = await fetch(request.clone());
+    const firstResponse = await fetchWithTimeout(request.clone());
     if (firstResponse.status !== 402) {
       const body = (await firstResponse.json().catch(() => null)) as {
         chargeReference?: string;
         receiptEvidence?: ReceiptEvidenceStatus;
+        finalAmountCents?: number | null;
       } | null;
 
       if (!firstResponse.ok) {
@@ -169,6 +207,7 @@ async function postToVendor(
           status: "executed_charge_failed",
           chargeReference: null,
           receiptEvidence: body?.receiptEvidence ?? "missing_timeout",
+          finalAmountCents: body?.finalAmountCents ?? null,
         };
       }
 
@@ -178,6 +217,7 @@ async function postToVendor(
           body?.chargeReference ??
           `${vendor.id}_${amountCents}_${createId("charge")}`,
         receiptEvidence: body?.receiptEvidence ?? "required_pending",
+        finalAmountCents: body?.finalAmountCents ?? null,
       };
     }
 
@@ -192,7 +232,7 @@ async function postToVendor(
       secondRequest.headers.set(key, value);
     }
 
-    const response = await fetch(secondRequest);
+    const response = await fetchWithTimeout(secondRequest);
     await httpClient.processPaymentResult(
       paymentPayload,
       (name) => response.headers.get(name),
@@ -201,6 +241,7 @@ async function postToVendor(
     const body = (await response.json().catch(() => null)) as {
       chargeReference?: string;
       receiptEvidence?: ReceiptEvidenceStatus;
+      finalAmountCents?: number | null;
     } | null;
 
     if (!response.ok) {
@@ -208,6 +249,7 @@ async function postToVendor(
         status: "executed_charge_failed",
         chargeReference: body?.chargeReference ?? null,
         receiptEvidence: body?.receiptEvidence ?? "missing_timeout",
+        finalAmountCents: body?.finalAmountCents ?? null,
       };
     }
 
@@ -217,6 +259,7 @@ async function postToVendor(
         body?.chargeReference ??
         `${vendor.id}_${amountCents}_${createId("charge")}`,
       receiptEvidence: body?.receiptEvidence ?? "required_pending",
+      finalAmountCents: body?.finalAmountCents ?? null,
     };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -244,8 +287,6 @@ async function postToVendor(
       chargeReference: null,
       receiptEvidence: "missing_timeout",
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

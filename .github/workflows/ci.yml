@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       app: ${{ steps.scope.outputs.app }}
+      workers: ${{ steps.scope.outputs.workers }}
       go: ${{ steps.scope.outputs.go }}
       contracts: ${{ steps.scope.outputs.contracts }}
     steps:
@@ -48,7 +49,7 @@ jobs:
 
   workers:
     needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.app == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.workers == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

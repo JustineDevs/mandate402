@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   /** Align tracing root with Turbopack root so resolution stays consistent. */
   outputFileTracingRoot: turbopackRoot,
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/pg-cloudflare/dist/**/*"],
+  },
   turbopack: {
     root: turbopackRoot,
   },

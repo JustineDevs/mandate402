@@ -26,11 +26,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	x402 "github.com/x402-foundation/x402/go"
 	x402http "github.com/x402-foundation/x402/go/http"
 	ginmw "github.com/x402-foundation/x402/go/http/gin"
 	evmServer "github.com/x402-foundation/x402/go/mechanisms/evm/exact/server"
-	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -44,44 +44,44 @@ var (
 	tokenName    = envOr("MORPH_HOODI_TOKEN_NAME", "HoodiTestToken")
 	// tokenVersion comes from the EIP-712 domain — it MUST match the token contract's version().
 	// How to find it: call tokenContract.version() on-chain, or read the contract source.
-	tokenVersion   = envOr("MORPH_HOODI_TOKEN_VERSION", "1.0")
-	tokenDecimals  = mustEnvInt("MORPH_HOODI_TOKEN_DECIMALS", 18)
-	payToAddress   = mustEnv("MORPH_X402_PAYTO_ADDRESS")
-	price          = envOr("MORPH_X402_PRICE", "0.001")
-	port           = envOr("MORPH_X402_DEMO_PORT", ":8000")
-	provider       = envOr("MANDATE402_MARKET_PROVIDER", "demo")
+	tokenVersion           = envOr("MORPH_HOODI_TOKEN_VERSION", "1.0")
+	tokenDecimals          = mustEnvInt("MORPH_HOODI_TOKEN_DECIMALS", 18)
+	payToAddress           = mustEnv("MORPH_X402_PAYTO_ADDRESS")
+	price                  = envOr("MORPH_X402_PRICE", "0.001")
+	port                   = envOr("MORPH_X402_DEMO_PORT", ":8000")
+	provider               = envOr("MANDATE402_MARKET_PROVIDER", "demo")
 	syncFacilitatorOnStart = mustEnvBool("MORPH_X402_SYNC_FACILITATOR_ON_START", true)
-	cmcBaseURL     = envOr("CMC_BASE_URL", "https://pro-api.coinmarketcap.com")
-	cmcAPIKey      = envOr("CMC_API_KEY", "")
-	coinAPIBaseURL = envOr("COINAPI_BASE_URL", "https://rest.coinapi.io")
-	coinAPIKey     = envOr("COINAPI_KEY", "")
-	requestTimeout = 60 * time.Second
+	cmcBaseURL             = envOr("CMC_BASE_URL", "https://pro-api.coinmarketcap.com")
+	cmcAPIKey              = envOr("CMC_API_KEY", "")
+	coinAPIBaseURL         = envOr("COINAPI_BASE_URL", "https://rest.coinapi.io")
+	coinAPIKey             = envOr("COINAPI_KEY", "")
+	requestTimeout         = 60 * time.Second
 )
 
 type paymentRecord struct {
-	ChargeReference string `json:"chargeReference"`
-	Status          string `json:"status"`
-	ReceiptEvidence string `json:"receiptEvidence"`
+	ChargeReference  string `json:"chargeReference"`
+	Status           string `json:"status"`
+	ReceiptEvidence  string `json:"receiptEvidence"`
 	FinalAmountCents int    `json:"finalAmountCents"`
-	Resource        string `json:"resource"`
-	CreatedAt       string `json:"createdAt"`
+	Resource         string `json:"resource"`
+	CreatedAt        string `json:"createdAt"`
 }
 
 type marketPayload struct {
-	Provider       string         `json:"provider"`
-	Asset          string         `json:"asset"`
-	QuoteCurrency  string         `json:"quoteCurrency"`
-	Price          string         `json:"price"`
-	PercentChange1h string        `json:"percentChange1h,omitempty"`
-	PercentChange24h string       `json:"percentChange24h,omitempty"`
-	Timestamp      string         `json:"timestamp"`
-	Raw            map[string]any `json:"raw,omitempty"`
+	Provider         string         `json:"provider"`
+	Asset            string         `json:"asset"`
+	QuoteCurrency    string         `json:"quoteCurrency"`
+	Price            string         `json:"price"`
+	PercentChange1h  string         `json:"percentChange1h,omitempty"`
+	PercentChange24h string         `json:"percentChange24h,omitempty"`
+	Timestamp        string         `json:"timestamp"`
+	Raw              map[string]any `json:"raw,omitempty"`
 }
 
 type paymentStore struct {
-	mu        sync.RWMutex
-	byPID     map[string]paymentRecord
-	byCharge  map[string]paymentRecord
+	mu       sync.RWMutex
+	byPID    map[string]paymentRecord
+	byCharge map[string]paymentRecord
 }
 
 type statusRequest struct {
@@ -157,13 +157,13 @@ func (p *providerClient) fetchMarketData() (marketPayload, error) {
 		return p.fetchCoinAPIMarketData()
 	default:
 		return marketPayload{
-			Provider:        "demo",
-			Asset:           "ETH",
-			QuoteCurrency:   "USD",
-			Price:           "2500.00",
-			PercentChange1h: "0.32",
-			PercentChange24h:"4.91",
-			Timestamp:       time.Now().UTC().Format(time.RFC3339),
+			Provider:         "demo",
+			Asset:            "ETH",
+			QuoteCurrency:    "USD",
+			Price:            "2500.00",
+			PercentChange1h:  "0.32",
+			PercentChange24h: "4.91",
+			Timestamp:        time.Now().UTC().Format(time.RFC3339),
 			Raw: map[string]any{
 				"note": "demo fallback payload",
 			},
@@ -189,9 +189,9 @@ func (p *providerClient) fetchCoinMarketCapMarketData() (marketPayload, error) {
 
 	var response struct {
 		Data map[string][]struct {
-			Name  string `json:"name"`
+			Name   string `json:"name"`
 			Symbol string `json:"symbol"`
-			Quote map[string]struct {
+			Quote  map[string]struct {
 				Price            float64 `json:"price"`
 				PercentChange1h  float64 `json:"percent_change_1h"`
 				PercentChange24h float64 `json:"percent_change_24h"`
@@ -448,20 +448,14 @@ func main() {
 			return
 		}
 		record := paymentRecord{
-			ChargeReference: chargeReference,
-			Status:          "executed_charge_succeeded",
-			ReceiptEvidence: "received_valid",
+			ChargeReference:  chargeReference,
+			Status:           "executed_charge_succeeded",
+			ReceiptEvidence:  "received_valid",
 			FinalAmountCents: 0,
-			Resource:        "market-data",
-			CreatedAt:       time.Now().UTC().Format(time.RFC3339),
+			Resource:         "market-data",
+			CreatedAt:        time.Now().UTC().Format(time.RFC3339),
 		}
-		record.FinalAmountCents = 0
-		var body struct {
-			AmountCents int `json:"amountCents"`
-		}
-		if err := c.ShouldBindJSON(&body); err == nil && body.AmountCents > 0 {
-			record.FinalAmountCents = body.AmountCents
-		}
+		record.FinalAmountCents = readFinalAmountCents(c)
 		store.put(paymentIdentifier, record)
 
 		c.JSON(200, gin.H{
@@ -485,20 +479,14 @@ func main() {
 			return
 		}
 		record := paymentRecord{
-			ChargeReference: chargeReference,
-			Status:          "executed_charge_succeeded",
-			ReceiptEvidence: "received_valid",
+			ChargeReference:  chargeReference,
+			Status:           "executed_charge_succeeded",
+			ReceiptEvidence:  "received_valid",
 			FinalAmountCents: 0,
-			Resource:        "research",
-			CreatedAt:       time.Now().UTC().Format(time.RFC3339),
+			Resource:         "research",
+			CreatedAt:        time.Now().UTC().Format(time.RFC3339),
 		}
-		record.FinalAmountCents = 0
-		var body struct {
-			AmountCents int `json:"amountCents"`
-		}
-		if err := c.ShouldBindJSON(&body); err == nil && body.AmountCents > 0 {
-			record.FinalAmountCents = body.AmountCents
-		}
+		record.FinalAmountCents = readFinalAmountCents(c)
 		store.put(paymentIdentifier, record)
 
 		// Intentionally exceed the Next app's correlation timeout so the app
@@ -545,4 +533,21 @@ func serveStatus(c *gin.Context, store *paymentStore) {
 	}
 
 	c.JSON(http.StatusOK, record)
+}
+
+func readFinalAmountCents(c *gin.Context) int {
+	if raw := strings.TrimSpace(c.GetHeader("X-Mandate402-Amount-Cents")); raw != "" {
+		if amount, err := strconv.Atoi(raw); err == nil && amount > 0 {
+			return amount
+		}
+	}
+
+	var body struct {
+		AmountCents int `json:"amountCents"`
+	}
+	if err := c.ShouldBindJSON(&body); err == nil && body.AmountCents > 0 {
+		return body.AmountCents
+	}
+
+	return 0
 }
