@@ -5,6 +5,7 @@ This document is for Sherwin, Edward, and John. It turns the visual system into 
 ## Usage Notes
 
 - These values are the `v0.1.0` reference token set for wireframes and frontend implementation.
+- **Logo source of truth:** greens in the primary mark match `public/images/mandate_header.svg` (fills `#346F2A` / `#91D186`). Token `brand-green*` values follow that asset; control teal remains the separate control-room band color from the brand narrative.
 - The names are the canonical source; the hex values are the initial implementation reference.
 - If values change later, update this file and the implementation together.
 
@@ -14,10 +15,10 @@ This document is for Sherwin, Edward, and John. It turns the visual system into 
 
 | Token | Value | Use |
 |---|---|---|
-| `brand-green` | `#22C55E` | Primary CTA, approval state, active success signal |
-| `brand-green-dark` | `#15803D` | Pressed CTA state, active links, stronger approval emphasis |
-| `brand-green-mid` | `#34D399` | Supporting accents and lighter green transitions |
-| `brand-green-soft` | `#ECFDF3` | Pale mint featured surfaces and positive soft states |
+| `brand-green` | `#346F2A` | Primary CTA, approval state, active success signal (logo `.s0`, `mandate_header.svg`) |
+| `brand-green-dark` | `#2A5A23` | Pressed CTA state, active links, stronger approval emphasis |
+| `brand-green-mid` | `#91D186` | Supporting accents and lighter green transitions (logo `.s1`) |
+| `brand-green-soft` | `#E8F4E4` | Pale mint featured surfaces and positive soft states (derived from logo mid) |
 | `brand-control-deep` | `#062B33` | Control-room hero bands, dark trust surfaces |
 | `brand-control` | `#0F5B6B` | Mid-tone control accent |
 | `brand-control-mid` | `#178099` | Highlighted platform and showcase surfaces |
@@ -39,7 +40,7 @@ This document is for Sherwin, Edward, and John. It turns the visual system into 
 | `canvas-dark` | `#0B1620` | Code panels, policy logs, receipt surfaces |
 | `surface` | `#F7FAF9` | Subtle section background |
 | `surface-soft` | `#F2F6F5` | Quiet section-break background |
-| `surface-feature` | `#ECFDF3` | Featured pricing or highlighted positive sections |
+| `surface-feature` | `#E8F4E4` | Featured pricing or highlighted positive sections |
 | `hairline` | `#E4ECE9` | Default border |
 | `hairline-soft` | `#EDF3F1` | Low-contrast divider |
 | `hairline-strong` | `#C7D5D0` | Stronger boundaries and inputs |
@@ -62,8 +63,8 @@ This document is for Sherwin, Edward, and John. It turns the visual system into 
 
 | Token | Value | Use |
 |---|---|---|
-| `semantic-success-bg` | `#ECFDF3` | Positive surface |
-| `semantic-success-text` | `#166534` | Positive text |
+| `semantic-success-bg` | `#E8F4E4` | Positive surface |
+| `semantic-success-text` | `#28501F` | Positive text |
 | `semantic-warning-bg` | `#FFF7E6` | Warning surface |
 | `semantic-warning-text` | `#B45309` | Warning text |
 | `semantic-blocked-bg` | `#FEF2F2` | Blocked or denied surface |
@@ -141,3 +142,4 @@ This document is for Sherwin, Edward, and John. It turns the visual system into 
 - Sherwin should design against these names and values.
 - Edward and John should implement against one shared token system instead of per-lane style duplication.
 - Frontend lanes should prefer centralized CSS variables or shared constants instead of scattering raw values.
+- For inline chart or legend colors in TypeScript, use `src/lib/brand-inline-colors.ts` (mirrors this document) instead of ad-hoc hex literals.

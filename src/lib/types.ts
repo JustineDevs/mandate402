@@ -2,8 +2,10 @@
  * Shared Type Definitions for Mandate402
  */
 
-export type MandateStatus = 'Active' | 'Expiring' | 'Revoked';
-export type TransactionStatus = 'Success' | 'Blocked';
+export type MandateStatus = "Active" | "Expiring" | "Revoked";
+export type TransactionStatus = "Success" | "Blocked";
+
+export type CategoryLane = "governance" | "payments" | "compliance" | "agents";
 
 export interface Mandate {
   id: string;
@@ -42,6 +44,7 @@ export interface Activity {
   desc: string;
   amount: string | number;
   status: TransactionStatus;
+  lane?: CategoryLane;
 }
 
 export interface ProposedAction {

@@ -239,6 +239,8 @@ pnpm typecheck
 pnpm build
 ```
 
+If **`/` loads but other App Router pages return 404** (or the dev log shows Turbopack inferring `src/app` as the project root), stop the server, delete the `.next` folder, and restart. If it persists, run **`pnpm dev:webpack`** (Webpack dev mode) until Turbopack behaves; see [Next.js `turbopack.root`](https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack).
+
 Additional:
 
 ```bash

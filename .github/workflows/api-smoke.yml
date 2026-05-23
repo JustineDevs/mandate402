@@ -144,11 +144,12 @@ jobs:
         run: |
           pnpm dev > /tmp/mandate402-next.log 2>&1 &
           echo $! > /tmp/mandate402-next.pid
-          timeout 60 bash -c 'until curl -fsS http://127.0.0.1:3000/api/system > /dev/null; do sleep 1; done'
+          timeout 60 bash -c 'until [ "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/system)" = "401" ]; do sleep 1; done'
 
-      - name: Smoke system route
+      - name: Smoke system route auth boundary
         run: |
-          curl -fsS http://127.0.0.1:3000/api/system
+          code=$(curl -s -o /tmp/system.out -w "%{http_code}" http://127.0.0.1:3000/api/system)
+          test "$code" = "401"
 
       - name: Smoke vendor A 402
         run: |

@@ -14,6 +14,18 @@ matches_app() {
   esac
 }
 
+matches_workers() {
+  case "$1" in
+    src/workers/*|workers/*|wrangler.worker.toml|wrangler.jsonc)
+      return 0
+      ;;
+    *)
+      matches_app "$1"
+      return $?
+      ;;
+  esac
+}
+
 matches_go() {
   case "$1" in
     main.go|go.mod|go.sum)
@@ -63,6 +75,7 @@ list_files_for_github_event() {
 
 classify_files() {
   local app=false
+  local workers=false
   local go=false
   local contracts=false
   local smoke=false
@@ -72,20 +85,27 @@ classify_files() {
 
     if matches_app "$file"; then
       app=true
-      smoke=true
+    fi
+
+    if matches_workers "$file"; then
+      workers=true
     fi
 
     if matches_go "$file"; then
       go=true
-      smoke=true
     fi
 
     if matches_contracts "$file"; then
       contracts=true
     fi
+
+    if [[ "$app" == "true" || "$go" == "true" ]]; then
+      smoke=true
+    fi
   done
 
   printf 'app=%s\n' "$app"
+  printf 'workers=%s\n' "$workers"
   printf 'go=%s\n' "$go"
   printf 'contracts=%s\n' "$contracts"
   printf 'smoke=%s\n' "$smoke"

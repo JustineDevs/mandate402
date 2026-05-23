@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Operator console UI v0.1.1: shared primitives (`ConsoleCard`, `ConsoleCodeSurface`, `SectionHeader`, `CategoryAccentChip`, `AppBreadcrumbs`), control-room `heroTone` on policy/receipt/settings shells, mobile navigation drawer, environment + sync chrome in `TopNav`, global search dialog (⌘K) with route index and `extraItems` hook for mandate shortcuts, overlay focus trap / Escape / backdrop close with modal variants, lane accent columns on ledger tables, mandate detail breadcrumbs and destructive-flow modals (revoke, rotate keys, bulk actions, signed export bundle).
 - versioned team operating artifacts for the Mandate402 three-person workflow:
   - `docs/README.md`
   - `docs/GLOSSARY.md`
