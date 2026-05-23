@@ -35,10 +35,10 @@ AI output must be reviewed by the human issue owner before PR or merge.
 AI-assisted work must use the repo’s checked-in instructions:
 
 - `AGENTS.md`
-- `docs/TEAM.md`
-- `docs/LANES.md`
-- `docs/WORKFLOW.md`
-- `docs/BRANCHING.md`
+- `docs/process/TEAM.md`
+- `docs/process/LANES.md`
+- `docs/process/WORKFLOW.md`
+- `docs/process/BRANCHING.md`
 - issue + PR templates
 - relevant ADRs
 

@@ -144,7 +144,7 @@ Edward does not own:
 
 Justine does not operate as a black box. Product constraints, rationale, and tradeoffs still need to be documented and shared.
 
-For the explicit definition of what counts as Justine scope authority, see [ADR-0001](./adr/ADR-0001-justine-scope-documents.md).
+For the explicit definition of what counts as Justine scope authority, see [ADR-0001](../adr/ADR-0001-justine-scope-documents.md).
 
 ## Linear Anti-Silo Workflow
 
@@ -243,7 +243,7 @@ Examples:
 
 ## Sherwin Design Task Package
 
-Sherwin's current UI wireframe package for Mandate402 should use the canonical ASCII reference layouts in [ADR-0002](./adr/ADR-0002-sherwin-ui-wireframe-task.md).
+Sherwin's current UI wireframe package for Mandate402 should use the canonical ASCII reference layouts in [ADR-0002](../adr/ADR-0002-sherwin-ui-wireframe-task.md).
 
 Those layouts are the tracked source for:
 
