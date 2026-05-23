@@ -121,12 +121,13 @@ Current persistence is lightweight, but the code must still behave as if data we
 
 All meaningful work in this repository must follow the tracked workflow documents:
 
-- `docs/WORKFLOW.md`
-- `docs/BRANCHING.md`
-- `docs/LANES.md`
-- `docs/AI-POLICY.md`
-- `docs/LABELS.md`
-- `docs/TEAM.md`
+- `docs/process/WORKFLOW.md`
+- `docs/process/BRANCHING.md`
+- `docs/process/LANES.md`
+- `docs/process/AI-POLICY.md`
+- `docs/process/LABELS.md`
+- `docs/process/TEAM.md`
+
 
 These are mandatory operating rules, not optional references.
 

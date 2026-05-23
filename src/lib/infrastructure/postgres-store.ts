@@ -61,7 +61,7 @@ function getSchemaPool() {
     return schemaPool;
   }
 
-  const connectionString = getDatabaseUrl() ?? getDatabaseDirectUrl();
+  const connectionString = getDatabaseDirectUrl() ?? getDatabaseUrl();
   if (!connectionString) {
     throw new Error(
       "Postgres schema setup requires MANDATE402_DATABASE_DIRECT_URL, DATABASE_DIRECT_URL, MANDATE402_DATABASE_URL, or DATABASE_URL.",
