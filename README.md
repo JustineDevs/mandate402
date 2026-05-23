@@ -99,27 +99,28 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | Document | Purpose |
 |---|---|
 | [docs/README.md](./docs/README.md) | Docs index, audience map, and reading order |
-| [docs/SYSTEM_DESIGN.md](./docs/SYSTEM_DESIGN.md) | Full technical architecture, runtime behavior, and system diagram |
-| [docs/PROJECT.md](./docs/PROJECT.md) | Neutral project explanation: idea, problem, solution, what/why/how |
-| [docs/EXPLAIN.md](./docs/EXPLAIN.md) | Simple plain-language explanation of the project for non-technical readers |
-| [docs/BM.md](./docs/BM.md) | Business model and stakeholder framing |
-| [docs/GLOSSARY.md](./docs/GLOSSARY.md) | Shared definitions for product and system terms |
-| [docs/design-tokens.md](./docs/design-tokens.md) | UI token reference for design and frontend implementation |
-| [docs/STATUS.md](./docs/STATUS.md) | Current MVP state, real vs demo-shaped boundaries, and next priorities |
-| [docs/WORKFLOW.md](./docs/WORKFLOW.md) | Mandatory issue-to-merge workflow |
-| [docs/BRANCHING.md](./docs/BRANCHING.md) | Mandatory branching and worktree strategy |
-| [docs/LANES.md](./docs/LANES.md) | Mandatory ownership split by team lane |
-| [docs/AI-POLICY.md](./docs/AI-POLICY.md) | Mandatory AI usage and review rules |
-| [docs/LABELS.md](./docs/LABELS.md) | Mandatory issue and PR label taxonomy |
-| [docs/RELEASE-POLICY.md](./docs/RELEASE-POLICY.md) | Mandatory main-only release, tagging, and release-note rules |
-| [docs/HOTFIX.md](./docs/HOTFIX.md) | Mandatory emergency hotfix policy |
-| [docs/PR-POLICY.md](./docs/PR-POLICY.md) | Mandatory PR rules and merge expectations |
-| [docs/CONTRIBUTOR-PROMPT.md](./docs/CONTRIBUTOR-PROMPT.md) | Copy-paste-ready contributor onboarding prompt |
-| [docs/REPO-INGESTION.md](./docs/REPO-INGESTION.md) | Deterministic repo-ingestion checklist |
-| [docs/DEFINITION-OF-READY.md](./docs/DEFINITION-OF-READY.md) | Mandatory readiness gate for issues |
-| [docs/DEFINITION-OF-DONE.md](./docs/DEFINITION-OF-DONE.md) | Mandatory done gate for merge-ready changes |
-| [docs/FRONTEND-PRIMITIVES.md](./docs/FRONTEND-PRIMITIVES.md) | Shared primitive reuse rules for frontend lanes |
-| [docs/TEAM.md](./docs/TEAM.md) | Team ownership model and anti-silo collaboration rules |
+| [docs/brand/brandkit.md](./docs/brand/brandkit.md) | Canonical brand identity, typography, palette, and usage rules |
+| [docs/architecture/SYSTEM_DESIGN.md](./docs/architecture/SYSTEM_DESIGN.md) | Full technical architecture, runtime behavior, and system diagram |
+| [docs/product/PROJECT.md](./docs/product/PROJECT.md) | Neutral project explanation: idea, problem, solution, what/why/how |
+| [docs/product/EXPLAIN.md](./docs/product/EXPLAIN.md) | Simple plain-language explanation of the project for non-technical readers |
+| [docs/product/BM.md](./docs/product/BM.md) | Business model and stakeholder framing |
+| [docs/reference/GLOSSARY.md](./docs/reference/GLOSSARY.md) | Shared definitions for product and system terms |
+| [docs/brand/design-tokens.md](./docs/brand/design-tokens.md) | UI token reference for design and frontend implementation |
+| [docs/product/STATUS.md](./docs/product/STATUS.md) | Current MVP state, real vs demo-shaped boundaries, and next priorities |
+| [docs/process/WORKFLOW.md](./docs/process/WORKFLOW.md) | Mandatory issue-to-merge workflow |
+| [docs/process/BRANCHING.md](./docs/process/BRANCHING.md) | Mandatory branching and worktree strategy |
+| [docs/process/LANES.md](./docs/process/LANES.md) | Mandatory ownership split by team lane |
+| [docs/process/AI-POLICY.md](./docs/process/AI-POLICY.md) | Mandatory AI usage and review rules |
+| [docs/process/LABELS.md](./docs/process/LABELS.md) | Mandatory issue and PR label taxonomy |
+| [docs/process/RELEASE-POLICY.md](./docs/process/RELEASE-POLICY.md) | Mandatory main-only release, tagging, and release-note rules |
+| [docs/process/HOTFIX.md](./docs/process/HOTFIX.md) | Mandatory emergency hotfix policy |
+| [docs/process/PR-POLICY.md](./docs/process/PR-POLICY.md) | Mandatory PR rules and merge expectations |
+| [docs/community/CONTRIBUTOR-PROMPT.md](./docs/community/CONTRIBUTOR-PROMPT.md) | Copy-paste-ready contributor onboarding prompt |
+| [docs/process/REPO-INGESTION.md](./docs/process/REPO-INGESTION.md) | Deterministic repo-ingestion checklist |
+| [docs/process/DEFINITION-OF-READY.md](./docs/process/DEFINITION-OF-READY.md) | Mandatory readiness gate for issues |
+| [docs/process/DEFINITION-OF-DONE.md](./docs/process/DEFINITION-OF-DONE.md) | Mandatory done gate for merge-ready changes |
+| [docs/process/FRONTEND-PRIMITIVES.md](./docs/process/FRONTEND-PRIMITIVES.md) | Shared primitive reuse rules for frontend lanes |
+| [docs/process/TEAM.md](./docs/process/TEAM.md) | Team ownership model and anti-silo collaboration rules |
 | [docs/adr/ADR-0001-justine-scope-documents.md](./docs/adr/ADR-0001-justine-scope-documents.md) | Defines the explicit scope-authority surface for Justine-led tasks |
 | [docs/adr/ADR-0002-sherwin-ui-wireframe-task.md](./docs/adr/ADR-0002-sherwin-ui-wireframe-task.md) | Defines the canonical wireframe and design brief for Sherwin's task |
 | [docs/adr/ADR-0003-john-frontend-implementation-task.md](./docs/adr/ADR-0003-john-frontend-implementation-task.md) | Defines John's repo-audit-first transactional implementation boundary |
@@ -197,14 +198,14 @@ You are onboarding into the Mandate402 repository.
 
 Follow setup and operating instructions in these files first:
 - AGENTS.md
-- docs/WORKFLOW.md
-- docs/BRANCHING.md
-- docs/LANES.md
-- docs/AI-POLICY.md
-- docs/LABELS.md
-- docs/TEAM.md
+- docs/process/WORKFLOW.md
+- docs/process/BRANCHING.md
+- docs/process/LANES.md
+- docs/process/AI-POLICY.md
+- docs/process/LABELS.md
+- docs/process/TEAM.md
 - docs/README.md
-- docs/STATUS.md
+- docs/product/STATUS.md
 - docs/adr/README.md
 
 Strictness:

@@ -111,6 +111,6 @@ If a decision matters for later contributors, it should be written into one of t
 
 ## Operational Notes
 
-- `docs/TEAM.md` should point contributors to this ADR when referencing Justine scope authority.
+- `docs/process/TEAM.md` should point contributors to this ADR when referencing Justine scope authority.
 - `.cursorrules`, `.clauderules`, and `.devinrules` should treat this ADR as the definition of “Justine scope documents.”
 - New ADRs may refine this rule later, but they should not weaken the requirement for explicit, tracked scope without a deliberate decision.
