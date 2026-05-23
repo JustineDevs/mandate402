@@ -14,6 +14,7 @@ const migrationsDir = path.join(process.cwd(), "drizzle");
 let pool: Pool | null = null;
 let schemaPool: Pool | null = null;
 let schemaReady = false;
+let schemaEnsurePromise: Promise<void> | null = null;
 
 function isSupabasePoolerConnection(connectionString: string) {
   try {
@@ -81,18 +82,31 @@ async function ensureSchema() {
     return;
   }
 
-  const client = await getSchemaPool().connect();
-  try {
-    const migrationFiles = readdirSync(migrationsDir)
-      .filter((file) => file.endsWith(".sql"))
-      .sort();
-    for (const file of migrationFiles) {
-      const sql = readFileSync(path.join(migrationsDir, file), "utf8");
-      await client.query(sql);
+  if (schemaEnsurePromise) {
+    await schemaEnsurePromise;
+    return;
+  }
+
+  schemaEnsurePromise = (async () => {
+    const client = await getSchemaPool().connect();
+    try {
+      const migrationFiles = readdirSync(migrationsDir)
+        .filter((file) => file.endsWith(".sql"))
+        .sort();
+      for (const file of migrationFiles) {
+        const sql = readFileSync(path.join(migrationsDir, file), "utf8");
+        await client.query(sql);
+      }
+      schemaReady = true;
+    } finally {
+      client.release();
     }
-    schemaReady = true;
+  })();
+
+  try {
+    await schemaEnsurePromise;
   } finally {
-    client.release();
+    schemaEnsurePromise = null;
   }
 }
 

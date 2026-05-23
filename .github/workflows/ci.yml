@@ -60,7 +60,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vitest run src/workers/__tests__/mandate402-worker.test.ts src/lib/__tests__/worker-load.test.ts
+      - run: pnpm exec vitest run --maxWorkers 1 src/workers/__tests__/mandate402-worker.test.ts src/lib/__tests__/worker-load.test.ts
       - run: pnpm workers:dry-run
       - run: pnpm cloudflare:dry-run
 
@@ -95,7 +95,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vitest run src/app/api/__tests__/routes.test.ts src/lib/__tests__/execution-worker.test.ts src/lib/__tests__/worker-load.test.ts
+      - run: pnpm exec vitest run --maxWorkers 1 src/app/api/__tests__/routes.test.ts src/lib/__tests__/execution-worker.test.ts src/lib/__tests__/worker-load.test.ts
 
   contracts:
     needs: changes
