@@ -1,28 +1,33 @@
 "use client";
 
-import type React from "react";
-import Link from "next/link";
 import type { Route } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import type React from "react";
 
 export interface NavigationItem {
   name: string;
-  href?: Route;
+  href?: string;
   icon: React.ReactNode;
 }
 
-interface SidebarProps {
+interface SidebarNavPanelProps {
   activeTab?: string;
   navigationItems?: NavigationItem[];
   bottomItems?: NavigationItem[];
+  /** Close mobile drawer after navigation. */
+  onLinkClick?: () => void;
 }
 
-const defaultNavItems: NavigationItem[] = [
+interface SidebarProps extends SidebarNavPanelProps {}
+
+export const defaultNavItems: NavigationItem[] = [
   {
     name: "Dashboard",
-    href: "/",
+    href: "/operator",
     icon: (
       <svg
-        className="w-5 h-5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -42,7 +47,7 @@ const defaultNavItems: NavigationItem[] = [
     href: "/mandates",
     icon: (
       <svg
-        className="w-5 h-5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -62,7 +67,7 @@ const defaultNavItems: NavigationItem[] = [
     href: "/agents",
     icon: (
       <svg
-        className="w-5 h-5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -79,9 +84,10 @@ const defaultNavItems: NavigationItem[] = [
   },
   {
     name: "Vendors",
+    href: "/vendors",
     icon: (
       <svg
-        className="w-5 h-5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -98,9 +104,10 @@ const defaultNavItems: NavigationItem[] = [
   },
   {
     name: "Transactions",
+    href: "/transactions",
     icon: (
       <svg
-        className="w-5 h-5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -117,9 +124,10 @@ const defaultNavItems: NavigationItem[] = [
   },
   {
     name: "Receipts",
+    href: "/receipts",
     icon: (
       <svg
-        className="w-5 h-5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -136,12 +144,13 @@ const defaultNavItems: NavigationItem[] = [
   },
 ];
 
-const defaultBottomItems: NavigationItem[] = [
+export const defaultBottomItems: NavigationItem[] = [
   {
     name: "Policies",
+    href: "/policies",
     icon: (
       <svg
-        className="w-5 h-5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -158,9 +167,10 @@ const defaultBottomItems: NavigationItem[] = [
   },
   {
     name: "Settings",
+    href: "/settings",
     icon: (
       <svg
-        className="w-5 h-5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -181,114 +191,161 @@ const defaultBottomItems: NavigationItem[] = [
       </svg>
     ),
   },
+  {
+    name: "Build",
+    href: "/build",
+    icon: (
+      <svg
+        className="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M14.7 6.3a1 1 0 010 1.4L12.41 10l2.3 2.3a1 1 0 01-1.42 1.4l-3-3a1 1 0 010-1.4l3-3a1 1 0 011.41 0zM9.29 13.99a1 1 0 010-1.4L11.59 10l-2.3-2.3a1 1 0 011.42-1.4l3 3a1 1 0 010 1.4l-3 3a1 1 0 01-1.42 0z"
+        />
+      </svg>
+    ),
+  },
 ];
 
 /**
- * Sidebar Component
- * Reusable navigation for Mandate402.
- * Strictly adheres to vibrant diagonal linear gradient and glassmorphism states.
+ * Inner navigation panel (desktop sidebar or mobile drawer).
  */
-export const Sidebar: React.FC<SidebarProps> = ({
+export function SidebarNavPanel({
   activeTab = "Mandates",
   navigationItems = defaultNavItems,
   bottomItems = defaultBottomItems,
-}) => {
+  onLinkClick,
+}: SidebarNavPanelProps) {
   return (
-    <aside
-      className="hidden md:flex md:w-72 flex-col fixed h-full z-40 text-white"
-      style={{
-        background: "linear-gradient(135deg, #16a34a 0%, #14532d 100%)",
-      }}
-      aria-label="Sidebar navigation"
-    >
-      <div className="p-8 flex-1 flex flex-col h-full justify-between">
-        <div className="flex-1">
-          {/* Brand Logo */}
-          <div className="mb-12 px-4">
-            <h1 className="text-white font-extrabold text-2xl tracking-tight">
+    <div className="flex h-full flex-1 flex-col justify-between p-6 sm:p-8">
+      <div className="flex-1">
+        <div className="mb-10 px-2 sm:mb-12">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/images/Mandate402_logo.svg"
+              alt=""
+              width={44}
+              height={44}
+              className="h-10 w-10 shrink-0 object-contain sm:h-11 sm:w-11"
+              priority
+            />
+            <span className="text-lg font-extrabold tracking-tight text-on-dark sm:text-xl">
               Mandate402
-            </h1>
+            </span>
           </div>
-
-          {/* Navigation Links */}
-          <nav className="space-y-1" aria-label="Main links">
-            {navigationItems.map((item) =>
-              item.href ? (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center gap-4 py-3 px-4 text-sm font-semibold rounded-xl transition-all ${
-                    item.name === activeTab
-                      ? "bg-white/10 text-white"
-                      : "text-white/75 hover:text-white hover:bg-white/5"
-                  }`}
-                  aria-current={item.name === activeTab ? "page" : undefined}
-                >
-                  <div
-                    className={
-                      item.name === activeTab ? "text-white" : "text-white/75"
-                    }
-                    aria-hidden="true"
-                  >
-                    {item.icon}
-                  </div>
-                  {item.name}
-                </Link>
-              ) : (
-                <div
-                  key={item.name}
-                  className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold text-white/45"
-                  aria-disabled="true"
-                >
-                  <div className="text-white/45" aria-hidden="true">
-                    {item.icon}
-                  </div>
-                  {item.name}
-                </div>
-              ),
-            )}
-          </nav>
         </div>
-
-        {/* Bottom Links */}
-        <nav className="space-y-1" aria-label="Secondary links">
-          {bottomItems.map((item) =>
-            item.href ? (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-4 py-3 px-4 text-sm font-semibold rounded-xl transition-all ${
-                  item.name === activeTab
-                    ? "bg-white/10 text-white"
-                    : "text-white/75 hover:text-white hover:bg-white/5"
-                }`}
-                aria-current={item.name === activeTab ? "page" : undefined}
-              >
+        <nav className="space-y-1" aria-label="Main links">
+          {navigationItems.map((item) => {
+            const content = (
+              <>
                 <div
                   className={
-                    item.name === activeTab ? "text-white" : "text-white/75"
+                    item.name === activeTab
+                      ? "text-on-dark"
+                      : "text-on-dark-muted"
                   }
                   aria-hidden="true"
                 >
                   {item.icon}
                 </div>
                 {item.name}
-              </Link>
-            ) : (
-              <div
+              </>
+            );
+
+            const className = `flex items-center gap-4 rounded-full px-4 py-3 text-sm font-semibold transition-all ${
+              item.name === activeTab
+                ? "bg-canvas/12 text-on-dark"
+                : "text-on-dark-muted hover:bg-canvas/8 hover:text-on-dark"
+            }`;
+
+            if (!item.href) {
+              return (
+                <button key={item.name} type="button" className={className}>
+                  {content}
+                </button>
+              );
+            }
+
+            return (
+              <Link
                 key={item.name}
-                className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold text-white/45"
-                aria-disabled="true"
+                href={item.href as Route}
+                className={className}
+                aria-current={item.name === activeTab ? "page" : undefined}
+                onClick={() => onLinkClick?.()}
               >
-                <div className="text-white/45" aria-hidden="true">
-                  {item.icon}
-                </div>
-                {item.name}
-              </div>
-            ),
-          )}
+                {content}
+              </Link>
+            );
+          })}
         </nav>
       </div>
+
+      <nav className="space-y-1" aria-label="Secondary links">
+        {bottomItems.map((item) => {
+          const content = (
+            <>
+              <div
+                className={
+                  item.name === activeTab
+                    ? "text-on-dark"
+                    : "text-on-dark-muted"
+                }
+                aria-hidden="true"
+              >
+                {item.icon}
+              </div>
+              {item.name}
+            </>
+          );
+
+          const className = `flex items-center gap-4 rounded-full px-4 py-3 text-sm font-semibold transition-all ${
+            item.name === activeTab
+              ? "bg-canvas/12 text-on-dark"
+              : "text-on-dark-muted hover:bg-canvas/8 hover:text-on-dark"
+          }`;
+
+          if (!item.href) {
+            return (
+              <button key={item.name} type="button" className={className}>
+                {content}
+              </button>
+            );
+          }
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href as Route}
+              className={className}
+              aria-current={item.name === activeTab ? "page" : undefined}
+              onClick={() => onLinkClick?.()}
+            >
+              {content}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+/**
+ * Sidebar — primary chrome uses mandate green (aligned with CTA / logo family).
+ */
+export const Sidebar: React.FC<SidebarProps> = (props) => {
+  return (
+    <aside
+      className="fixed z-40 hidden h-full w-72 flex-col border-r border-mandate-green-dark bg-mandate-green text-on-dark md:flex"
+      aria-label="Sidebar navigation"
+    >
+      <SidebarNavPanel {...props} />
     </aside>
   );
 };

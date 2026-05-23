@@ -1,9 +1,22 @@
 "use client";
 
+import type { ProposedAction } from "@/lib/types";
 import type React from "react";
+import { useMemo } from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+
 import { Sidebar } from "./sidebar";
 import { TopNav } from "./top-nav";
-import type { ProposedAction } from "@/lib/types";
 
 interface AgentViewProps {
   agentData?: {
@@ -17,7 +30,7 @@ interface AgentViewProps {
       allowedUntilDate: string;
       policyStatus: string;
       budgetRemaining: string | number;
-    }
+    };
   };
   proposedActions?: ProposedAction[];
   isLoading?: boolean;
@@ -25,9 +38,7 @@ interface AgentViewProps {
 }
 
 /**
- * AgentView Component
- * High-fidelity agent console and mandate execution view.
- * Instrumented for backend integration with dynamic props and action handling.
+ * Agent console and proposed actions (wireframe).
  */
 export const AgentView: React.FC<AgentViewProps> = ({
   agentData = {
@@ -41,106 +52,157 @@ export const AgentView: React.FC<AgentViewProps> = ({
       allowedUntilDate: "2026-05-20",
       policyStatus: "In Good Standing",
       budgetRemaining: 32,
-    }
+    },
   },
   proposedActions = [
-    { id: "pa1", desc: "1. Query Tavily for source shortlist", cost: 2.00 }
+    { id: "pa1", desc: "1. Query Tavily for source shortlist", cost: 2.0 },
   ],
   isLoading,
-  onRunAction
+  onRunAction,
 }) => {
+  const totalCost = useMemo(
+    () =>
+      proposedActions
+        .reduce(
+          (sum, action) =>
+            sum +
+            (typeof action.cost === "string"
+              ? Number.parseFloat(action.cost)
+              : action.cost),
+          0,
+        )
+        .toFixed(2),
+    [proposedActions],
+  );
+
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-surface">
       <Sidebar activeTab="Agents" />
 
-      <div className="flex-1 md:ml-72 p-4 md:p-10 flex flex-col min-h-screen relative">
-        <TopNav onSearch={(q) => console.log('Search:', q)} />
+      <div className="relative flex min-h-screen flex-1 flex-col p-4 md:ml-72 md:p-10">
+        <TopNav />
 
-        <main className={`max-w-5xl w-full mx-auto pb-32 ${isLoading ? 'animate-pulse' : ''}`}>
-          {/* Page Title */}
-          <h2 className="text-3xl font-bold text-[#1F2937] mb-8">
-            Agent View
-          </h2>
+        <main
+          className={`mx-auto w-full max-w-5xl pb-32 ${isLoading ? "animate-pulse" : ""}`}
+        >
+          <h2 className="mb-8 text-3xl font-bold text-charcoal">Agent View</h2>
 
-          {/* 1. Outer Agent Panel Wrapper */}
-          <section className="bg-white border border-[#E4ECE9] rounded-xl p-8 shadow-sm mb-10">
-            <div className="space-y-6 mb-10">
+          <Card className="mb-10 shadow-sm">
+            <CardHeader>
+              <CardTitle>Agent console</CardTitle>
+              <CardDescription>
+                Live task context for {agentData.name}. Mandate boundaries apply
+                to every proposed action below.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                <label className="text-[#475569] text-sm font-medium">Agent Console</label>
-                <div className="text-[#1F2937] font-bold text-lg">{agentData.name}</div>
+                <Label className="text-slate">Agent</Label>
+                <div className="text-lg font-bold text-charcoal">
+                  {agentData.name}
+                </div>
               </div>
 
               <div className="grid grid-cols-[180px_1fr] items-start gap-4">
-                <label className="text-[#475569] text-sm font-medium mt-1">Task</label>
-                <div className="text-[#1F2937] font-bold leading-relaxed">
+                <Label className="mt-1 text-slate">Task</Label>
+                <div className="font-bold leading-relaxed text-charcoal">
                   {agentData.task}
                 </div>
               </div>
-            </div>
+            </CardContent>
 
-            {/* 2. Inner "Current Mandate" Box */}
-            <div className="bg-white border border-[#E4ECE9] rounded-lg overflow-hidden">
-              <div className="bg-[#F7FAF9]/50 px-6 py-3 border-b border-[#E4ECE9]">
-                <h3 className="text-sm font-bold text-[#1F2937]">Current Mandate</h3>
-              </div>
-              
-              <div className="p-6 flex gap-10">
-                {/* Visual Card Box - Empty structural container */}
-                <div className="w-48 h-32 bg-white rounded-xl border border-[#E4ECE9]" aria-hidden="true" />
+            <Separator />
 
-                {/* Metadata Grid */}
-                <div className="flex-1 grid grid-cols-[180px_1fr] gap-y-4 items-center">
-                  <span className="text-[#475569] text-sm font-medium">Allowed Vendors</span>
-                  <span className="text-[#1F2937] font-bold text-sm">{agentData.currentMandate.allowedVendors.join(", ")}</span>
+            <Card className="mx-6 mb-6 overflow-hidden border border-border shadow-none sm:mx-8">
+              <CardHeader className="border-b border-border bg-muted/40 py-3">
+                <CardTitle className="text-sm">Current mandate</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-8 p-6 sm:flex-row sm:gap-10">
+                <div
+                  className="h-32 w-full shrink-0 rounded-lg border border-border bg-card sm:w-48"
+                  aria-hidden="true"
+                />
 
-                  <span className="text-[#475569] text-sm font-medium">Allowed Until</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[#1F2937] font-mono font-bold text-sm">{agentData.currentMandate.allowedUntilTime}</span>
-                    <span className="text-[#1F2937] font-bold text-sm">{agentData.currentMandate.allowedUntilDate}</span>
+                <div className="grid flex-1 grid-cols-[180px_1fr] items-center gap-y-4">
+                  <Label className="text-slate">Mandate</Label>
+                  <span className="text-sm font-bold text-charcoal">
+                    {agentData.currentMandate.name}
+                  </span>
+
+                  <Label className="text-slate">Allowed vendors</Label>
+                  <span className="text-sm font-bold text-charcoal">
+                    {agentData.currentMandate.allowedVendors.join(", ")}
+                  </span>
+
+                  <Label className="text-slate">Allowed until</Label>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="font-mono text-sm font-bold text-charcoal">
+                      {agentData.currentMandate.allowedUntilTime}
+                    </span>
+                    <span className="text-sm font-bold text-charcoal">
+                      {agentData.currentMandate.allowedUntilDate}
+                    </span>
                   </div>
 
-                  <span className="text-[#475569] text-sm font-medium">Policy Status</span>
+                  <Label className="text-slate">Policy status</Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-[#1F2937] font-bold text-sm">{agentData.currentMandate.policyStatus}</span>
-                    <div className={`w-2 h-2 rounded-full ${agentData.currentMandate.policyStatus === 'In Good Standing' ? 'bg-[#22C55E]' : 'bg-red-500'}`} aria-hidden="true" />
+                    <span className="text-sm font-bold text-charcoal">
+                      {agentData.currentMandate.policyStatus}
+                    </span>
+                    <div
+                      className={`h-2 w-2 rounded-full ${agentData.currentMandate.policyStatus === "In Good Standing" ? "bg-primary" : "bg-destructive"}`}
+                      aria-hidden="true"
+                    />
                   </div>
 
-                  <span className="text-[#475569] text-sm font-medium">Budget Remaining</span>
-                  <span className="text-[#1F2937] font-bold text-lg">${agentData.currentMandate.budgetRemaining}</span>
+                  <Label className="text-slate">Budget remaining</Label>
+                  <span className="text-lg font-bold text-charcoal">
+                    ${agentData.currentMandate.budgetRemaining}
+                  </span>
                 </div>
-              </div>
-            </div>
-          </section>
+              </CardContent>
+            </Card>
+          </Card>
         </main>
 
-        {/* 3. Proposed Actions Sticky Tray */}
-        <footer className="fixed bottom-0 left-72 right-0 bg-[#1F2937] p-6 shadow-[0_-8px_30px_rgb(0,0,0,0.12)] z-50">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h4 className="text-white text-sm font-bold">Proposed Actions</h4>
-              <span className="text-white text-sm">
-                Cost: ${proposedActions.reduce((sum, a) => sum + (typeof a.cost === 'string' ? parseFloat(a.cost) : a.cost), 0).toFixed(2)}
+        <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-hairline-dark bg-canvas-dark p-6 text-on-dark shadow-[0_-8px_30px_rgba(15,23,32,0.18)] md:left-72">
+          <div className="mx-auto max-w-5xl">
+            <div className="mb-6 flex items-center justify-between">
+              <h4 className="text-sm font-bold text-on-dark">
+                Proposed Actions
+              </h4>
+              <span className="text-sm text-on-dark-muted">
+                Cost: ${totalCost}
               </span>
             </div>
-            
-            <div className="space-y-4">
+
+            <div>
               {proposedActions.length === 0 ? (
-                <p className="text-white/60 text-sm italic py-4">No actions proposed by the agent.</p>
+                <p className="py-4 text-sm italic text-on-dark-muted">
+                  No actions proposed by the agent.
+                </p>
               ) : (
-                proposedActions.map((action) => (
-                  <div key={action.id} className="flex items-center justify-between py-4 border-t border-white/10">
-                    <p className="text-white text-sm font-medium">
-                      {action.desc}
-                    </p>
-                    <button 
-                      type="button"
-                      onClick={() => onRunAction?.(action.id)}
-                      className="px-8 py-2 bg-white text-[#1F2937] text-sm font-bold rounded-lg hover:bg-gray-100 transition-all active:scale-95"
+                <div className="divide-y divide-on-dark/15">
+                  {proposedActions.map((action) => (
+                    <div
+                      key={action.id}
+                      className="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      Run
-                    </button>
-                  </div>
-                ))
+                      <p className="text-sm font-medium text-on-dark">
+                        {action.desc}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="shrink-0 bg-canvas font-bold text-charcoal hover:bg-surface-soft"
+                        onClick={() => onRunAction?.(action.id)}
+                      >
+                        Run
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>

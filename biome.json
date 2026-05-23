@@ -26,5 +26,17 @@
       ".env.local",
       ".agents"
     ]
-  }
+  },
+  "overrides": [
+    {
+      "include": ["src/components/ui/label.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noLabelWithoutControl": "off"
+          }
+        }
+      }
+    }
+  ]
 }

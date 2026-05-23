@@ -1,8 +1,10 @@
-<p align="center"><img src="./mandate402_header.png" alt="Mandate402 header" width="100%" /></p>
+<p align="center"><img src="../../public/images/Mandate402_Logo.png" alt="Mandate402 logo" width="180" /></p>
 
 # Mandate402 Brand Kit
 
 Mandate402 is a high-trust treasury-control system for x402 machine commerce on Morph. This brand kit is recovered from the restored Sherwin wireframe ADR and the current implemented token layer.
+
+**Logo color source:** The primary mark in `public/images/mandate_header.svg` uses forest green **`#346F2A`** and mint **`#91D186`** (see embedded `.s0` / `.s1` fills). Implemented **`brand-green` / `mandate-green`** CSS tokens match those hues. Control teal (`#062B33` family) remains the separate “control room” band color from the narrative palette, not taken from the logomark.
 
 <details open>
 <summary><strong>Identity</strong></summary>
@@ -265,11 +267,15 @@ Mandate402 is a high-trust treasury-control system for x402 machine commerce on 
   </tr>
   <tr>
     <td><code>--color-mandate-green</code></td>
-    <td><code>#22c55e</code></td>
+    <td><code>#346f2a</code></td>
   </tr>
   <tr>
     <td><code>--color-mandate-green-dark</code></td>
-    <td><code>#15803d</code></td>
+    <td><code>#2a5a23</code></td>
+  </tr>
+  <tr>
+    <td><code>--color-mandate-green-mid</code></td>
+    <td><code>#91d186</code> (logomark highlight)</td>
   </tr>
   <tr>
     <td><code>--color-brand-control-deep</code></td>
@@ -302,6 +308,10 @@ Mandate402 is a high-trust treasury-control system for x402 machine commerce on 
   <tr>
     <td><code>--color-surface</code></td>
     <td><code>#f7faf9</code></td>
+  </tr>
+  <tr>
+    <td>Hero / sidebar / console header / CTA band</td>
+    <td>Solid <code>mandate-green</code> (<code>#346f2a</code>) for primary app chrome; <code>brand-control-deep</code> remains for dark proof / terminal surfaces where called out in layouts</td>
   </tr>
 </table>
 
