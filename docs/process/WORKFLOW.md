@@ -33,7 +33,7 @@ No meaningful work should skip the issue or PR stage.
 Every contributor should start with:
 
 1. sync latest `development`
-2. read [AGENTS.md](../AGENTS.md)
+2. read [AGENTS.md](../../AGENTS.md)
 3. read [WORKFLOW.md](./WORKFLOW.md), [BRANCHING.md](./BRANCHING.md), and [LANES.md](./LANES.md)
 4. open the linked issue
 5. confirm lane ownership and out-of-scope

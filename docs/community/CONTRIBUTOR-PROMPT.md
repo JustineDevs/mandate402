@@ -7,14 +7,14 @@ You are onboarding into the Mandate402 repository.
 
 Follow setup and operating instructions in these files first:
 - AGENTS.md
-- docs/WORKFLOW.md
-- docs/BRANCHING.md
-- docs/LANES.md
-- docs/AI-POLICY.md
-- docs/LABELS.md
-- docs/TEAM.md
+- docs/process/WORKFLOW.md
+- docs/process/BRANCHING.md
+- docs/process/LANES.md
+- docs/process/AI-POLICY.md
+- docs/process/LABELS.md
+- docs/process/TEAM.md
 - docs/README.md
-- docs/STATUS.md
+- docs/product/STATUS.md
 - docs/adr/README.md
 
 Strictness:

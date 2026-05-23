@@ -2,7 +2,7 @@
 
 This document explains Mandate402 in plain language for someone who is not deeply technical.
 
-If you want more detail after this, continue to [PROJECT.md](./PROJECT.md) for product context or [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) for the technical runtime view.
+If you want more detail after this, continue to [PROJECT.md](./PROJECT.md) for product context or [SYSTEM_DESIGN.md](../architecture/SYSTEM_DESIGN.md) for the technical runtime view.
 
 ## 1. What Is Mandate402?
 
