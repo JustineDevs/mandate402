@@ -1,9 +1,23 @@
 import {
+  TreasuryEnforcementError,
+  enforceTreasuryExecution,
+} from "@/lib/blockchain/treasury";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "@/lib/domain/errors";
+import {
   ensureAttemptTransition,
   ensureMandateTransition,
 } from "@/lib/domain/state-machines";
 import { isFutureIsoTimestamp } from "@/lib/domain/time";
-import type { AuditEntry, DomainEvent, Mandate } from "@/lib/domain/types";
+import type {
+  AuditEntry,
+  DomainEvent,
+  Mandate,
+  WorkerTask,
+} from "@/lib/domain/types";
 import { nowIso } from "@/lib/infrastructure/clock";
 import { createId } from "@/lib/infrastructure/id";
 import { readStore, withStoreLock } from "@/lib/infrastructure/store";
@@ -11,24 +25,58 @@ import {
   issueMandateAnchor,
   revokeMandateAnchor,
 } from "@/lib/modules/morph-anchor";
-import {
-  correlateAttemptStatus,
-  dispatchAttempt,
-  materializeAttempt,
-} from "@/lib/modules/payments";
+import { materializeAttempt } from "@/lib/modules/payments";
 import { evaluatePolicy } from "@/lib/modules/policy";
 import { vendorRegistry } from "@/lib/vendor-registry";
 
 export type CreateMandateInput = {
   name: string;
   agentId: string;
-  agentName: string;
+  agentName?: string;
   budgetCapCents: number;
   expiresAt: string;
   approvedVendorIds: string[];
   requiresReceiptCapability: boolean;
   correlationId?: string | null;
 };
+
+function requireNonBlank(value: string, label: string) {
+  const normalized = value.trim();
+  if (!normalized) {
+    throw new ValidationError(`${label} must not be blank.`);
+  }
+
+  return normalized;
+}
+
+function requirePositiveCents(value: number, label: string) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new ValidationError(
+      `${label} must be a positive integer amount in cents.`,
+    );
+  }
+}
+
+function normalizeApprovedVendorIds(vendorIds: string[]) {
+  const normalizedVendorIds = vendorIds.map((vendorId) =>
+    requireNonBlank(vendorId, "Approved vendor id"),
+  );
+  const uniqueVendorIds = [...new Set(normalizedVendorIds)];
+
+  if (uniqueVendorIds.length === 0) {
+    throw new ValidationError("At least one approved vendor is required.");
+  }
+
+  for (const vendorId of uniqueVendorIds) {
+    if (!vendorRegistry.some((vendor) => vendor.id === vendorId)) {
+      throw new ValidationError(
+        `Approved vendor ${vendorId} is not registered.`,
+      );
+    }
+  }
+
+  return uniqueVendorIds;
+}
 
 function makeAudit(
   mandateId: string,
@@ -64,6 +112,34 @@ function makeDomainEvent(input: {
   };
 }
 
+function makeWorkerTask(input: {
+  kind: WorkerTask["kind"];
+  mandateId: string;
+  attemptId: string;
+  operatorId: string;
+  correlationId?: string | null;
+}): WorkerTask {
+  const now = nowIso();
+  return {
+    id: createId("task"),
+    kind: input.kind,
+    attemptId: input.attemptId,
+    mandateId: input.mandateId,
+    operatorId: input.operatorId,
+    correlationId: input.correlationId ?? null,
+    leaseOwner: null,
+    leaseExpiresAt: null,
+    availableAt: now,
+    status: "queued",
+    attemptCount: 0,
+    lastError: null,
+    createdAt: now,
+    updatedAt: now,
+    startedAt: null,
+    completedAt: null,
+  };
+}
+
 export async function listMandates() {
   const data = await readStore();
   return data.mandates;
@@ -91,13 +167,18 @@ export async function listDomainEvents() {
 
 export async function createMandate(input: CreateMandateInput) {
   return withStoreLock(async (data) => {
+    const name = requireNonBlank(input.name, "Mandate name");
+    requirePositiveCents(input.budgetCapCents, "Mandate budget");
+
     if (!isFutureIsoTimestamp(input.expiresAt)) {
-      throw new Error("Mandate expiry must be a future ISO timestamp.");
+      throw new ValidationError(
+        "Mandate expiry must be a future ISO timestamp.",
+      );
     }
 
     const agent = data.agents.find((entry) => entry.id === input.agentId);
     if (!agent || agent.status !== "active") {
-      throw new Error("Agent must exist and be active.");
+      throw new ValidationError("Agent must exist and be active.");
     }
 
     const now = nowIso();
@@ -105,15 +186,15 @@ export async function createMandate(input: CreateMandateInput) {
     const morphIssueTxId = await issueMandateAnchor(mandateId);
     const mandate: Mandate = {
       id: mandateId,
-      name: input.name,
+      name,
       agentId: input.agentId,
-      agentName: input.agentName,
+      agentName: agent.name,
       status: "draft",
       budgetCapCents: input.budgetCapCents,
       reservedCents: 0,
       consumedCents: 0,
       requiresReceiptCapability: input.requiresReceiptCapability,
-      approvedVendorIds: input.approvedVendorIds,
+      approvedVendorIds: normalizeApprovedVendorIds(input.approvedVendorIds),
       morphIssueTxId,
       morphRevokeTxId: null,
       expiresAt: input.expiresAt,
@@ -151,7 +232,7 @@ export async function revokeMandate(mandateId: string) {
   return withStoreLock(async (data) => {
     const mandate = data.mandates.find((entry) => entry.id === mandateId);
     if (!mandate) {
-      throw new Error("Mandate not found.");
+      throw new NotFoundError("Mandate not found.");
     }
     ensureMandateTransition(mandate.status, "revoking");
     mandate.status = "revoking";
@@ -191,9 +272,17 @@ export async function runAttempt(input: {
   correlationId?: string | null;
 }) {
   return withStoreLock(async (data) => {
+    requirePositiveCents(input.amountCents, "Attempt amount");
+    const vendorId = requireNonBlank(input.vendorId, "Vendor id");
+    const operatorId = requireNonBlank(input.operatorId, "Operator id");
+
+    if (input.paymentIdentifier) {
+      requireNonBlank(input.paymentIdentifier, "Payment identifier");
+    }
+
     const mandate = data.mandates.find((entry) => entry.id === input.mandateId);
     if (!mandate) {
-      throw new Error("Mandate not found.");
+      throw new NotFoundError("Mandate not found.");
     }
 
     if (input.paymentIdentifier) {
@@ -203,26 +292,27 @@ export async function runAttempt(input: {
       if (existingAttempt) {
         if (
           existingAttempt.mandateId !== input.mandateId ||
-          existingAttempt.vendorId !== input.vendorId ||
+          existingAttempt.vendorId !== vendorId ||
           existingAttempt.amountCents !== input.amountCents ||
-          existingAttempt.operatorId !== input.operatorId
+          existingAttempt.operatorId !== operatorId
         ) {
-          throw new Error(
+          throw new ConflictError(
             "Payment identifier conflict: identifier already used for a different attempt.",
+            "payment_identifier_conflict",
           );
         }
         return existingAttempt;
       }
     }
 
-    const vendor = vendorRegistry.find((entry) => entry.id === input.vendorId);
+    const vendor = vendorRegistry.find((entry) => entry.id === vendorId);
     if (!vendor) {
-      throw new Error("Vendor not found.");
+      throw new NotFoundError("Vendor not found.");
     }
     const attempt = materializeAttempt(
       mandate.id,
-      input.vendorId,
-      input.operatorId,
+      vendorId,
+      operatorId,
       input.amountCents,
       input.paymentIdentifier,
     );
@@ -336,6 +426,68 @@ export async function runAttempt(input: {
       }),
     );
 
+    try {
+      const treasury = await enforceTreasuryExecution({
+        agentId: mandate.agentId,
+        amountCents: input.amountCents,
+      });
+
+      if (treasury.enforced) {
+        data.auditEntries.unshift(
+          makeAudit(
+            mandate.id,
+            "policy_approved",
+            `Treasury enforcement approved the attempt (${treasury.txHash}).`,
+            attempt.id,
+          ),
+        );
+        data.domainEvents.unshift(
+          makeDomainEvent({
+            entityType: "payment_attempt",
+            entityId: attempt.id,
+            eventType: "treasury_enforced",
+            correlationId: input.correlationId,
+            metadata: {
+              txHash: treasury.txHash ?? null,
+              mandateId: mandate.id,
+            },
+          }),
+        );
+      }
+    } catch (error) {
+      if (error instanceof TreasuryEnforcementError) {
+        ensureAttemptTransition(attempt.status, "policy_denied");
+        attempt.status = "policy_denied";
+        attempt.financialOutcome = "policy_denied";
+        attempt.blockedReason = error.code;
+        attempt.updatedAt = nowIso();
+        data.attempts.unshift(attempt);
+        data.auditEntries.unshift(
+          makeAudit(
+            mandate.id,
+            "attempt_blocked",
+            `Payment blocked before dispatch: ${error.code}.`,
+            attempt.id,
+          ),
+        );
+        data.domainEvents.unshift(
+          makeDomainEvent({
+            entityType: "payment_attempt",
+            entityId: attempt.id,
+            eventType: "policy_denied",
+            correlationId: input.correlationId,
+            metadata: {
+              reason: error.code,
+              mandateId: mandate.id,
+            },
+          }),
+        );
+        return attempt;
+      }
+
+      throw error;
+    }
+
     ensureAttemptTransition(attempt.status, "reserved");
     attempt.status = "reserved";
     attempt.financialOutcome = "reserved";
@@ -366,15 +518,25 @@ export async function runAttempt(input: {
       }),
     );
 
-    ensureAttemptTransition(attempt.status, "dispatching");
-    attempt.status = "dispatching";
-    attempt.financialOutcome = "dispatching";
+    ensureAttemptTransition(attempt.status, "dispatch_queued");
+    attempt.status = "dispatch_queued";
+    attempt.financialOutcome = "dispatch_queued";
     attempt.updatedAt = nowIso();
+    mandate.updatedAt = nowIso();
+    data.attempts.unshift(attempt);
+    const executionTask = makeWorkerTask({
+      kind: "dispatch_attempt",
+      mandateId: mandate.id,
+      attemptId: attempt.id,
+      operatorId: attempt.operatorId,
+      correlationId: input.correlationId,
+    });
+    data.workerTasks.unshift(executionTask);
     data.auditEntries.unshift(
       makeAudit(
         mandate.id,
-        "attempt_dispatched",
-        "Attempt dispatched to vendor adapter.",
+        "attempt_queued",
+        "Attempt queued for execution worker dispatch.",
         attempt.id,
       ),
     );
@@ -382,231 +544,27 @@ export async function runAttempt(input: {
       makeDomainEvent({
         entityType: "payment_attempt",
         entityId: attempt.id,
-        eventType: "attempt_dispatched",
+        eventType: "attempt_queued",
         correlationId: input.correlationId,
         metadata: {
           vendorId: attempt.vendorId,
+          paymentIdentifier: attempt.paymentIdentifier,
+          workerTaskId: executionTask.id,
         },
       }),
-    );
-
-    const result = await dispatchAttempt({
-      vendor,
-      amountCents: input.amountCents,
-      paymentIdentifier: attempt.paymentIdentifier,
-      mandateId: mandate.id,
-    });
-    ensureAttemptTransition(attempt.status, result.status);
-    attempt.status = result.status;
-    attempt.financialOutcome = result.status;
-    attempt.chargeReference = result.chargeReference;
-    attempt.receiptEvidence = result.receiptEvidence;
-    attempt.updatedAt = nowIso();
-
-    if (result.status === "executed_charge_succeeded") {
-      mandate.reservedCents -= input.amountCents;
-      mandate.consumedCents += input.amountCents;
-    } else if (result.status === "executed_charge_failed") {
-      mandate.reservedCents -= input.amountCents;
-    }
-
-    if (result.status === "execution_unknown") {
-      data.auditEntries.unshift(
-        makeAudit(
-          mandate.id,
-          "attempt_reconciliation_started",
-          "Attempt entered execution_unknown and is awaiting correlation.",
-          attempt.id,
-        ),
-      );
-      data.domainEvents.unshift(
-        makeDomainEvent({
-          entityType: "payment_attempt",
-          entityId: attempt.id,
-          eventType: "attempt_reconciliation_started",
-          correlationId: input.correlationId,
-          metadata: {
-            paymentIdentifier: attempt.paymentIdentifier,
-          },
-        }),
-      );
-    } else {
-      mandate.status = "issued_active";
-    }
-
-    mandate.updatedAt = nowIso();
-    data.attempts.unshift(attempt);
-    data.auditEntries.unshift(
-      makeAudit(
-        mandate.id,
-        "receipt_updated",
-        `Receipt evidence state: ${attempt.receiptEvidence}.`,
-        attempt.id,
-      ),
     );
     data.domainEvents.unshift(
       makeDomainEvent({
-        entityType: "payment_attempt",
-        entityId: attempt.id,
-        eventType: "receipt_updated",
+        entityType: "worker_task",
+        entityId: executionTask.id,
+        eventType: "worker_task_enqueued",
         correlationId: input.correlationId,
         metadata: {
-          receiptEvidence: attempt.receiptEvidence,
+          kind: executionTask.kind,
+          attemptId: attempt.id,
         },
       }),
     );
-    data.auditEntries.unshift(
-      makeAudit(
-        mandate.id,
-        "financial_outcome",
-        `Financial outcome: ${result.status}.`,
-        attempt.id,
-      ),
-    );
-    data.domainEvents.unshift(
-      makeDomainEvent({
-        entityType: "payment_attempt",
-        entityId: attempt.id,
-        eventType: "financial_outcome",
-        correlationId: input.correlationId,
-        metadata: {
-          financialOutcome: result.status,
-        },
-      }),
-    );
-    if (result.status !== "execution_unknown") {
-      data.auditEntries.unshift(
-        makeAudit(
-          mandate.id,
-          "attempt_reconciled",
-          `Attempt resolved with financial outcome ${result.status}.`,
-          attempt.id,
-        ),
-      );
-      data.domainEvents.unshift(
-        makeDomainEvent({
-          entityType: "payment_attempt",
-          entityId: attempt.id,
-          eventType: "attempt_reconciled",
-          correlationId: input.correlationId,
-          metadata: {
-            financialOutcome: result.status,
-          },
-        }),
-      );
-    }
-    return attempt;
-  });
-}
-
-export async function reconcileAttempt(input: {
-  mandateId: string;
-  attemptId: string;
-  correlationId?: string | null;
-}) {
-  return withStoreLock(async (data) => {
-    const mandate = data.mandates.find((entry) => entry.id === input.mandateId);
-    const attempt = data.attempts.find((entry) => entry.id === input.attemptId);
-
-    if (!mandate || !attempt) {
-      throw new Error("Attempt not found.");
-    }
-
-    if (attempt.mandateId !== mandate.id) {
-      throw new Error("Attempt does not belong to the selected mandate.");
-    }
-
-    if (attempt.status !== "execution_unknown") {
-      throw new Error("Only execution_unknown attempts can be reconciled.");
-    }
-
-    const vendor = vendorRegistry.find(
-      (entry) => entry.id === attempt.vendorId,
-    );
-    if (!vendor) {
-      throw new Error("Vendor not found for reconciliation.");
-    }
-
-    const correlated = await correlateAttemptStatus({
-      vendor,
-      paymentIdentifier: attempt.paymentIdentifier,
-      chargeReference: attempt.chargeReference,
-    });
-
-    ensureAttemptTransition(attempt.status, correlated.status);
-    attempt.status = correlated.status;
-    attempt.financialOutcome = correlated.status;
-    attempt.receiptEvidence = correlated.receiptEvidence;
-    attempt.chargeReference =
-      correlated.chargeReference ?? attempt.chargeReference;
-    attempt.updatedAt = nowIso();
-
-    if (correlated.status === "executed_charge_succeeded") {
-      mandate.consumedCents += attempt.amountCents;
-    }
-
-    mandate.reservedCents -= attempt.amountCents;
-    mandate.status = "issued_active";
-    mandate.updatedAt = nowIso();
-
-    data.auditEntries.unshift(
-      makeAudit(
-        mandate.id,
-        "receipt_updated",
-        `Receipt evidence reconciled to ${correlated.receiptEvidence}.`,
-        attempt.id,
-      ),
-    );
-    data.domainEvents.unshift(
-      makeDomainEvent({
-        entityType: "payment_attempt",
-        entityId: attempt.id,
-        eventType: "receipt_updated",
-        correlationId: input.correlationId,
-        metadata: {
-          receiptEvidence: correlated.receiptEvidence,
-        },
-      }),
-    );
-    data.auditEntries.unshift(
-      makeAudit(
-        mandate.id,
-        "financial_outcome",
-        `Financial outcome reconciled to ${correlated.status}.`,
-        attempt.id,
-      ),
-    );
-    data.domainEvents.unshift(
-      makeDomainEvent({
-        entityType: "payment_attempt",
-        entityId: attempt.id,
-        eventType: "financial_outcome",
-        correlationId: input.correlationId,
-        metadata: {
-          financialOutcome: correlated.status,
-        },
-      }),
-    );
-    data.auditEntries.unshift(
-      makeAudit(
-        mandate.id,
-        "attempt_reconciled",
-        "Unknown attempt reconciled.",
-        attempt.id,
-      ),
-    );
-    data.domainEvents.unshift(
-      makeDomainEvent({
-        entityType: "payment_attempt",
-        entityId: attempt.id,
-        eventType: "attempt_reconciled",
-        correlationId: input.correlationId,
-        metadata: {
-          financialOutcome: correlated.status,
-        },
-      }),
-    );
-
     return attempt;
   });
 }

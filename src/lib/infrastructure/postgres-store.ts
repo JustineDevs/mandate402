@@ -1,46 +1,95 @@
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 import type { PoolClient } from "pg";
 import { Pool } from "pg";
 
 import type { StoreData } from "@/lib/domain/types";
+import { getDatabaseDirectUrl, getDatabaseUrl } from "@/lib/infrastructure/env";
+import { assertStoreIntegrity } from "@/lib/infrastructure/store-integrity";
 
 const POSTGRES_LOCK_KEY = 402001;
-const migrationsDir = path.join(process.cwd(), "db", "migrations");
+const migrationsDir = path.join(process.cwd(), "drizzle");
 
 let pool: Pool | null = null;
+let schemaPool: Pool | null = null;
 let schemaReady = false;
+
+function isSupabasePoolerConnection(connectionString: string) {
+  try {
+    const host = new URL(connectionString).hostname.toLowerCase();
+    return host.includes("pooler.supabase.com");
+  } catch {
+    return false;
+  }
+}
+
+function buildPool(connectionString: string) {
+  const useSupabaseSsl =
+    isSupabasePoolerConnection(connectionString) ||
+    connectionString.toLowerCase().includes("supabase.co");
+
+  return new Pool({
+    connectionString,
+    max: Number(process.env.MANDATE402_DB_POOL_MAX ?? 10),
+    idleTimeoutMillis: Number(
+      process.env.MANDATE402_DB_IDLE_TIMEOUT_MS ?? 10_000,
+    ),
+    allowExitOnIdle: true,
+    ssl: useSupabaseSsl ? { rejectUnauthorized: false } : undefined,
+  });
+}
 
 function getPool() {
   if (pool) {
     return pool;
   }
 
-  const connectionString =
-    process.env.MANDATE402_DATABASE_URL ?? process.env.DATABASE_URL;
+  const connectionString = getDatabaseUrl();
   if (!connectionString) {
     throw new Error(
       "Postgres persistence mode requires MANDATE402_DATABASE_URL or DATABASE_URL.",
     );
   }
 
-  pool = new Pool({
-    connectionString,
-  });
-
+  pool = buildPool(connectionString);
   return pool;
 }
 
+function getSchemaPool() {
+  if (schemaPool) {
+    return schemaPool;
+  }
+
+  const connectionString = getDatabaseDirectUrl();
+  if (!connectionString) {
+    throw new Error(
+      "Postgres schema setup requires MANDATE402_DATABASE_DIRECT_URL, DATABASE_DIRECT_URL, MANDATE402_DATABASE_URL, or DATABASE_URL.",
+    );
+  }
+
+  schemaPool = buildPool(connectionString);
+  return schemaPool;
+}
+
 async function ensureSchema() {
+  // Validate the primary runtime connection first so config errors surface
+  // from the main store contract before schema bootstrap details.
+  getPool();
+
   if (schemaReady) {
     return;
   }
 
-  const sql = readFileSync(path.join(migrationsDir, "0001_store.sql"), "utf8");
-  const client = await getPool().connect();
+  const client = await getSchemaPool().connect();
   try {
-    await client.query(sql);
+    const migrationFiles = readdirSync(migrationsDir)
+      .filter((file) => file.endsWith(".sql"))
+      .sort();
+    for (const file of migrationFiles) {
+      const sql = readFileSync(path.join(migrationsDir, file), "utf8");
+      await client.query(sql);
+    }
     schemaReady = true;
   } finally {
     client.release();
@@ -58,6 +107,7 @@ export async function readStorePostgres(): Promise<StoreData> {
 }
 
 export async function writeStorePostgres(data: StoreData) {
+  assertStoreIntegrity(data);
   await ensureSchema();
   const client = await getPool().connect();
   try {
@@ -177,6 +227,34 @@ async function readStoreFromClient(client: PoolClient): Promise<StoreData> {
     `,
   );
 
+  const workerTaskResult = await client.query<{
+    id: string;
+    kind: StoreData["workerTasks"][number]["kind"];
+    attempt_id: string;
+    mandate_id: string;
+    operator_id: string | null;
+    correlation_id: string | null;
+    lease_owner: string | null;
+    lease_expires_at: string | null;
+    available_at: string;
+    status: StoreData["workerTasks"][number]["status"];
+    attempt_count: number | string;
+    last_error: string | null;
+    created_at: string;
+    updated_at: string;
+    started_at: string | null;
+    completed_at: string | null;
+  }>(
+    `
+      SELECT
+        id, kind, attempt_id, mandate_id, operator_id, correlation_id,
+        lease_owner, lease_expires_at, available_at, status, attempt_count,
+        last_error, created_at, updated_at, started_at, completed_at
+      FROM worker_tasks
+      ORDER BY created_at DESC
+    `,
+  );
+
   const auditResult = await client.query<{
     id: string;
     mandate_id: string;
@@ -209,7 +287,7 @@ async function readStoreFromClient(client: PoolClient): Promise<StoreData> {
     `,
   );
 
-  return {
+  const store = {
     agents: agentsResult.rows.map((row) => ({
       id: row.id,
       name: row.name,
@@ -249,6 +327,24 @@ async function readStoreFromClient(client: PoolClient): Promise<StoreData> {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     })),
+    workerTasks: workerTaskResult.rows.map((row) => ({
+      id: row.id,
+      kind: row.kind,
+      attemptId: row.attempt_id,
+      mandateId: row.mandate_id,
+      operatorId: row.operator_id,
+      correlationId: row.correlation_id,
+      leaseOwner: row.lease_owner,
+      leaseExpiresAt: row.lease_expires_at,
+      availableAt: row.available_at,
+      status: row.status,
+      attemptCount: Number(row.attempt_count),
+      lastError: row.last_error,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      startedAt: row.started_at,
+      completedAt: row.completed_at,
+    })),
     auditEntries: auditResult.rows.map((row) => ({
       id: row.id,
       mandateId: row.mandate_id,
@@ -270,23 +366,23 @@ async function readStoreFromClient(client: PoolClient): Promise<StoreData> {
       >,
     })),
   };
+
+  assertStoreIntegrity(store);
+  return store;
 }
 
 async function writeStoreToClient(client: PoolClient, data: StoreData) {
-  await client.query(`
-    DELETE FROM domain_events;
-    DELETE FROM audit_entries;
-    DELETE FROM attempts;
-    DELETE FROM mandate_approved_vendors;
-    DELETE FROM mandates;
-    DELETE FROM agents;
-  `);
-
+  assertStoreIntegrity(data);
   for (const agent of data.agents) {
     await client.query(
       `
         INSERT INTO agents (id, name, status, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          status = EXCLUDED.status,
+          created_at = EXCLUDED.created_at,
+          updated_at = EXCLUDED.updated_at
       `,
       [agent.id, agent.name, agent.status, agent.createdAt, agent.updatedAt],
     );
@@ -301,6 +397,20 @@ async function writeStoreToClient(client: PoolClient, data: StoreData) {
           morph_issue_tx_id, morph_revoke_tx_id, expires_at, created_at, updated_at
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          agent_id = EXCLUDED.agent_id,
+          agent_name = EXCLUDED.agent_name,
+          status = EXCLUDED.status,
+          budget_cap_cents = EXCLUDED.budget_cap_cents,
+          reserved_cents = EXCLUDED.reserved_cents,
+          consumed_cents = EXCLUDED.consumed_cents,
+          requires_receipt_capability = EXCLUDED.requires_receipt_capability,
+          morph_issue_tx_id = EXCLUDED.morph_issue_tx_id,
+          morph_revoke_tx_id = EXCLUDED.morph_revoke_tx_id,
+          expires_at = EXCLUDED.expires_at,
+          created_at = EXCLUDED.created_at,
+          updated_at = EXCLUDED.updated_at
       `,
       [
         mandate.id,
@@ -320,11 +430,16 @@ async function writeStoreToClient(client: PoolClient, data: StoreData) {
       ],
     );
 
+    await client.query(
+      "DELETE FROM mandate_approved_vendors WHERE mandate_id = $1",
+      [mandate.id],
+    );
     for (const vendorId of mandate.approvedVendorIds) {
       await client.query(
         `
           INSERT INTO mandate_approved_vendors (mandate_id, vendor_id)
           VALUES ($1, $2)
+          ON CONFLICT (mandate_id, vendor_id) DO NOTHING
         `,
         [mandate.id, vendorId],
       );
@@ -340,6 +455,19 @@ async function writeStoreToClient(client: PoolClient, data: StoreData) {
           payment_identifier, created_at, updated_at
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        ON CONFLICT (id) DO UPDATE SET
+          mandate_id = EXCLUDED.mandate_id,
+          vendor_id = EXCLUDED.vendor_id,
+          amount_cents = EXCLUDED.amount_cents,
+          operator_id = EXCLUDED.operator_id,
+          status = EXCLUDED.status,
+          financial_outcome = EXCLUDED.financial_outcome,
+          receipt_evidence = EXCLUDED.receipt_evidence,
+          blocked_reason = EXCLUDED.blocked_reason,
+          charge_reference = EXCLUDED.charge_reference,
+          payment_identifier = EXCLUDED.payment_identifier,
+          created_at = EXCLUDED.created_at,
+          updated_at = EXCLUDED.updated_at
       `,
       [
         attempt.id,
@@ -359,11 +487,64 @@ async function writeStoreToClient(client: PoolClient, data: StoreData) {
     );
   }
 
+  for (const workerTask of data.workerTasks) {
+    await client.query(
+      `
+        INSERT INTO worker_tasks (
+          id, kind, attempt_id, mandate_id, operator_id, correlation_id,
+          lease_owner, lease_expires_at, available_at, status, attempt_count,
+          last_error, created_at, updated_at, started_at, completed_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        ON CONFLICT (id) DO UPDATE SET
+          kind = EXCLUDED.kind,
+          attempt_id = EXCLUDED.attempt_id,
+          mandate_id = EXCLUDED.mandate_id,
+          operator_id = EXCLUDED.operator_id,
+          correlation_id = EXCLUDED.correlation_id,
+          lease_owner = EXCLUDED.lease_owner,
+          lease_expires_at = EXCLUDED.lease_expires_at,
+          available_at = EXCLUDED.available_at,
+          status = EXCLUDED.status,
+          attempt_count = EXCLUDED.attempt_count,
+          last_error = EXCLUDED.last_error,
+          created_at = EXCLUDED.created_at,
+          updated_at = EXCLUDED.updated_at,
+          started_at = EXCLUDED.started_at,
+          completed_at = EXCLUDED.completed_at
+      `,
+      [
+        workerTask.id,
+        workerTask.kind,
+        workerTask.attemptId,
+        workerTask.mandateId,
+        workerTask.operatorId,
+        workerTask.correlationId,
+        workerTask.leaseOwner,
+        workerTask.leaseExpiresAt,
+        workerTask.availableAt,
+        workerTask.status,
+        workerTask.attemptCount,
+        workerTask.lastError,
+        workerTask.createdAt,
+        workerTask.updatedAt,
+        workerTask.startedAt,
+        workerTask.completedAt,
+      ],
+    );
+  }
+
   for (const audit of data.auditEntries) {
     await client.query(
       `
         INSERT INTO audit_entries (id, mandate_id, attempt_id, type, message, created_at)
         VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (id) DO UPDATE SET
+          mandate_id = EXCLUDED.mandate_id,
+          attempt_id = EXCLUDED.attempt_id,
+          type = EXCLUDED.type,
+          message = EXCLUDED.message,
+          created_at = EXCLUDED.created_at
       `,
       [
         audit.id,
@@ -383,6 +564,13 @@ async function writeStoreToClient(client: PoolClient, data: StoreData) {
           id, entity_type, entity_id, event_type, correlation_id, occurred_at, metadata_json
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (id) DO UPDATE SET
+          entity_type = EXCLUDED.entity_type,
+          entity_id = EXCLUDED.entity_id,
+          event_type = EXCLUDED.event_type,
+          correlation_id = EXCLUDED.correlation_id,
+          occurred_at = EXCLUDED.occurred_at,
+          metadata_json = EXCLUDED.metadata_json
       `,
       [
         event.id,
@@ -395,17 +583,41 @@ async function writeStoreToClient(client: PoolClient, data: StoreData) {
       ],
     );
   }
+
+  await client.query("DELETE FROM domain_events WHERE id <> ALL($1::text[])", [
+    data.domainEvents.map((event) => event.id),
+  ]);
+  await client.query("DELETE FROM audit_entries WHERE id <> ALL($1::text[])", [
+    data.auditEntries.map((audit) => audit.id),
+  ]);
+  await client.query("DELETE FROM worker_tasks WHERE id <> ALL($1::text[])", [
+    data.workerTasks.map((workerTask) => workerTask.id),
+  ]);
+  await client.query("DELETE FROM attempts WHERE id <> ALL($1::text[])", [
+    data.attempts.map((attempt) => attempt.id),
+  ]);
+  await client.query("DELETE FROM mandates WHERE id <> ALL($1::text[])", [
+    data.mandates.map((mandate) => mandate.id),
+  ]);
+  await client.query("DELETE FROM agents WHERE id <> ALL($1::text[])", [
+    data.agents.map((agent) => agent.id),
+  ]);
 }
 
-export function resetPostgresStoreForTests() {
+export async function resetPostgresStoreForTests() {
   schemaReady = false;
+  const shutdowns: Promise<void>[] = [];
   if (pool) {
     const current = pool;
     pool = null;
-    return current.end();
+    shutdowns.push(current.end());
   }
-
-  return Promise.resolve();
+  if (schemaPool) {
+    const current = schemaPool;
+    schemaPool = null;
+    shutdowns.push(current.end());
+  }
+  await Promise.all(shutdowns);
 }
 
 mkdirSync(migrationsDir, { recursive: true });

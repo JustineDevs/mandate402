@@ -11,11 +11,15 @@ export type PaymentAttemptStatus =
   | "auth_validated"
   | "policy_denied"
   | "reserved"
+  | "dispatch_queued"
   | "dispatching"
   | "execution_unknown"
   | "executed_charge_succeeded"
   | "executed_charge_failed"
   | "cancelled_released";
+
+export type WorkerTaskKind = "dispatch_attempt" | "reconcile_attempt";
+export type WorkerTaskStatus = "queued" | "leased" | "completed" | "failed";
 
 export type ReceiptEvidenceStatus =
   | "not_required"
@@ -79,6 +83,25 @@ export type PaymentAttempt = {
   updatedAt: string;
 };
 
+export type WorkerTask = {
+  id: string;
+  kind: WorkerTaskKind;
+  attemptId: string;
+  mandateId: string;
+  operatorId: string | null;
+  correlationId: string | null;
+  leaseOwner: string | null;
+  leaseExpiresAt: string | null;
+  availableAt: string;
+  status: WorkerTaskStatus;
+  attemptCount: number;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+};
+
 export type AuditEntry = {
   id: string;
   mandateId: string;
@@ -91,6 +114,7 @@ export type AuditEntry = {
     | "policy_approved"
     | "attempt_blocked"
     | "attempt_reserved"
+    | "attempt_queued"
     | "attempt_dispatched"
     | "attempt_reconciliation_started"
     | "attempt_reconciled"
@@ -102,7 +126,7 @@ export type AuditEntry = {
 
 export type DomainEvent = {
   id: string;
-  entityType: "mandate" | "payment_attempt" | "system";
+  entityType: "mandate" | "payment_attempt" | "worker_task" | "system";
   entityId: string;
   eventType: string;
   correlationId: string | null;
@@ -148,6 +172,7 @@ export type StoreData = {
   agents: Agent[];
   mandates: Mandate[];
   attempts: PaymentAttempt[];
+  workerTasks: WorkerTask[];
   auditEntries: AuditEntry[];
   domainEvents: DomainEvent[];
 };

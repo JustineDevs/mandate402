@@ -56,6 +56,14 @@ describe("mandate state machine", () => {
 });
 
 describe("payment attempt state machine", () => {
+  it("supports queueing after reservation", () => {
+    expect(canTransitionAttempt("reserved", "dispatch_queued")).toBe(true);
+  });
+
+  it("supports queue to dispatching", () => {
+    expect(canTransitionAttempt("dispatch_queued", "dispatching")).toBe(true);
+  });
+
   it("supports dispatching to execution unknown", () => {
     expect(canTransitionAttempt("dispatching", "execution_unknown")).toBe(true);
   });

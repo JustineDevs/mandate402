@@ -1,6 +1,6 @@
-import { jsonError, jsonOk } from "@/lib/infrastructure/api";
+import { jsonErrorFrom, jsonOk } from "@/lib/infrastructure/api";
 import { logEvent } from "@/lib/infrastructure/logger";
-import { AuthError, requireOperator } from "@/lib/modules/auth";
+import { requireOperator } from "@/lib/modules/auth";
 import { revokeMandate } from "@/lib/modules/mandates";
 
 export async function POST(
@@ -17,8 +17,9 @@ export async function POST(
     });
     return jsonOk({ mandate });
   } catch (error) {
-    if (error instanceof AuthError) {
-      return jsonError(error.message, 401);
+    const response = jsonErrorFrom(error);
+    if (response) {
+      return response;
     }
 
     throw error;

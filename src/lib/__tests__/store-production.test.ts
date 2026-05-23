@@ -17,7 +17,7 @@ describe("production persistence guard", () => {
   });
 
   it("rejects postgres mode without a database url", async () => {
-    vi.stubEnv("APP_ENV", "demo");
+    vi.stubEnv("APP_ENV", "test");
     vi.stubEnv("MANDATE402_PERSISTENCE_MODE", "postgres");
 
     const store = await import("@/lib/infrastructure/store");
