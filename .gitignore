@@ -1,6 +1,8 @@
 node_modules
 .next
 .omx
+.ma
+docs/plan
 coverage
 dist
 out
@@ -19,3 +21,13 @@ agent-sdk/package-lock.json
 contracts/out
 contracts/cache
 contracts/broadcast
+
+# OpenNext
+.open-next
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+
+!.env.example

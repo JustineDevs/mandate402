@@ -20,8 +20,10 @@ const allowedAttemptTransitions: Record<
   created: ["auth_validated", "policy_denied"],
   auth_validated: ["policy_denied", "reserved"],
   policy_denied: [],
-  reserved: ["cancelled_released", "dispatching"],
+  reserved: ["cancelled_released", "dispatch_queued"],
+  dispatch_queued: ["dispatching", "cancelled_released"],
   dispatching: [
+    "cancelled_released",
     "executed_charge_failed",
     "executed_charge_succeeded",
     "execution_unknown",

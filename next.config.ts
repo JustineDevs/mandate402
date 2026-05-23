@@ -5,3 +5,14 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+if (process.env.NODE_ENV === "development") {
+  void import("@opennextjs/cloudflare")
+    .then((m) => m.initOpenNextCloudflareForDev())
+    .catch((error) => {
+      console.warn(
+        "OpenNext Cloudflare dev init failed:",
+        error instanceof Error ? error.message : String(error),
+      );
+    });
+}

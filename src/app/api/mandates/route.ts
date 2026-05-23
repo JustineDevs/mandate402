@@ -1,16 +1,16 @@
 import { z } from "zod";
 
 import { isFutureIsoTimestamp } from "@/lib/domain/time";
-import { jsonCreated, jsonError, jsonOk } from "@/lib/infrastructure/api";
+import { jsonCreated, jsonErrorFrom, jsonOk } from "@/lib/infrastructure/api";
 import { logEvent } from "@/lib/infrastructure/logger";
 import { readCorrelationId } from "@/lib/infrastructure/observability";
-import { AuthError, requireOperator } from "@/lib/modules/auth";
+import { requireOperator } from "@/lib/modules/auth";
 import { createMandate, listMandates } from "@/lib/modules/mandates";
 
 const createMandateSchema = z.object({
   name: z.string().min(1),
   agentId: z.string().min(1),
-  agentName: z.string().min(1),
+  agentName: z.string().min(1).optional(),
   budgetCapCents: z.number().int().positive(),
   expiresAt: z.string().refine((value) => isFutureIsoTimestamp(value), {
     message: "expiresAt must be a future ISO timestamp.",
@@ -25,8 +25,9 @@ export async function GET(request: Request) {
     const mandates = await listMandates();
     return jsonOk({ mandates });
   } catch (error) {
-    if (error instanceof AuthError) {
-      return jsonError(error.message, 401);
+    const response = jsonErrorFrom(error);
+    if (response) {
+      return response;
     }
 
     throw error;
@@ -47,8 +48,9 @@ export async function POST(request: Request) {
     });
     return jsonCreated({ mandate, correlationId });
   } catch (error) {
-    if (error instanceof AuthError) {
-      return jsonError(error.message, 401);
+    const response = jsonErrorFrom(error);
+    if (response) {
+      return response;
     }
 
     throw error;

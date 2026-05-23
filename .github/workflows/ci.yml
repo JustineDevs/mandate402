@@ -38,13 +38,62 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile
       - run: pnpm check:repo-safety
       - run: pnpm check:biome
       - run: pnpm test
       - run: pnpm typecheck
       - run: pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts
       - run: pnpm build
+
+  workers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run src/workers/__tests__/mandate402-worker.test.ts src/lib/__tests__/worker-load.test.ts
+      - run: pnpm workers:dry-run
+      - run: pnpm cloudflare:dry-run
+
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: mandate402_test
+          POSTGRES_USER: mandate402
+          POSTGRES_PASSWORD: mandate402
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      APP_ENV: test
+      MANDATE402_PERSISTENCE_MODE: postgres
+      MANDATE402_DATABASE_URL: postgres://mandate402:mandate402@127.0.0.1:5432/mandate402_test
+      MANDATE402_DATABASE_DIRECT_URL: postgres://mandate402:mandate402@127.0.0.1:5432/mandate402_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run src/app/api/__tests__/routes.test.ts src/lib/__tests__/execution-worker.test.ts src/lib/__tests__/worker-load.test.ts
 
   contracts:
     needs: changes
