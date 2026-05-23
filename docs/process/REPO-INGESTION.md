@@ -4,13 +4,13 @@ This document is for any human or AI contributor who needs a deterministic start
 
 ## Mandatory Ingestion Steps
 
-1. Read [AGENTS.md](../AGENTS.md).
+1. Read [AGENTS.md](../../AGENTS.md).
 2. Read [WORKFLOW.md](./WORKFLOW.md).
 3. Read [BRANCHING.md](./BRANCHING.md).
 4. Read [LANES.md](./LANES.md).
 5. Read [AI-POLICY.md](./AI-POLICY.md).
 6. Read [TEAM.md](./TEAM.md).
-7. Read [adr/README.md](./adr/README.md).
+7. Read [adr/README.md](../adr/README.md).
 8. Open the linked issue.
 9. Confirm:
    - owner

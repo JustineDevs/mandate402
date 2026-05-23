@@ -360,3 +360,16 @@ If there is any tension between:
 - “ship safely”
 
 choose the smallest change that preserves correctness, CI, and public-remote safety.
+
+## Learned User Preferences
+
+- Treat obvious decorative gradients and template-heavy marketing chrome as unacceptable; the user explicitly calls that out as “AI slop” and wants it removed or avoided.
+- Keep global and component colors aligned with `docs/brand/brandkit.md` and the official logo or header SVG palette; do not drift the theme away from those sources without an explicit design decision.
+- Shape the landing page as a full-viewport, two-column split and follow the ASCII layout and content bounds in `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md`, keeping marketing copy restrained and on-brief rather than loud or generic.
+- When using other projects only as inspiration, borrow layout geometry (viewport split, padding, margins, positioning), not their visual style, assets, or decorative effects.
+- Keep the signed-out home experience a marketing surface rather than turning it into a lightweight operator console shell after sign-in, unless product scope explicitly changes.
+
+## Learned Workspace Facts
+
+- Canonical visual references for Mandate402 UI work include `docs/brand/brandkit.md` for palette and tokens and `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md` for the landing and console wireframe intent.
+- Primary operator console and marketing surfaces are implemented in the Next.js app under `src/` (for example app routes, layout, and shared components such as the sidebar and landing sections).

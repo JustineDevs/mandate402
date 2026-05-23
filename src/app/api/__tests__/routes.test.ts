@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { GET as getFallbackGate } from "@/app/api/fallback-gate/route";
 import { POST as reconcileAttempt } from "@/app/api/mandates/[mandateId]/attempts/[attemptId]/reconcile/route";
 import { POST as createAttempt } from "@/app/api/mandates/[mandateId]/attempts/route";
 import { POST as revokeMandate } from "@/app/api/mandates/[mandateId]/revoke/route";
 import { GET as getMandates } from "@/app/api/mandates/route";
 import { POST as createMandate } from "@/app/api/mandates/route";
+import { GET as getOperatorDashboard } from "@/app/api/operator/dashboard/route";
 import { GET as getSystem } from "@/app/api/system/route";
 import {
   createTestStoreData,
@@ -124,6 +126,47 @@ describe("API routes", () => {
     });
   });
 
+  it("rejects unauthorized system status access", async () => {
+    const response = await getSystem(
+      new Request("http://localhost/api/system", {
+        method: "GET",
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "Unauthorized operator request.",
+    });
+  });
+
+  it("rejects unauthorized fallback gate access", async () => {
+    const response = await getFallbackGate(
+      new Request("http://localhost/api/fallback-gate", {
+        method: "GET",
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "Unauthorized operator request.",
+    });
+  });
+
+  it("rejects unauthorized operator dashboard access", async () => {
+    const response = await getOperatorDashboard(
+      new Request("http://localhost/api/operator/dashboard", {
+        method: "GET",
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "Unauthorized operator request.",
+    });
+  });
   it("returns 400 for invalid mandate creation payloads", async () => {
     const response = await createMandate(
       jsonRequest("http://localhost/api/mandates", {
@@ -226,6 +269,37 @@ describe("API routes", () => {
 
     vi.stubEnv("PRIMARY_X402_VENDOR_B_URL", "https://example.com/research");
     vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 402,
+          headers: {
+            "PAYMENT-REQUIRED": Buffer.from(
+              JSON.stringify({
+                x402Version: 2,
+                accepts: [
+                  {
+                    scheme: "exact",
+                    network: "eip155:2818",
+                    maxAmountRequired: "1200",
+                    resource: "https://example.com/research",
+                    description: "Research vendor",
+                    mimeType: "application/json",
+                    outputSchema: null,
+                    payTo: "0x867a2e06e2ecbcc4d4aacc2f92353e51c0c8305f",
+                    maxTimeoutSeconds: 15,
+                    asset: "0x7433b41c6c5e1d58d4da99483609520255ab661b",
+                    amount: "1200",
+                    extra: {
+                      name: "USDC",
+                      version: "1.0",
+                    },
+                  },
+                ],
+              }),
+            ).toString("base64"),
+          },
+        }),
+      )
       .mockImplementationOnce(
         () =>
           new Promise((_resolve, reject) => {
@@ -321,10 +395,87 @@ describe("API routes", () => {
     expect(systemResponse.status).toBe(200);
     const systemJson = await systemResponse.json();
     expect(systemJson.ok).toBe(true);
-    expect(["ok", "degraded"]).toContain(systemJson.data.status);
+    expect(systemJson.data.status).toBe("degraded");
     expect(systemJson.data.mandates).toBeGreaterThanOrEqual(1);
-    expect(systemJson.data.attempts).toBeGreaterThanOrEqual(1);
-    expect(systemJson.data.auditEntries).toBeGreaterThanOrEqual(1);
-    expect(systemJson.data.fallbackDecision).toBeTruthy();
+    expect(systemJson.data.activeMandates).toBeGreaterThanOrEqual(0);
+    expect(systemJson.data.domainEvents).toBeGreaterThanOrEqual(1);
+    expect(systemJson.data.queuedAttempts).toBe(0);
+    expect(systemJson.data.workerTasks).toBeGreaterThanOrEqual(2);
+    expect(systemJson.data.queuedDispatchTasks).toBe(0);
+    expect(systemJson.data.queuedReconciliationTasks).toBe(0);
+    expect(systemJson.data.integrity.status).toBe("ok");
+    expect(systemJson.data.integrity.issues).toEqual([]);
+    expect(systemJson.data.blockchain.status).toBe("degraded");
+    expect(systemJson.data.blockchain.network.key).toBe("morph-mainnet");
+    expect(systemJson.data.blockchain.rpcProbeAttempted).toBe(false);
+    expect(
+      systemJson.data.blockchain.contracts.mandateRegistryAddress,
+    ).toBeNull();
+    expect(systemJson.data.blockchain.anchoringReady).toBe(false);
+  });
+
+  it("returns protected operator dashboard data for an authenticated operator", async () => {
+    const response = await getOperatorDashboard(
+      new Request("http://localhost/api/operator/dashboard", {
+        method: "GET",
+        headers: {
+          authorization: "Bearer fixture-token",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json.ok).toBe(true);
+    expect(json.data.operator).toEqual({
+      operatorId: "operator_fixture",
+      role: "operator",
+    });
+    expect(Array.isArray(json.data.dashboard.mandates)).toBe(true);
+    expect(Array.isArray(json.data.dashboard.incidents)).toBe(true);
+    expect(json.data.dashboard.systemStatus).toMatchObject({
+      integrity: {
+        status: "ok",
+      },
+    });
+  });
+
+  it("marks stale execution_unknown attempts as degraded system state", async () => {
+    const data = createTestStoreData();
+    const staleTime = "2000-01-01T00:00:00.000Z";
+
+    data.attempts.unshift({
+      id: "att_stale_unknown",
+      mandateId: "mdt_fixture_001",
+      vendorId: "morph-market-data",
+      amountCents: 900,
+      operatorId: "operator_fixture",
+      status: "execution_unknown",
+      financialOutcome: "execution_unknown",
+      receiptEvidence: "required_pending",
+      blockedReason: null,
+      chargeReference: "charge_stale_1",
+      paymentIdentifier: "pid_stale_unknown",
+      createdAt: staleTime,
+      updatedAt: staleTime,
+    });
+    await resetStoreForTests(data);
+
+    const response = await getSystem(
+      new Request("http://localhost/api/system", {
+        method: "GET",
+        headers: {
+          authorization: "Bearer fixture-token",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json.ok).toBe(true);
+    expect(json.data.status).toBe("degraded");
+    expect(json.data.unknownAttempts).toBeGreaterThanOrEqual(1);
+    expect(json.data.staleUnknownAttempts).toBe(1);
+    expect(json.data.unknownAttemptEscalationMinutes).toBe(15);
   });
 });

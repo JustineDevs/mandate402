@@ -1,3 +1,5 @@
+import { createHmac } from "node:crypto";
+
 import type {
   PaymentAttempt,
   ReceiptEvidenceStatus,
@@ -5,12 +7,13 @@ import type {
 } from "@/lib/domain/types";
 import { nowIso } from "@/lib/infrastructure/clock";
 import {
+  getMorphX402FacilitatorUrl,
   getPrimaryVendorEndpoint,
   getPrimaryVendorStatusEndpoint,
   getVendorStatusToken,
 } from "@/lib/infrastructure/env";
 import { createId } from "@/lib/infrastructure/id";
-import { getPaymentFetch } from "@/lib/infrastructure/x402-client";
+import { getPaymentRuntime } from "@/lib/infrastructure/x402-client";
 
 export type DispatchResult =
   | {
@@ -20,13 +23,15 @@ export type DispatchResult =
     }
   | {
       status: "executed_charge_failed";
-      chargeReference: null;
+      chargeReference: string | null;
       receiptEvidence: ReceiptEvidenceStatus;
     }
   | {
       status: "execution_unknown";
       chargeReference: string | null;
       receiptEvidence: ReceiptEvidenceStatus;
+      paymentPayloadJson: string;
+      paymentRequirementsJson: string;
     };
 
 type DispatchInput = {
@@ -43,7 +48,86 @@ type CorrelationResult = {
     ReceiptEvidenceStatus,
     "not_required" | "required_pending"
   >;
+  finalAmountCents?: number | null;
 };
+
+function buildFacilitatorAuthHeaders(
+  path: string,
+  rawBody: string,
+): Record<string, string> {
+  const accessKey = process.env.MORPH_X402_ACCESS_KEY?.trim();
+  const secretKey = process.env.MORPH_X402_SECRET_KEY?.trim();
+  if (!accessKey || !secretKey) {
+    return {};
+  }
+
+  const timestamp = String(Date.now());
+  const signMap = {
+    "MORPH-ACCESS-KEY": accessKey,
+    "MORPH-ACCESS-TIMESTAMP": timestamp,
+    "MORPH-ACCESS-METHOD": "POST",
+    "MORPH-ACCESS-PATH": path,
+    "MORPH-ACCESS-BODY": JSON.parse(rawBody),
+  };
+  const sign = createHmac("sha256", secretKey)
+    .update(JSON.stringify(signMap))
+    .digest("base64");
+
+  return {
+    "MORPH-ACCESS-KEY": accessKey,
+    "MORPH-ACCESS-TIMESTAMP": timestamp,
+    "MORPH-ACCESS-SIGN": sign,
+  };
+}
+
+async function verifyWithFacilitator(
+  paymentPayloadJson: string,
+  paymentRequirementsJson: string,
+): Promise<CorrelationResult | null> {
+  const accessKey = process.env.MORPH_X402_ACCESS_KEY?.trim();
+  const secretKey = process.env.MORPH_X402_SECRET_KEY?.trim();
+  const baseUrl = getMorphX402FacilitatorUrl();
+  if (!baseUrl || !accessKey || !secretKey) {
+    return null;
+  }
+
+  const verifyUrl = new URL(
+    "verify",
+    `${baseUrl.replace(/\/$/, "")}/`,
+  ).toString();
+  const rawBody = JSON.stringify({
+    paymentPayload: JSON.parse(paymentPayloadJson),
+    paymentRequirements: JSON.parse(paymentRequirementsJson),
+  });
+
+  const response = await fetch(verifyUrl, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      ...buildFacilitatorAuthHeaders(new URL(verifyUrl).pathname, rawBody),
+    },
+    body: rawBody,
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const body = (await response.json()) as {
+    isValid?: boolean;
+    invalidReason?: string;
+  };
+
+  if (body.isValid === false) {
+    return {
+      status: "executed_charge_failed",
+      chargeReference: null,
+      receiptEvidence: "missing_timeout",
+    };
+  }
+
+  return null;
+}
 
 async function postToVendor(
   endpoint: string,
@@ -51,10 +135,16 @@ async function postToVendor(
 ): Promise<DispatchResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8_000);
-  const fetchWithPayment = getPaymentFetch();
+  const { client, httpClient } = getPaymentRuntime();
+  let paymentRequired: ReturnType<
+    typeof httpClient.getPaymentRequiredResponse
+  > | null = null;
+  let paymentPayload: Awaited<
+    ReturnType<typeof client.createPaymentPayload>
+  > | null = null;
 
   try {
-    const response = await fetchWithPayment(endpoint, {
+    const request = new Request(endpoint, {
       method: "POST",
       signal: controller.signal,
       headers: {
@@ -67,7 +157,47 @@ async function postToVendor(
         amountCents,
       }),
     });
+    const firstResponse = await fetch(request.clone());
+    if (firstResponse.status !== 402) {
+      const body = (await firstResponse.json().catch(() => null)) as {
+        chargeReference?: string;
+        receiptEvidence?: ReceiptEvidenceStatus;
+      } | null;
 
+      if (!firstResponse.ok) {
+        return {
+          status: "executed_charge_failed",
+          chargeReference: null,
+          receiptEvidence: body?.receiptEvidence ?? "missing_timeout",
+        };
+      }
+
+      return {
+        status: "executed_charge_succeeded",
+        chargeReference:
+          body?.chargeReference ??
+          `${vendor.id}_${amountCents}_${createId("charge")}`,
+        receiptEvidence: body?.receiptEvidence ?? "required_pending",
+      };
+    }
+
+    paymentRequired = httpClient.getPaymentRequiredResponse((name) =>
+      firstResponse.headers.get(name),
+    );
+    paymentPayload = await client.createPaymentPayload(paymentRequired);
+    const paymentHeaders =
+      httpClient.encodePaymentSignatureHeader(paymentPayload);
+    const secondRequest = request.clone();
+    for (const [key, value] of Object.entries(paymentHeaders)) {
+      secondRequest.headers.set(key, value);
+    }
+
+    const response = await fetch(secondRequest);
+    await httpClient.processPaymentResult(
+      paymentPayload,
+      (name) => response.headers.get(name),
+      response.status,
+    );
     const body = (await response.json().catch(() => null)) as {
       chargeReference?: string;
       receiptEvidence?: ReceiptEvidenceStatus;
@@ -76,7 +206,7 @@ async function postToVendor(
     if (!response.ok) {
       return {
         status: "executed_charge_failed",
-        chargeReference: null,
+        chargeReference: body?.chargeReference ?? null,
         receiptEvidence: body?.receiptEvidence ?? "missing_timeout",
       };
     }
@@ -90,10 +220,22 @@ async function postToVendor(
     };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
+      if (paymentRequired && paymentPayload) {
+        return {
+          status: "execution_unknown",
+          chargeReference: null,
+          receiptEvidence: "required_pending",
+          paymentPayloadJson: JSON.stringify(paymentPayload),
+          paymentRequirementsJson: JSON.stringify(paymentRequired),
+        };
+      }
+      // Timed out before a 402 / signed payload existed — vendor outcome is indeterminate.
       return {
         status: "execution_unknown",
         chargeReference: null,
         receiptEvidence: "required_pending",
+        paymentPayloadJson: "",
+        paymentRequirementsJson: "",
       };
     }
 
@@ -166,7 +308,19 @@ export async function correlateAttemptStatus(input: {
   vendor: Vendor;
   paymentIdentifier: string;
   chargeReference: string | null;
+  paymentPayloadJson?: string | null;
+  paymentRequirementsJson?: string | null;
 }) {
+  if (input.paymentPayloadJson && input.paymentRequirementsJson) {
+    const facilitatorResult = await verifyWithFacilitator(
+      input.paymentPayloadJson,
+      input.paymentRequirementsJson,
+    );
+    if (facilitatorResult) {
+      return facilitatorResult;
+    }
+  }
+
   const endpoint =
     input.vendor.mode === "fallback-only"
       ? undefined

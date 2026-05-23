@@ -59,10 +59,12 @@ describe("dispatchAttempt", () => {
       mandateId: "mdt_2",
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       status: "execution_unknown",
       chargeReference: null,
       receiptEvidence: "required_pending",
+      paymentPayloadJson: "",
+      paymentRequirementsJson: "",
     });
   });
 

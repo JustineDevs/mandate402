@@ -62,6 +62,7 @@ type paymentRecord struct {
 	ChargeReference string `json:"chargeReference"`
 	Status          string `json:"status"`
 	ReceiptEvidence string `json:"receiptEvidence"`
+	FinalAmountCents int    `json:"finalAmountCents"`
 	Resource        string `json:"resource"`
 	CreatedAt       string `json:"createdAt"`
 }
@@ -450,8 +451,16 @@ func main() {
 			ChargeReference: chargeReference,
 			Status:          "executed_charge_succeeded",
 			ReceiptEvidence: "received_valid",
+			FinalAmountCents: 0,
 			Resource:        "market-data",
 			CreatedAt:       time.Now().UTC().Format(time.RFC3339),
+		}
+		record.FinalAmountCents = 0
+		var body struct {
+			AmountCents int `json:"amountCents"`
+		}
+		if err := c.ShouldBindJSON(&body); err == nil && body.AmountCents > 0 {
+			record.FinalAmountCents = body.AmountCents
 		}
 		store.put(paymentIdentifier, record)
 
@@ -479,8 +488,16 @@ func main() {
 			ChargeReference: chargeReference,
 			Status:          "executed_charge_succeeded",
 			ReceiptEvidence: "received_valid",
+			FinalAmountCents: 0,
 			Resource:        "research",
 			CreatedAt:       time.Now().UTC().Format(time.RFC3339),
+		}
+		record.FinalAmountCents = 0
+		var body struct {
+			AmountCents int `json:"amountCents"`
+		}
+		if err := c.ShouldBindJSON(&body); err == nil && body.AmountCents > 0 {
+			record.FinalAmountCents = body.AmountCents
 		}
 		store.put(paymentIdentifier, record)
 

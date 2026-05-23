@@ -4,10 +4,10 @@ This document is for public contributors who want the fastest path into Mandate4
 
 ## Start Here
 
-1. Read [README.md](../README.md)
-2. Read [CONTRIBUTING.md](../CONTRIBUTING.md)
-3. Read [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)
-4. Read [docs/README.md](./README.md)
+1. Read [README.md](../../README.md)
+2. Read [CONTRIBUTING.md](../../CONTRIBUTING.md)
+3. Read [CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md)
+4. Read [docs/README.md](../README.md)
 5. Look for a scoped issue
 6. Confirm the label and lane of that issue
 

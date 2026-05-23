@@ -14,12 +14,12 @@ const env = {
   TMPDIR: tempDir,
 };
 
-const args = ["vitest", "run", ...process.argv.slice(2)];
-const child = spawn("pnpm", args, {
+const vitestEntry = path.join(rootDir, "node_modules", "vitest", "vitest.mjs");
+const args = [vitestEntry, "run", ...process.argv.slice(2)];
+const child = spawn(process.execPath, args, {
   cwd: rootDir,
   env,
   stdio: "inherit",
-  shell: process.platform === "win32",
 });
 
 child.on("exit", (code, signal) => {

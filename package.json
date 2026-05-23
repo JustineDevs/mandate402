@@ -1,6 +1,6 @@
 {
   "name": "mandate402",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "pnpm": {
     "overrides": {
@@ -9,11 +9,12 @@
     }
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "pnpm exec next dev",
+    "dev:webpack": "pnpm exec next dev --webpack",
+    "build": "pnpm exec next build",
     "cloudflare:build": "opennextjs-cloudflare build",
     "cloudflare:dry-run": "pnpm cloudflare:build && env XDG_CONFIG_HOME=.tmp/wrangler-config HOME=.tmp/wrangler-home pnpm exec wrangler deploy --config wrangler.jsonc --dry-run --outdir .tmp/wrangler-cloudflare-dry-run",
-    "start": "next start",
+    "start": "pnpm exec next start",
     "lint": "pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/run-vitest.mjs",
@@ -22,8 +23,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "workers:dry-run": "env XDG_CONFIG_HOME=.tmp/wrangler-config HOME=.tmp/wrangler-home pnpm exec wrangler deploy --config wrangler.worker.toml --dry-run --outdir .tmp/wrangler-dry-run",
-    "format": "biome format --write . --files-ignore-unknown=true",
-    "check:biome": "biome check . --files-ignore-unknown=true",
+    "format": "pnpm exec biome format --write . --files-ignore-unknown=true",
+    "check:biome": "pnpm exec biome check . --files-ignore-unknown=true",
     "check:repo-safety": "node scripts/check-repo-safety.mjs",
     "check:release-readiness": "node scripts/check-release-readiness.mjs",
     "ci:all": "pnpm check:repo-safety && pnpm check:biome && pnpm test && pnpm typecheck && pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts",
@@ -33,16 +34,24 @@
     "prepare": "lefthook install || true"
   },
   "dependencies": {
+    "@base-ui/react": "^1.5.0",
     "@opennextjs/cloudflare": "^1.19.11",
-    "drizzle-orm": "^0.44.5",
     "@supabase/supabase-js": "^2.105.4",
+    "@vercel/analytics": "^2.0.1",
     "@x402/core": "^2.12.0",
     "@x402/evm": "^2.12.0",
     "@x402/fetch": "^2.12.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.44.5",
+    "lucide-react": "^0.468.0",
     "next": "^16.2.6",
     "pg": "^8.20.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "shadcn": "^4.8.0",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
     "viem": "^2.30.0",
     "zod": "^3.24.4"
   },
@@ -56,7 +65,6 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^11.0.1",
     "@semantic-release/release-notes-generator": "^14.1.0",
-    "drizzle-kit": "^0.31.5",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^22.15.21",
     "@types/pg": "^8.20.0",
@@ -65,12 +73,13 @@
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "autoprefixer": "^10.5.0",
+    "drizzle-kit": "^0.31.5",
     "eslint": "^9.26.0",
     "lefthook": "^1.7.21",
     "postcss": "^8.5.14",
     "semantic-release": "^24.2.7",
     "tailwindcss": "^4.3.0",
-    "typescript": "^5.8.3",
+    "typescript": "5.9.3",
     "vitest": "^3.1.3"
   }
 }

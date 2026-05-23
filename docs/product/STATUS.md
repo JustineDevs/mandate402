@@ -46,9 +46,9 @@ It proves the control model first:
 
 ## Current Team/Process State
 
-- Justine scope authority is defined in [ADR-0001](./adr/ADR-0001-justine-scope-documents.md)
-- Sherwin's wireframe task is defined in [ADR-0002](./adr/ADR-0002-sherwin-ui-wireframe-task.md)
-- John's transactional implementation boundary is defined in [ADR-0003](./adr/ADR-0003-john-frontend-implementation-task.md)
+- Justine scope authority is defined in [ADR-0001](../adr/ADR-0001-justine-scope-documents.md)
+- Sherwin's wireframe task is defined in [ADR-0002](../adr/ADR-0002-sherwin-ui-wireframe-task.md)
+- John's transactional implementation boundary is defined in [ADR-0003](../adr/ADR-0003-john-frontend-implementation-task.md)
 - The frontend is split into transactional UI and observability/presentation UI lanes.
 
 ## Current Documentation State

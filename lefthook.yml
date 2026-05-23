@@ -10,7 +10,7 @@ pre-commit:
     test:
       run: pnpm test
     contracts:
-      run: cd contracts && FOUNDRY_CACHE_PATH=cache FOUNDRY_OUT=out /root/.foundry/bin/forge test
+      run: node scripts/precommit-contracts.mjs
     go:
       run: GOCACHE=$(pwd)/.tmp/go-build-cache GOTMPDIR=$(pwd)/.tmp/go-tmp go test ./...
 

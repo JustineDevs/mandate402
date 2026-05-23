@@ -33,6 +33,18 @@ export type WorkerProcessSummary = {
   requeued: number;
 };
 
+type ExecutionStepResult =
+  | { kind: "idle" }
+  | { kind: "completed"; attempt: PaymentAttempt }
+  | { kind: "unresolved"; attempt: PaymentAttempt }
+  | { kind: "failed"; attempt: PaymentAttempt };
+
+type ReconciliationStepResult =
+  | { kind: "idle" }
+  | { kind: "completed"; attempt: PaymentAttempt }
+  | { kind: "requeued" }
+  | { kind: "failed" };
+
 type DispatchResult =
   | {
       status: "executed_charge_succeeded";
@@ -41,13 +53,15 @@ type DispatchResult =
     }
   | {
       status: "executed_charge_failed";
-      chargeReference: null;
+      chargeReference: string | null;
       receiptEvidence: ReceiptEvidenceStatus;
     }
   | {
       status: "execution_unknown";
       chargeReference: string | null;
       receiptEvidence: ReceiptEvidenceStatus;
+      paymentPayloadJson: string;
+      paymentRequirementsJson: string;
     };
 
 function makeAudit(
@@ -357,6 +371,14 @@ async function applyDispatchResult(
           metadata: {
             paymentIdentifier: attempt.paymentIdentifier,
             workerTaskId: reconcileTask.id,
+            paymentPayloadJson:
+              "paymentPayloadJson" in result
+                ? (result.paymentPayloadJson as string)
+                : null,
+            paymentRequirementsJson:
+              "paymentRequirementsJson" in result
+                ? (result.paymentRequirementsJson as string)
+                : null,
           },
         }),
       );
@@ -435,6 +457,7 @@ async function releaseDispatchTask(
   taskId: string,
   claimed: { attemptId: string; mandateId: string; amountCents: number },
   error: Error,
+  blockedReason = "execution_worker_failed",
 ): Promise<PaymentAttempt> {
   const attempt = await withStoreLock(async (data) => {
     const mandate = data.mandates.find(
@@ -455,7 +478,7 @@ async function releaseDispatchTask(
     attempt.status = "cancelled_released";
     attempt.financialOutcome = "cancelled_released";
     attempt.receiptEvidence = "not_required";
-    attempt.blockedReason = "execution_worker_failed";
+    attempt.blockedReason = blockedReason;
     attempt.updatedAt = nowIso();
     mandate.reservedCents = Math.max(
       0,
@@ -490,6 +513,64 @@ async function releaseDispatchTask(
   return attempt;
 }
 
+async function getDispatchPreflightFailure(claimed: {
+  attemptId: string;
+  mandateId: string;
+}) {
+  return withStoreLock(async (data) => {
+    const mandate = data.mandates.find(
+      (entry) => entry.id === claimed.mandateId,
+    );
+    const attempt = data.attempts.find(
+      (entry) => entry.id === claimed.attemptId,
+    );
+
+    if (!mandate || !attempt) {
+      throw new InvalidStateError(
+        "Claimed execution attempt no longer exists.",
+        "claimed_attempt_missing",
+      );
+    }
+
+    if (
+      Date.parse(mandate.expiresAt) <= Date.now() ||
+      mandate.status === "expired"
+    ) {
+      return {
+        error: new Error("Mandate expired before vendor dispatch."),
+        blockedReason: "mandate_expired_before_dispatch",
+      };
+    }
+
+    if (mandate.status === "revoking" || mandate.status === "revoked") {
+      return {
+        error: new Error("Mandate was revoked before vendor dispatch."),
+        blockedReason: "mandate_revoked_before_dispatch",
+      };
+    }
+
+    if (mandate.status !== "issued_reserved") {
+      return {
+        error: new Error(
+          `Mandate is not dispatchable from state ${mandate.status}.`,
+        ),
+        blockedReason: "mandate_not_dispatchable",
+      };
+    }
+
+    if (attempt.status !== "dispatching") {
+      return {
+        error: new Error(
+          `Attempt is not dispatchable from state ${attempt.status}.`,
+        ),
+        blockedReason: "attempt_not_dispatchable",
+      };
+    }
+
+    return null;
+  });
+}
+
 async function applyReconciliationResult(
   taskId: string,
   claimed: { attemptId: string; mandateId: string; amountCents: number },
@@ -500,6 +581,7 @@ async function applyReconciliationResult(
       ReceiptEvidenceStatus,
       "not_required" | "required_pending"
     >;
+    finalAmountCents?: number | null;
   },
 ): Promise<PaymentAttempt> {
   const attempt = await withStoreLock(async (data) => {
@@ -531,8 +613,15 @@ async function applyReconciliationResult(
     attempt.chargeReference = result.chargeReference ?? attempt.chargeReference;
     attempt.updatedAt = nowIso();
 
+    const finalAmountCents =
+      typeof result.finalAmountCents === "number" &&
+      Number.isInteger(result.finalAmountCents) &&
+      result.finalAmountCents >= 0
+        ? result.finalAmountCents
+        : claimed.amountCents;
+
     if (result.status === "executed_charge_succeeded") {
-      mandate.consumedCents += claimed.amountCents;
+      mandate.consumedCents += finalAmountCents;
     }
 
     mandate.reservedCents = Math.max(
@@ -575,6 +664,7 @@ async function applyReconciliationResult(
         eventType: "financial_outcome",
         metadata: {
           financialOutcome: result.status,
+          finalAmountCents,
         },
       }),
     );
@@ -593,6 +683,7 @@ async function applyReconciliationResult(
         eventType: "attempt_reconciled",
         metadata: {
           financialOutcome: result.status,
+          finalAmountCents,
         },
       }),
     );
@@ -609,10 +700,10 @@ async function applyReconciliationResult(
 
 export async function processNextQueuedAttempt(
   workerName = "execution-worker",
-) {
+): Promise<ExecutionStepResult> {
   const claimed = await leaseNextWorkerTask("dispatch_attempt", workerName);
   if (!claimed) {
-    return null;
+    return { kind: "idle" };
   }
 
   await withStoreLock(async (data) => {
@@ -654,13 +745,27 @@ export async function processNextQueuedAttempt(
     return structuredClone(attempt);
   });
 
+  const preflightFailure = await getDispatchPreflightFailure(claimed);
+  if (preflightFailure) {
+    return {
+      kind: "failed",
+      attempt: await releaseDispatchTask(
+        claimed.taskId,
+        claimed,
+        preflightFailure.error,
+        preflightFailure.blockedReason,
+      ),
+    };
+  }
+
   const vendor = vendorRegistry.find((entry) => entry.id === claimed.vendorId);
   if (!vendor) {
-    return releaseDispatchTask(
+    const attempt = await releaseDispatchTask(
       claimed.taskId,
       claimed,
       new Error(`Vendor ${claimed.vendorId} is not registered.`),
     );
+    return { kind: "failed", attempt };
   }
 
   try {
@@ -671,15 +776,20 @@ export async function processNextQueuedAttempt(
       mandateId: claimed.mandateId,
     });
 
-    return applyDispatchResult(claimed.taskId, claimed, result);
+    const attempt = await applyDispatchResult(claimed.taskId, claimed, result);
+    return {
+      kind: attempt.status === "execution_unknown" ? "unresolved" : "completed",
+      attempt,
+    };
   } catch (error) {
-    return releaseDispatchTask(
+    const attempt = await releaseDispatchTask(
       claimed.taskId,
       claimed,
       error instanceof Error
         ? error
         : new Error("Unknown execution worker failure."),
     );
+    return { kind: "failed", attempt };
   }
 }
 
@@ -728,18 +838,22 @@ export async function processExecutionQueue(
   const requeued = 0;
 
   while (processed < limit) {
-    const attempt = await processNextQueuedAttempt(workerName);
-    if (!attempt) {
+    const result = await processNextQueuedAttempt(workerName);
+    if (result.kind === "idle") {
       break;
     }
 
     processed += 1;
-    if (attempt.status === "execution_unknown") {
-      unresolved += 1;
-    } else if (attempt.status === "cancelled_released") {
-      failed += 1;
-    } else {
-      completed += 1;
+    switch (result.kind) {
+      case "unresolved":
+        unresolved += 1;
+        break;
+      case "failed":
+        failed += 1;
+        break;
+      case "completed":
+        completed += 1;
+        break;
     }
   }
 
@@ -754,10 +868,10 @@ export async function processExecutionQueue(
 
 export async function processNextReconciliation(
   workerName = "reconciliation-worker",
-) {
+): Promise<ReconciliationStepResult> {
   const claimed = await leaseNextWorkerTask("reconcile_attempt", workerName);
   if (!claimed) {
-    return null;
+    return { kind: "idle" };
   }
 
   const attempt = await withStoreLock(async (data) => {
@@ -773,13 +887,33 @@ export async function processNextReconciliation(
     return structuredClone(attempt);
   });
 
+  const paymentArtifacts = await withStoreLock(async (data) => {
+    const event = data.domainEvents.find(
+      (entry) =>
+        entry.entityType === "payment_attempt" &&
+        entry.entityId === claimed.attemptId &&
+        entry.eventType === "attempt_reconciliation_started",
+    );
+
+    return {
+      paymentPayloadJson:
+        typeof event?.metadata.paymentPayloadJson === "string"
+          ? event.metadata.paymentPayloadJson
+          : null,
+      paymentRequirementsJson:
+        typeof event?.metadata.paymentRequirementsJson === "string"
+          ? event.metadata.paymentRequirementsJson
+          : null,
+    };
+  });
+
   const vendor = vendorRegistry.find((entry) => entry.id === claimed.vendorId);
   if (!vendor) {
     await failWorkerTask(
       claimed.taskId,
       new Error(`Vendor ${claimed.vendorId} is not registered.`),
     );
-    return null;
+    return { kind: "failed" };
   }
 
   try {
@@ -787,8 +921,15 @@ export async function processNextReconciliation(
       vendor,
       paymentIdentifier: claimed.paymentIdentifier,
       chargeReference: attempt.chargeReference,
+      paymentPayloadJson: paymentArtifacts.paymentPayloadJson,
+      paymentRequirementsJson: paymentArtifacts.paymentRequirementsJson,
     });
-    return applyReconciliationResult(claimed.taskId, claimed, result);
+    const resolvedAttempt = await applyReconciliationResult(
+      claimed.taskId,
+      claimed,
+      result,
+    );
+    return { kind: "completed", attempt: resolvedAttempt };
   } catch (error) {
     const workerError =
       error instanceof Error
@@ -800,10 +941,10 @@ export async function processNextReconciliation(
         workerError,
         RECONCILIATION_RETRY_DELAY_MS,
       );
-      return null;
+      return { kind: "requeued" };
     }
     await failWorkerTask(claimed.taskId, workerError);
-    return null;
+    return { kind: "failed" };
   }
 }
 
@@ -818,39 +959,25 @@ export async function processReconciliationQueue(
   let requeued = 0;
 
   while (processed < limit) {
-    const before = await withStoreLock(async (data) => {
-      return data.workerTasks.filter(
-        (task) => task.kind === "reconcile_attempt" && task.status === "queued",
-      ).length;
-    });
-    const attempt = await processNextReconciliation(workerName);
-    const after = await withStoreLock(async (data) => {
-      return data.workerTasks.filter(
-        (task) => task.kind === "reconcile_attempt" && task.status === "queued",
-      ).length;
-    });
-    if (!attempt && before === 0) {
+    const result = await processNextReconciliation(workerName);
+    if (result.kind === "idle") {
       break;
     }
-    if (!attempt && before > after) {
-      failed += 1;
-      processed += 1;
-      continue;
-    }
-    if (!attempt && before === after) {
-      requeued += 1;
-      processed += 1;
-      continue;
-    }
+
     processed += 1;
-    if (!attempt) {
-      failed += 1;
-      continue;
-    }
-    if (attempt.status === "execution_unknown") {
-      unresolved += 1;
-    } else {
-      completed += 1;
+    switch (result.kind) {
+      case "completed":
+        completed += 1;
+        if (result.attempt.status === "execution_unknown") {
+          unresolved += 1;
+        }
+        break;
+      case "requeued":
+        requeued += 1;
+        break;
+      case "failed":
+        failed += 1;
+        break;
     }
   }
 

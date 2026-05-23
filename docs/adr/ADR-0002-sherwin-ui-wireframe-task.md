@@ -29,11 +29,16 @@ Sherwin's current UI/UX task will be documented in this ADR as the official wire
 
 Sherwin is responsible for producing the wireframe and interaction-intent package for the following surfaces:
 
-1. main dashboard
-2. create mandate screen
-3. mandate detail page
-4. agent view
-5. mobile-friendly simplified layout
+1. landing page / hero split layout
+2. main dashboard
+3. create mandate screen
+4. mandate detail page
+5. agent view
+6. mobile-friendly simplified layout
+7. policies page
+8. settings and system-health page
+9. vendors and receipts / audit pages
+10. modal, drawer, and popover interaction set for mandate actions and status explanation
 
 The task is to turn these product surfaces into a coherent, high-trust control-plane design that John can implement without having to invent layout logic or visual hierarchy from scratch.
 
@@ -46,6 +51,10 @@ Sherwin's expected output includes:
 - component state intent where relevant
 - visual hierarchy and spacing guidance
 - button, table, card, and status treatment guidance
+- split-layout guidance for landing and sign-in / operator-entry surfaces
+- hero-column ratio, gutter, whitespace, and alternating-block rules
+- modal, drawer, and popover anatomy for destructive and editable flows
+- explicit empty, loading, blocked, unauthorized, and degraded-state treatment
 - notes for any interaction behavior that is not obvious from static layouts
 
 The output must be implementable by John and Edward with minimal reinterpretation inside their separate lanes.
@@ -61,7 +70,47 @@ Rules for use:
 - keep John's transactional implementation aligned to these structures unless Justine approves a scope change
 - if Sherwin improves the presentation, the underlying layout intent should still map back to these blocks
 
-### 1. Main Dashboard
+### 1. Landing Page / Hero Split Layout
+
+```text
++--------------------------------------------------------------------------------------------------+
+| +-------------------------------------------+ +------------------------------------------------+ |
+| | Left Column                               | | Right Column                                   | |
+| |-------------------------------------------| |------------------------------------------------| |
+| | Operator Access                           | | [ Mandate402 Logo ]                            | |
+| | +--------------------------------------+  | |                                                | |
+| | | Sign in / access component           |  | | Treasury Command for x402 Agentic Commerce   | |
+| | |--------------------------------------|  | |                                                | |
+| | | Email / Operator ID                  |  | | Let AI spend money safely on Morph with       | |
+| | | Password / Wallet / Session action   |  | | governed mandates, explicit treasury policy,  | |
+| | | Sign In CTA                          |  | | and operator-visible auditability.            | |
+| | +--------------------------------------+  | |                                                | |
+| |                                           | | [Issue Mandate] [Review Audit Trail]           | |
+| | Platform Assurance                        | |                                                | |
+| | - Operator oversight enabled              | | Ecosystem / Partnerships                       | |
+| | - Chain-backed control path               | | [Morph] [x402] [Pyth] [Partner / Vendor Slot] | |
+| | - Policy and audit enforcement            | |                                                | |
+| +-------------------------------------------+ +------------------------------------------------+ |
++--------------------------------------------------------------------------------------------------+
+| Alternating Blocks Below                                                                        |
+| [Text: policy / revoke / control value]      [Visual: dashboard / attempt flow / receipt view]  |
+| [Visual: worker / queue / chain panel]       [Text: ecosystem fit / trust / auditability]       |
++--------------------------------------------------------------------------------------------------+
+```
+
+Landing-page layout rules:
+
+- use a landscape two-column split for the hero
+- default to an asymmetric `60 / 40` or `70 / 30` split
+- keep the right column as the value-proposition / logo / CTA column
+- keep the left column as the access / auth / operator-entry experience column
+- maintain a generous gutter between columns, typically `16px` to `32px`
+- use visible whitespace and large padding so the split does not feel crowded
+- keep primary CTA buttons high-contrast and colocated with the core value proposition
+- below the hero, use alternating text / visual blocks to avoid monotony and maintain scan flow
+- the landing page should still feel like a treasury control platform, not a generic startup marketing page
+
+### 2. Main Dashboard
 
 ```text
 +--------------------------------------------------------------------------------------------------+
@@ -91,7 +140,7 @@ Rules for use:
 +----------------------+--------------------------------------------------------------------------+
 ```
 
-### 2. Create Mandate Screen
+### 3. Create Mandate Screen
 
 ```text
 +--------------------------------------------------------------------------------------------------+
@@ -127,7 +176,7 @@ Rules for use:
 +--------------------------------------------------------------------------------------------------+
 ```
 
-### 3. Mandate Detail Page
+### 4. Mandate Detail Page
 
 ```text
 +--------------------------------------------------------------------------------------------------+
@@ -153,7 +202,7 @@ Rules for use:
 +--------------------------------------------------------------------------------------------------+
 ```
 
-### 4. Agent View
+### 5. Agent View
 
 ```text
 +--------------------------------------------------------------------------------------------------+
@@ -174,7 +223,7 @@ Rules for use:
 +--------------------------------------------------------------------------------------------------+
 ```
 
-### 5. Mobile-Friendly Simplified Layout
+### 6. Mobile-Friendly Simplified Layout
 
 ```text
 +--------------------------------------+
@@ -192,6 +241,158 @@ Rules for use:
 | [Create Mandate]                     |
 +--------------------------------------+
 ```
+
+### 7. Policies Page
+
+```text
++--------------------------------------------------------------------------------------------------+
+| Policies                                                                   [Create Rule] [Export] |
++--------------------------------------------------------------------------------------------------+
+| Sidebar              | Policy Registry                                                           |
+|----------------------|---------------------------------------------------------------------------|
+| Dashboard            | +------------------------------+ +-------------------------------------+ |
+| Mandates             | | Active Policy Families       | | Runtime Readiness                  | |
+| Agents               | | 6                            | | Treasury: Ready                    | |
+| Vendors              | | Review Required: 2           | | Workers: Healthy                  | |
+| Transactions         | +------------------------------+ | Chain Guard: Degraded              | |
+| Policies             |                                  +-------------------------------------+ |
+| Receipts             |                                                                           |
+| Settings             | +----------------------------------------------------------------------------------+ |
+|                      | | Rule List                                                                         | |
+|                      | |----------------------------------------------------------------------------------| |
+|                      | | Treasury velocity window      Active      USD / 10m        [View] [Edit]        | |
+|                      | | Facilitator allowlist         Active      3 allowed         [View] [Edit]        | |
+|                      | | Receipt required              Active      high-trust APIs   [View] [Edit]        | |
+|                      | | High-value manual review      Draft       > $20             [View] [Edit]        | |
+|                      | +----------------------------------------------------------------------------------+ |
+|                      |                                                                                     |
+|                      | +----------------------------------------------------+                              |
+|                      | | Rule Detail / Explanation                           |                              |
+|                      | |----------------------------------------------------|                              |
+|                      | | Scope: all active mandates                          |                              |
+|                      | | Trigger: if facilitator not allowlisted             |                              |
+|                      | | Effect: block before dispatch                       |                              |
+|                      | | Visibility: operator banner + audit entry           |                              |
+|                      | +----------------------------------------------------+                              |
++----------------------+---------------------------------------------------------------------------+
+```
+
+### 8. Settings and System Health Page
+
+```text
++--------------------------------------------------------------------------------------------------+
+| Settings & System Health                                                         [Refresh]       |
++--------------------------------------------------------------------------------------------------+
+| Sidebar              | Runtime Configuration                                                   |
+|----------------------|---------------------------------------------------------------------------|
+| Dashboard            | +----------------------------------+ +---------------------------------+ |
+| Mandates             | | Auth & Access                    | | Chain & Treasury                | |
+| Agents               | | Supabase: Connected              | | Morph RPC: Reachable            | |
+| Vendors              | | Operator roles: 3                | | Registry: Configured           | |
+| Transactions         | | Worker token: Present            | | Treasury: Prepared             | |
+| Policies             | +----------------------------------+ | Pyth feeds: Partial            | |
+| Receipts             |                                      +---------------------------------+ |
+| Settings             |                                                                           |
+|                      | +----------------------------------+ +---------------------------------+ |
+|                      | | Persistence                      | | Worker Runtime                  | |
+|                      | | Mode: Postgres                   | | Dispatch queue: 2              | |
+|                      | | Pooler URL: Present              | | Reconcile queue: 1             | |
+|                      | | Direct URL: Present              | | Leased tasks: 0                | |
+|                      | +----------------------------------+ +---------------------------------+ |
+|                      |                                                                           |
+|                      | +----------------------------------------------------------------------------------+ |
+|                      | | Configuration Warnings                                                            | |
+|                      | |----------------------------------------------------------------------------------| |
+|                      | | - Treasury settlement token decimals missing                                      | |
+|                      | | - One agent mapping not yet configured                                            | |
+|                      | +----------------------------------------------------------------------------------+ |
++----------------------+---------------------------------------------------------------------------+
+```
+
+### 9. Vendors and Receipts / Audit Pages
+
+```text
++--------------------------------------------------------------------------------------------------+
+| Vendors                                                                     [Filter] [Export]    |
++--------------------------------------------------------------------------------------------------+
+| Registry Summary                                                                                 |
+| +--------------------------------+ +--------------------------------+ +------------------------+ |
+| | Approved primary vendors       | | Vendor health                  | | Receipt capability     | |
+| | 2                              | | 1 reachable / 1 degraded       | | 2 required-ready       | |
+| +--------------------------------+ +--------------------------------+ +------------------------+ |
+|                                                                                                  |
+| +----------------------------------------------------------------------------------------------+ |
+| | Vendor Name           Mode        Status      Receipt     Endpoint                Actions     | |
+| |----------------------------------------------------------------------------------------------| |
+| | Morph Market Data     Primary     Reachable   Yes         vendor-a.example        [View]      | |
+| | Morph Research Net    Primary     Slow        Yes         vendor-b.example        [View]      | |
+| +----------------------------------------------------------------------------------------------+ |
++--------------------------------------------------------------------------------------------------+
+| Receipts & Audit                                                               [CSV] [PDF]      |
++--------------------------------------------------------------------------------------------------+
+| +--------------------------------------------+ +----------------------------------------------+ |
+| | Receipt List                               | | Audit Timeline                               | |
+| |--------------------------------------------| |----------------------------------------------| |
+| | #1842   OpenAI API    Success    [Open]    | | 10:42  Attempt queued                        | |
+| | #1843   Tavily        Success    [Open]    | | 10:43  Worker dispatch claimed               | |
+| | #1844   Vendor X      Blocked    [Open]    | | 10:44  Treasury approved                     | |
+| +--------------------------------------------+ | 10:45  Receipt validated                     | |
+|                                                +----------------------------------------------+ |
++--------------------------------------------------------------------------------------------------+
+```
+
+### 10. Modal, Drawer, and Popover Interaction Set
+
+```text
++--------------------------------------------------------------+
+| Revoke Mandate                                               |
+|--------------------------------------------------------------|
+| This action immediately removes spend authority from the     |
+| selected mandate and records a revoke event on Morph.        |
+|                                                              |
+| Mandate: Procurement - Market Research                       |
+| Agent: Agent Alpha                                           |
+| Impact: queued and future attempts are blocked               |
+|                                                              |
+| Reason [ Optional note for audit trail                    ]  |
+|                                                              |
+|                         [Cancel] [Revoke Mandate]            |
++--------------------------------------------------------------+
+
++--------------------------------------------------------------------------+
+| Edit Mandate                                                             |
+|--------------------------------------------------------------------------|
+| [Drawer from right]                                                      |
+| Name                 [ Procurement - Market Research                  ]  |
+| Approved Vendors     [ OpenAI API ] [ Tavily ] [ Perplexity API ]       |
+| Max Spend            [ $50.00 ]                                          |
+| Expiry               [ 2026-05-20 ] [ 23:59 UTC ]                        |
+|                                                                          |
+|                                               [Close] [Save Changes]     |
++--------------------------------------------------------------------------+
+
++---------------------------------------------+
+| Policy Blocked                              |
+|---------------------------------------------|
+| Vendor X is not allowlisted for this        |
+| mandate. No treasury value left the system. |
+|                                             |
+| Rule: facilitator_not_allowlisted           |
+| Audit: evt_12345                            |
+|                                             |
+|                          [Dismiss] [View]   |
++---------------------------------------------+
+```
+
+Required interaction patterns in this set:
+
+- destructive confirmation modal for revoke
+- editable side drawer or modal for mandate changes
+- blocked-reason popover
+- degraded-runtime popover
+- export options popover
+- receipt preview modal or drawer
+- worker-task detail popover for queued, leased, and failed states
 
 ## Visual Direction Constraints
 
@@ -312,6 +513,16 @@ Sherwin is designing wireframes, not backend logic, but the wireframes must refl
 
 The wireframes should help John and Edward preserve those product truths during implementation.
 
+The wireframes must also make these operational truths explicit:
+
+- policy detail is inspectable, not hidden behind one summary card
+- runtime degradation is visible and explainable
+- worker-queued and worker-owned states are distinguishable from final outcomes
+- destructive mandate actions require explicit confirmation
+- edit and export actions have a defined interaction container, not an implied future implementation
+- the landing hero communicates value, trust, and operator-entry flow without collapsing into a generic login screen
+- the landing hero split makes the CTA and ecosystem signals immediately visible in the value-proposition column
+
 ## Explicit Non-Goals
 
 This task does not authorize Sherwin to redefine:
@@ -332,6 +543,8 @@ Sherwin's handoff package should include:
 - notes on spacing and hierarchy
 - responsive/mobile notes
 - state notes for badges, buttons, and status treatments
+- modal, drawer, and popover behavior notes
+- explicit treatment for loading, empty, blocked, unauthorized, and degraded states
 - any interaction notes that affect implementation
 
 Frontend implementation responsibility begins after that handoff:
@@ -350,6 +563,9 @@ This ADR is satisfied when:
 3. John and Edward can implement from the package without inventing missing layout structure
 4. desktop and mobile intent are both covered
 5. the design remains consistent with Mandate402's high-trust treasury-control identity
+6. operational pages for policies, settings/system health, vendors, and receipts/audit are covered
+7. edit, revoke, blocked-state, and degraded-runtime interaction containers are covered
+8. the landing page includes the required landscape two-column hero with right-side logo / CTA / tagline / ecosystem treatment and left-side auth-entry experience
 
 ## Consequences
 

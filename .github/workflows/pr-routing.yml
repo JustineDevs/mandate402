@@ -59,7 +59,7 @@ jobs:
               });
             }
 
-            await github.rest.issues.setAssignees({
+            await github.rest.issues.addAssignees({
               owner,
               repo,
               issue_number: pull_number,

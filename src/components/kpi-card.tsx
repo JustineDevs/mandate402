@@ -1,59 +1,76 @@
 "use client";
 
-import type React from "react";
 import type { KpiData } from "@/lib/types";
+import type React from "react";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface KpiCardProps extends KpiData {
   isLoading?: boolean;
 }
 
 /**
- * KpiCard Component
- * Reusable KPI box for dashboard metrics.
- * Prepared for backend data hydration and loading states.
+ * KPI metric tile for the operator dashboard.
  */
-export const KpiCard: React.FC<KpiCardProps> = ({ 
-  title, 
-  value, 
-  delta, 
-  isPositive, 
-  subtext, 
+export const KpiCard: React.FC<KpiCardProps> = ({
+  title,
+  value,
+  delta,
+  isPositive,
+  subtext,
   tooltipText,
-  isLoading 
+  isLoading,
 }) => {
   if (isLoading) {
     return (
-      <div className="bg-white p-6 border border-[#E4ECE9] border-dashed rounded-lg shadow-sm animate-pulse">
-        <div className="h-4 bg-gray-100 rounded w-1/2 mb-4" />
-        <div className="h-8 bg-gray-100 rounded w-3/4 mb-2" />
-        <div className="h-3 bg-gray-100 rounded w-1/2" />
+      <div className="animate-pulse rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+        <div className="mb-4 h-4 w-1/2 rounded bg-surface-soft" />
+        <div className="mb-2 h-8 w-3/4 rounded bg-surface-soft" />
+        <div className="h-3 w-1/2 rounded bg-surface-soft" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-6 border border-[#E4ECE9] border-dashed rounded-lg shadow-sm" aria-label={`${title} metric`}>
-      <div className="flex justify-between items-start mb-2">
-        <span className="text-[#475569] text-sm font-medium flex items-center gap-1">
-          {title} 
-          {tooltipText && (
-            <span 
-              className="opacity-60 text-[10px] cursor-help" 
-              title={tooltipText}
-              aria-label="More information"
-            >
-              (i)
-            </span>
-          )}
+    <div
+      className="spotlight-surface rounded-lg border border-hairline bg-canvas p-6 shadow-sm"
+      aria-label={`${title} metric`}
+    >
+      <div className="mb-2 flex items-start justify-between">
+        <span className="flex items-center gap-1 text-sm font-medium text-slate">
+          {title}
+          {tooltipText ? (
+            <Tooltip>
+              <TooltipTrigger
+                type="button"
+                className="inline-flex size-5 items-center justify-center rounded-full border border-transparent text-[10px] text-steel opacity-70 transition-opacity hover:opacity-100"
+                aria-label="Metric details"
+              >
+                (i)
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-left">
+                {tooltipText}
+              </TooltipContent>
+            </Tooltip>
+          ) : null}
         </span>
       </div>
-      <div className="flex items-baseline gap-3 mb-1">
-        <span className="text-3xl font-bold text-[#1F2937]">{value}</span>
-        <span className={`text-sm font-bold flex items-center ${isPositive ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
-          {delta}% <span className="text-[10px] ml-1">{isPositive ? '▲' : '▼'}</span>
+      <div className="mb-1 flex items-baseline gap-3">
+        <span className="text-3xl font-bold text-charcoal">{value}</span>
+        <span
+          className={`flex items-center text-sm font-bold ${isPositive ? "text-mandate-green" : "text-semantic-blocked-text"}`}
+        >
+          {delta}%{" "}
+          <span className="ml-1 text-[10px]" aria-hidden="true">
+            {isPositive ? "▲" : "▼"}
+          </span>
         </span>
       </div>
-      <p className="text-[#666666] text-xs opacity-70 truncate">{subtext}</p>
+      <p className="truncate text-xs text-steel">{subtext}</p>
     </div>
   );
 };

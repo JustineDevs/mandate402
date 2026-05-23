@@ -31,3 +31,9 @@ contracts/broadcast
 !.dev.vars.example
 
 !.env.example
+
+# Cursor hook machine state (may contain local absolute paths)
+.cursor/hooks/state/
+
+# Windows: accidental `> nul` in Git Bash creates a real file named `nul` and breaks Turbopack.
+/nul
