@@ -1,4 +1,4 @@
-<p align="center"><img src="./Mandate402_logo.png" alt="Mandate402 logo" width="180" /></p>
+<p align="center"><img src="./mandate402_header.png" alt="Mandate402 header" width="100%" /></p>
 
 # Mandate402 Brand Kit
 
