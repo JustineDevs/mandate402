@@ -3,11 +3,23 @@ main = "src/workers/mandate402.ts"
 compatibility_date = "2025-05-21"
 compatibility_flags = ["nodejs_compat"]
 
+[observability]
+enabled = true
+
 [vars]
 MANDATE402_CONTROL_API_URL = "https://your-app.example.com"
 
 [triggers]
 crons = ["*/5 * * * *"]
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS_ENGINE"
+dataset = "analytics_event"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "44968c7208a44ae8aae5acabb04c6c11"
+preview_id = "<ID_OF_PREVIEW_KV_NAMESPACE_FOR_LOCAL_DEVELOPMENT>"
 
 [[queues.producers]]
 binding = "EXECUTION_QUEUE"
