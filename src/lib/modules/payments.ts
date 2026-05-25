@@ -43,7 +43,7 @@ type DispatchInput = {
   mandateId: string;
 };
 
-type CorrelationResult = {
+export type CorrelationResult = {
   status: "executed_charge_succeeded" | "executed_charge_failed";
   chargeReference: string | null;
   receiptEvidence: Exclude<
@@ -52,6 +52,11 @@ type CorrelationResult = {
   >;
   finalAmountCents?: number | null;
 };
+
+type FacilitatorVerificationResult =
+  | { kind: "unavailable" }
+  | { kind: "invalid" }
+  | { kind: "valid" };
 
 const VENDOR_REQUEST_TIMEOUT_MS = 8_000;
 
@@ -122,12 +127,12 @@ function buildFacilitatorAuthHeaders(
 async function verifyWithFacilitator(
   paymentPayloadJson: string,
   paymentRequirementsJson: string,
-): Promise<CorrelationResult | null> {
+): Promise<FacilitatorVerificationResult> {
   const accessKey = process.env.MORPH_X402_ACCESS_KEY?.trim();
   const secretKey = process.env.MORPH_X402_SECRET_KEY?.trim();
   const baseUrl = getMorphX402FacilitatorUrl();
   if (!baseUrl || !accessKey || !secretKey) {
-    return null;
+    return { kind: "unavailable" };
   }
 
   const verifyUrl = new URL(
@@ -149,7 +154,7 @@ async function verifyWithFacilitator(
   });
 
   if (!response.ok) {
-    return null;
+    return { kind: "unavailable" };
   }
 
   const body = (await response.json()) as {
@@ -158,14 +163,14 @@ async function verifyWithFacilitator(
   };
 
   if (body.isValid === false) {
-    return {
-      status: "executed_charge_failed",
-      chargeReference: null,
-      receiptEvidence: "missing_timeout",
-    };
+    return { kind: "invalid" };
   }
 
-  return null;
+  if (body.isValid === true) {
+    return { kind: "valid" };
+  }
+
+  return { kind: "unavailable" };
 }
 
 async function postToVendor(
@@ -333,8 +338,45 @@ async function readVendorStatus(
     throw new Error(`Status correlation failed with ${response.status}.`);
   }
 
-  const body = (await response.json()) as CorrelationResult;
-  return body;
+  const body = (await response.json()) as {
+    status: "executed_charge_succeeded" | "executed_charge_failed";
+    chargeReference: string | null;
+    receiptEvidence: ReceiptEvidenceStatus;
+    finalAmountCents?: number | null;
+  };
+
+  if (body.receiptEvidence === "required_pending") {
+    throw new Error(
+      "Vendor status correlation is still pending receipt evidence.",
+    );
+  }
+
+  if (
+    body.status !== "executed_charge_succeeded" &&
+    body.status !== "executed_charge_failed"
+  ) {
+    throw new Error(
+      "Vendor status correlation returned an unexpected payload.",
+    );
+  }
+
+  if (body.receiptEvidence === "not_required") {
+    throw new Error(
+      "Vendor status correlation returned an unexpected payload.",
+    );
+  }
+
+  const normalized: CorrelationResult = {
+    status: body.status,
+    chargeReference: body.chargeReference,
+    receiptEvidence:
+      body.receiptEvidence as CorrelationResult["receiptEvidence"],
+    ...(body.finalAmountCents !== undefined
+      ? { finalAmountCents: body.finalAmountCents }
+      : {}),
+  };
+
+  return normalized;
 }
 
 export async function dispatchAttempt(input: DispatchInput) {
@@ -351,14 +393,22 @@ export async function correlateAttemptStatus(input: {
   chargeReference: string | null;
   paymentPayloadJson?: string | null;
   paymentRequirementsJson?: string | null;
-}) {
+}): Promise<CorrelationResult> {
+  let facilitatorVerification: FacilitatorVerificationResult = {
+    kind: "unavailable",
+  };
+
   if (input.paymentPayloadJson && input.paymentRequirementsJson) {
-    const facilitatorResult = await verifyWithFacilitator(
+    facilitatorVerification = await verifyWithFacilitator(
       input.paymentPayloadJson,
       input.paymentRequirementsJson,
     );
-    if (facilitatorResult) {
-      return facilitatorResult;
+    if (facilitatorVerification.kind === "invalid") {
+      return {
+        status: "executed_charge_failed",
+        chargeReference: input.chargeReference,
+        receiptEvidence: "missing_timeout",
+      };
     }
   }
 
@@ -371,11 +421,22 @@ export async function correlateAttemptStatus(input: {
     throw new Error("Vendor status endpoint is not configured.");
   }
 
-  return readVendorStatus(
+  const vendorStatus = await readVendorStatus(
     endpoint,
     input.paymentIdentifier,
     input.chargeReference,
   );
+
+  if (facilitatorVerification.kind === "valid") {
+    return {
+      status: "executed_charge_succeeded",
+      chargeReference: vendorStatus.chargeReference ?? input.chargeReference,
+      receiptEvidence: vendorStatus.receiptEvidence,
+      finalAmountCents: vendorStatus.finalAmountCents ?? null,
+    };
+  }
+
+  return vendorStatus;
 }
 
 export function materializeAttempt(

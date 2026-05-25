@@ -8,7 +8,7 @@ import {
   listMandates,
 } from "@/lib/modules/mandates";
 import { listAuditEntries } from "@/lib/modules/mandates";
-import { vendorRegistry } from "@/lib/vendor-registry";
+import { buildVendorRuntimeRegistry } from "@/lib/vendor-registry";
 
 const UNKNOWN_ATTEMPT_ESCALATION_MS = 15 * 60 * 1000;
 
@@ -29,7 +29,7 @@ export type DashboardData = {
   attempts: Awaited<ReturnType<typeof listAttempts>>;
   auditEntries: Awaited<ReturnType<typeof listAuditEntries>>;
   domainEvents: Awaited<ReturnType<typeof listDomainEvents>>;
-  vendors: typeof vendorRegistry;
+  vendors: ReturnType<typeof buildVendorRuntimeRegistry>;
   fallbackGate: Awaited<ReturnType<typeof readFallbackGate>>;
   incidents: DashboardIncident[];
   systemStatus: Awaited<ReturnType<typeof getSystemStatus>>;
@@ -121,7 +121,10 @@ export async function getDashboardData(): Promise<DashboardData> {
     attempts,
     auditEntries,
     domainEvents,
-    vendors: vendorRegistry,
+    vendors: buildVendorRuntimeRegistry({
+      runtimeEndpoints: systemStatus.vendorRuntime.endpoints,
+      fallbackGate,
+    }),
     fallbackGate,
     incidents: buildDashboardIncidents(store),
     systemStatus,

@@ -4,6 +4,9 @@ import {
   pgTable,
   primaryKey,
   text,
+  timestamp,
+  uniqueIndex,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 export const agents = pgTable("agents", {
@@ -107,3 +110,113 @@ export const domainEvents = pgTable("domain_events", {
   occurredAt: text("occurred_at").notNull(),
   metadataJson: text("metadata_json").notNull(),
 });
+
+export const operatorProfiles = pgTable("operator_profiles", {
+  authUserId: uuid("auth_user_id").primaryKey(),
+  role: text("role").notNull(),
+  status: text("status").notNull(),
+  email: text("email"),
+  fullName: text("full_name"),
+  walletAddress: text("wallet_address"),
+  primaryAuthProvider: text("primary_auth_provider"),
+  onboardingState: text("onboarding_state").notNull(),
+  preferredTreasuryMode: text("preferred_treasury_mode"),
+  preferredWalletProvider: text("preferred_wallet_provider"),
+  lastSignInAt: timestamp("last_sign_in_at", {
+    withTimezone: true,
+    mode: "string",
+  }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
+});
+
+export const operatorAuthIdentities = pgTable(
+  "operator_auth_identities",
+  {
+    id: uuid("id").primaryKey(),
+    operatorId: uuid("operator_id")
+      .notNull()
+      .references(() => operatorProfiles.authUserId, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    providerSubject: text("provider_subject").notNull(),
+    email: text("email"),
+    walletAddress: text("wallet_address"),
+    identityDataJson: text("identity_data_json").notNull(),
+    lastSignInAt: timestamp("last_sign_in_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => ({
+    providerIdentityUnique: uniqueIndex(
+      "operator_auth_identities_provider_subject_idx",
+    ).on(table.provider, table.providerSubject),
+  }),
+);
+
+export const operatorTreasuryWalletAccounts = pgTable(
+  "operator_treasury_wallet_accounts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    operatorId: uuid("operator_id")
+      .notNull()
+      .references(() => operatorProfiles.authUserId, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    mode: text("mode").notNull(),
+    label: text("label"),
+    providerUserId: text("provider_user_id"),
+    providerWalletId: text("provider_wallet_id"),
+    walletClientType: text("wallet_client_type"),
+    address: text("address").notNull(),
+    chainNamespace: text("chain_namespace").notNull(),
+    chainId: integer("chain_id").notNull(),
+    orchestratorAddress: text("orchestrator_address"),
+    orchestratorKind: text("orchestrator_kind"),
+    delegationContractAddress: text("delegation_contract_address"),
+    status: text("status").notNull(),
+    verificationSource: text("verification_source").notNull(),
+    lastSyncError: text("last_sync_error"),
+    isPrimary: boolean("is_primary").notNull(),
+    lastVerifiedAt: timestamp("last_verified_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    lastSeenAt: timestamp("last_seen_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => ({
+    operatorWalletUnique: uniqueIndex(
+      "operator_treasury_wallet_accounts_operator_wallet_idx",
+    ).on(
+      table.operatorId,
+      table.provider,
+      table.address,
+      table.chainNamespace,
+      table.chainId,
+    ),
+  }),
+);

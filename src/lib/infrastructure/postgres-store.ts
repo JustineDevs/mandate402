@@ -9,7 +9,7 @@ import { getDatabaseDirectUrl, getDatabaseUrl } from "@/lib/infrastructure/env";
 import { assertStoreIntegrity } from "@/lib/infrastructure/store-integrity";
 
 const POSTGRES_LOCK_KEY = 402001;
-const migrationsDir = path.join(process.cwd(), "drizzle");
+const runtimeMigrationsDir = path.join(process.cwd(), "db", "migrations");
 
 let pool: Pool | null = null;
 let schemaPool: Pool | null = null;
@@ -90,14 +90,37 @@ async function ensureSchema() {
   schemaEnsurePromise = (async () => {
     const client = await getSchemaPool().connect();
     try {
-      const migrationFiles = readdirSync(migrationsDir)
+      await client.query("BEGIN");
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS mandate402_schema_migrations (
+          name text PRIMARY KEY,
+          applied_at timestamptz NOT NULL DEFAULT timezone('utc', now())
+        )
+      `);
+
+      const migrationFiles = readdirSync(runtimeMigrationsDir)
         .filter((file) => file.endsWith(".sql"))
         .sort();
+      const applied = await readAppliedBootstrapMigrations(client);
+
       for (const file of migrationFiles) {
-        const sql = readFileSync(path.join(migrationsDir, file), "utf8");
+        if (applied.has(file)) {
+          continue;
+        }
+
+        const sql = readFileSync(path.join(runtimeMigrationsDir, file), "utf8");
         await client.query(sql);
+        await client.query(
+          "INSERT INTO mandate402_schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING",
+          [file],
+        );
       }
+
+      await client.query("COMMIT");
       schemaReady = true;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
     } finally {
       client.release();
     }
@@ -108,6 +131,111 @@ async function ensureSchema() {
   } finally {
     schemaEnsurePromise = null;
   }
+}
+
+async function tableExists(client: PoolClient, tableName: string) {
+  const result = await client.query<{ exists: boolean }>(
+    `
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name = $1
+      ) AS exists
+    `,
+    [tableName],
+  );
+
+  return result.rows[0]?.exists === true;
+}
+
+async function columnExists(
+  client: PoolClient,
+  tableName: string,
+  columnName: string,
+) {
+  const result = await client.query<{ exists: boolean }>(
+    `
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = $1
+          AND column_name = $2
+      ) AS exists
+    `,
+    [tableName, columnName],
+  );
+
+  return result.rows[0]?.exists === true;
+}
+
+async function readAppliedBootstrapMigrations(client: PoolClient) {
+  const appliedRows = await client.query<{ name: string }>(
+    "SELECT name FROM mandate402_schema_migrations",
+  );
+  const applied = new Set(appliedRows.rows.map((row) => row.name));
+
+  if (applied.size > 0) {
+    return applied;
+  }
+
+  const inferred = new Set<string>();
+
+  if (
+    (await tableExists(client, "agents")) &&
+    (await tableExists(client, "mandates")) &&
+    (await tableExists(client, "attempts")) &&
+    (await tableExists(client, "worker_tasks"))
+  ) {
+    inferred.add("0001_store.sql");
+  }
+
+  if (
+    (await columnExists(client, "worker_tasks", "operator_id")) &&
+    (await columnExists(client, "worker_tasks", "correlation_id")) &&
+    (await columnExists(client, "worker_tasks", "lease_owner"))
+  ) {
+    inferred.add("0002_worker_task_context.sql");
+  }
+
+  if (
+    (await tableExists(client, "operator_profiles")) &&
+    (await tableExists(client, "operator_auth_identities"))
+  ) {
+    inferred.add("0003_operator_auth_tables.sql");
+  }
+
+  if (
+    (await tableExists(client, "operator_treasury_wallet_accounts")) &&
+    (await columnExists(client, "operator_profiles", "onboarding_state"))
+  ) {
+    inferred.add("0004_operator_treasury_wallets.sql");
+  }
+
+  if (
+    (await columnExists(
+      client,
+      "operator_treasury_wallet_accounts",
+      "provider_user_id",
+    )) &&
+    (await columnExists(
+      client,
+      "operator_treasury_wallet_accounts",
+      "orchestrator_address",
+    ))
+  ) {
+    inferred.add("0005_operator_wallet_runtime_state.sql");
+  }
+
+  for (const file of inferred) {
+    await client.query(
+      "INSERT INTO mandate402_schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING",
+      [file],
+    );
+  }
+
+  return inferred;
 }
 
 export async function readStorePostgres(): Promise<StoreData> {
@@ -634,4 +762,4 @@ export async function resetPostgresStoreForTests() {
   await Promise.all(shutdowns);
 }
 
-mkdirSync(migrationsDir, { recursive: true });
+mkdirSync(runtimeMigrationsDir, { recursive: true });

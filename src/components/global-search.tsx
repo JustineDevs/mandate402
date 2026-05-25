@@ -66,7 +66,7 @@ const DEFAULT_INDEX: GlobalSearchItem[] = [
     id: "policies",
     label: "Policies",
     description: "Policy registry",
-    href: "/policies",
+    href: "/policy-registry",
     keywords: ["rules", "compliance", "governance"],
   },
   {

@@ -11,6 +11,8 @@ export default defineConfig({
     // Shared module state (e.g. Postgres schema bootstrap flags) must persist across
     // test files when multiple suites hit the same database in one Vitest process.
     isolate: false,
+    // Playwright lives under e2e/ with *.spec.ts; do not collect it as Vitest suites.
+    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**"],
   },
   resolve: {
     alias: {

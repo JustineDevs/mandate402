@@ -49,4 +49,32 @@ describe("production environment guards", () => {
       "Morph anchoring is not fully configured for production mode.",
     );
   });
+
+  it("loads provider-aware Supabase auth UI config from env", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_AUTH_ENABLE_EMAIL", "true");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_AUTH_ENABLE_GOOGLE", "true");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_AUTH_ENABLE_WEB3", "true");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_WEB3_CHAIN", "ethereum");
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_WEB3_STATEMENT",
+      "I authorize Mandate402 to open the protected operator workspace.",
+    );
+    vi.stubEnv("MANDATE402_SITE_URL", "https://mandate402.example.com");
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_AUTH_REDIRECT_URL",
+      "https://mandate402.example.com/operator",
+    );
+
+    const env = await import("@/lib/infrastructure/env");
+    const config = env.getSupabaseAuthUiConfig();
+
+    expect(config).toMatchObject({
+      enableEmailPassword: true,
+      enableGoogleOAuth: true,
+      enableWeb3: true,
+      web3Chain: "ethereum",
+      redirectUrl: "https://mandate402.example.com/operator",
+      siteUrl: "https://mandate402.example.com",
+    });
+  });
 });

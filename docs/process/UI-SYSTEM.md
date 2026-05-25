@@ -8,7 +8,7 @@ This document records the **implemented** UI stack after the shadcn UI rollout. 
 |-------|------|
 | **shadcn (base-nova preset)** | `components.json` + `@/components/ui/*` built on **Base UI** + **CVA** + **tw-animate-css** + `shadcn/tailwind.css`. |
 | **Design tokens** | Mandate402 greens / surfaces in `src/app/globals.css`; shadcn semantic variables (`--primary`, `--ring`, …) are **mapped** to those tokens in `:root`. |
-| **Landing entrance** | **CSS** `landing-reveal` in `globals.css` — `LandingReveal` is a plain `div` (no `motion` SSR/CSR drift). Global `prefers-reduced-motion` shortens animations. |
+| **Landing entrance** | **CSS** `landing-reveal` in `globals.css` — `LandingReveal` is a plain `div` (no `motion` SSR/CSR drift). Global `prefers-reduced-motion` shortens animations. **Operator access** on the home column is a single CTA to `/operator` (no logo in `LandingSignInPanel`); Supabase sign-in uses the shadcn **login-01**-aligned `OperatorLoginForm` inside `OperatorGate`, with the official **`mandate402_nav_header(black).png`** mark centered above the fields. **Registration** lives at **`/operator/sign-up`** (`OperatorSignUpWorkspace` + `OperatorSignUpForm`). |
 | **lucide-react** | Icons for shadcn primitives (`^0.468.x` line). |
 | **Landing ambient** | `SubtleDotGrid` — CSS radial-gradient “dot field” (React Bits DotGrid–style) without WebGL or extra shader deps. |
 | **KPI depth (Tier A motion)** | `.spotlight-surface` in `globals.css` — lightweight hover sheen on `KpiCard` (no GSAP / ogl). Disabled under `prefers-reduced-motion`. |
@@ -21,7 +21,7 @@ This document records the **implemented** UI stack after the shadcn UI rollout. 
 
 - **Root** — `TooltipProvider` wraps `#main-content` in `src/app/layout.tsx`.
 - **Landing** — `src/app/page.tsx` uses `SubtleDotGrid` + `LandingReveal` per column.
-- **Console shell** — mobile nav uses **Sheet** (`src/components/console-shell.tsx`) instead of a bespoke overlay. Optional **`toolbar`** row below the hero (Untitled-style pilot).
+- **Console shell** — mobile nav uses **Sheet** (`src/components/console-shell.tsx`) instead of a bespoke overlay. Optional **`toolbar`** row below the hero (Untitled-style pilot). **Auth** — routes under `src/app/(console)/` use **`ConsoleAuthGate`** (Supabase session); unauthenticated visits redirect to `/operator` with a **sanitized** `next` query (`src/lib/auth/safe-operator-next-path.ts`).
 - **Vendors** — `toolbar` with filter/export chips; **`SubtleDotGrid`** ambient behind main content (`src/app/vendors/page.tsx`); registry grid uses **Card** + **Table**.
 - **Transactions / Policies / Receipts** — same **Card** + **Table** shell as dashboard; **toolbar** row for status/export chips (transactions, receipts) or rule actions (policies). **Policies** adds **Accordion** for operator-reference copy below the ledger.
 - **Mandate detail** — **Tabs** (`Snapshot` / `Activity`) in `src/components/mandate-detail-view.tsx` so the hero card and timeline are not stacked in one scroll lane.

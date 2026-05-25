@@ -44,8 +44,19 @@ jobs:
       - run: pnpm check:biome
       - run: pnpm test
       - run: pnpm typecheck
-      - run: pnpm exec eslint src next.config.ts eslint.config.mjs vitest.config.ts
+      - run: pnpm exec eslint src e2e playwright.config.ts next.config.ts eslint.config.mjs vitest.config.ts
       - run: pnpm build
+        env:
+          APP_ENV: test
+          MANDATE402_PERSISTENCE_MODE: sqlite
+          MANDATE402_SITE_URL: http://127.0.0.1:3001
+          NEXT_PUBLIC_CONSOLE_AUTH_SESSION_CHECK_MS: "1500"
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-test-anon-key-not-a-real-secret
+      - run: pnpm exec playwright install chromium --with-deps
+      - run: pnpm run test:e2e
+        env:
+          PLAYWRIGHT_NEXT_PREBUILT: "1"
 
   workers:
     needs: changes

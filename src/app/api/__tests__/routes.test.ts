@@ -8,6 +8,7 @@ import { GET as getMandates } from "@/app/api/mandates/route";
 import { POST as createMandate } from "@/app/api/mandates/route";
 import { GET as getOperatorDashboard } from "@/app/api/operator/dashboard/route";
 import { GET as getSystem } from "@/app/api/system/route";
+import { GET as getVendors } from "@/app/api/vendors/route";
 import {
   createTestStoreData,
   readStore,
@@ -20,6 +21,62 @@ import {
 } from "@/lib/modules/execution-worker";
 
 vi.mock("@/lib/infrastructure/supabase-server", () => ({
+  createSupabaseRequestClient: () => ({
+    from: (table: string) => {
+      if (table === "operator_profiles") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  auth_user_id: "operator_fixture",
+                  role: "operator",
+                  status: "active",
+                  primary_auth_provider: "email",
+                  email: "operator@example.com",
+                  full_name: "Operator Fixture",
+                  wallet_address: null,
+                  onboarding_state: "complete",
+                  preferred_treasury_mode: null,
+                  preferred_wallet_provider: null,
+                  last_sign_in_at: null,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+
+      if (table === "operator_treasury_wallet_accounts") {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: () => ({
+                order: () => ({
+                  returns: async () => ({
+                    data: [],
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+
+      throw new Error(`Unexpected table mock: ${table}`);
+    },
+  }),
+  getOperatorProfile: vi.fn().mockResolvedValue({
+    auth_user_id: "operator_fixture",
+    role: "operator",
+    status: "active",
+    primary_auth_provider: "email",
+    email: "operator@example.com",
+    full_name: "Operator Fixture",
+    wallet_address: null,
+  }),
   getSupabaseRole: () => "operator",
   getSupabaseServerClient: () => ({
     auth: {
@@ -157,6 +214,20 @@ describe("API routes", () => {
   it("rejects unauthorized operator dashboard access", async () => {
     const response = await getOperatorDashboard(
       new Request("http://localhost/api/operator/dashboard", {
+        method: "GET",
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "Unauthorized operator request.",
+    });
+  });
+
+  it("rejects unauthorized vendors access", async () => {
+    const response = await getVendors(
+      new Request("http://localhost/api/vendors", {
         method: "GET",
       }),
     );
@@ -430,6 +501,9 @@ describe("API routes", () => {
     expect(json.data.operator).toEqual({
       operatorId: "operator_fixture",
       role: "operator",
+      onboardingState: "complete",
+      preferredTreasuryMode: null,
+      preferredWalletProvider: null,
     });
     expect(Array.isArray(json.data.dashboard.mandates)).toBe(true);
     expect(Array.isArray(json.data.dashboard.incidents)).toBe(true);
@@ -477,5 +551,30 @@ describe("API routes", () => {
     expect(json.data.unknownAttempts).toBeGreaterThanOrEqual(1);
     expect(json.data.staleUnknownAttempts).toBe(1);
     expect(json.data.unknownAttemptEscalationMinutes).toBe(15);
+  });
+
+  it("reports vendor runtime readiness details in system status", async () => {
+    vi.stubEnv("PRIMARY_X402_VENDOR_A_URL", "https://vendor-a.example");
+    vi.stubEnv("PRIMARY_X402_VENDOR_B_URL", "https://vendor-b.example");
+
+    const response = await getSystem(
+      new Request("http://localhost/api/system", {
+        method: "GET",
+        headers: {
+          authorization: "Bearer fixture-token",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json.ok).toBe(true);
+    expect(json.data.vendorRuntime).toMatchObject({
+      primaryConfigured: true,
+      missingPrimaryVendors: [],
+      localOnlyPrimaryVendors: [],
+      fallbackEnabled: false,
+    });
+    expect(Array.isArray(json.data.vendorRuntime.endpoints)).toBe(true);
   });
 });

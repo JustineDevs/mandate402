@@ -1,4 +1,3 @@
-export const DEMO_OPERATOR_TOKEN = "mandate402-demo-token";
 export const DEFAULT_MORPH_MAINNET_RPC_URL =
   "https://rpc-quicknode.morph.network";
 export const DEFAULT_MORPH_MAINNET_CHAIN_ID = 2818;
@@ -8,6 +7,12 @@ export const DEFAULT_MORPH_X402_FACILITATOR_URL =
 
 export type AppEnv = "test" | "production";
 export type PersistenceMode = "sqlite" | "postgres";
+export type SupabaseWeb3Chain = "ethereum";
+
+function readOptionalEnv(value: string | undefined) {
+  const normalized = value?.trim();
+  return normalized ? normalized : undefined;
+}
 
 export function isTestRuntime() {
   return process.env.VITEST === "true" || process.env.NODE_ENV === "test";
@@ -66,16 +71,146 @@ export function getWorkerToken() {
   return token || undefined;
 }
 
-export function getOperatorToken() {
-  return process.env.MANDATE402_OPERATOR_TOKEN ?? DEMO_OPERATOR_TOKEN;
-}
-
 export function getSupabaseRuntimeConfig() {
   return {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
     anonKey:
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       process.env.SUPABASE_ANON_KEY,
+  };
+}
+
+function readBooleanEnv(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined) {
+    return fallback;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "true") {
+    return true;
+  }
+  if (normalized === "false") {
+    return false;
+  }
+
+  throw new Error(`Unsupported boolean env value: ${value}`);
+}
+
+export function getMandate402SiteUrl() {
+  const siteUrl = readOptionalEnv(
+    process.env.MANDATE402_SITE_URL ??
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      process.env.SITE_URL,
+  );
+
+  return siteUrl?.replace(/\/$/, "") || undefined;
+}
+
+export function getSupabaseAuthRedirectUrl(path = "/operator") {
+  const explicit =
+    process.env.NEXT_PUBLIC_SUPABASE_AUTH_REDIRECT_URL ??
+    process.env.MANDATE402_SUPABASE_AUTH_REDIRECT_URL;
+  const explicitValue = explicit?.trim();
+  if (explicitValue) {
+    try {
+      const explicitUrl = new URL(explicitValue);
+      const supabaseUrl = readOptionalEnv(
+        process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
+      );
+
+      if (
+        supabaseUrl &&
+        explicitUrl.origin === new URL(supabaseUrl).origin &&
+        explicitUrl.pathname.startsWith("/auth/v1/")
+      ) {
+        // This is a Supabase auth endpoint, not the application callback route.
+        // Ignore it and fall back to the application site URL.
+      } else {
+        return explicitUrl.toString();
+      }
+    } catch {
+      return explicitValue;
+    }
+  }
+
+  const siteUrl = getMandate402SiteUrl();
+  if (!siteUrl) {
+    return undefined;
+  }
+
+  return `${siteUrl}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+export function getSupabaseAuthUiConfig() {
+  const web3ChainValue =
+    process.env.NEXT_PUBLIC_SUPABASE_WEB3_CHAIN?.trim().toLowerCase() ??
+    "ethereum";
+  if (web3ChainValue !== "ethereum") {
+    throw new Error(
+      `Unsupported NEXT_PUBLIC_SUPABASE_WEB3_CHAIN: ${process.env.NEXT_PUBLIC_SUPABASE_WEB3_CHAIN}`,
+    );
+  }
+
+  return {
+    enableEmailPassword: readBooleanEnv(
+      process.env.NEXT_PUBLIC_SUPABASE_AUTH_ENABLE_EMAIL,
+      true,
+    ),
+    enableGoogleOAuth: readBooleanEnv(
+      process.env.NEXT_PUBLIC_SUPABASE_AUTH_ENABLE_GOOGLE,
+      false,
+    ),
+    enableWeb3: readBooleanEnv(
+      process.env.NEXT_PUBLIC_SUPABASE_AUTH_ENABLE_WEB3,
+      false,
+    ),
+    redirectUrl: getSupabaseAuthRedirectUrl(),
+    siteUrl: getMandate402SiteUrl(),
+    web3Chain: web3ChainValue as SupabaseWeb3Chain,
+    web3Statement:
+      process.env.NEXT_PUBLIC_SUPABASE_WEB3_STATEMENT?.trim() ||
+      "I authorize Mandate402 to open the protected operator workspace.",
+  };
+}
+
+export function getPrivyRuntimeConfig() {
+  const appId = readOptionalEnv(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
+  const clientId = readOptionalEnv(process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID);
+
+  return {
+    appId,
+    clientId,
+    enabled: Boolean(appId),
+  };
+}
+
+export function getBiconomyRuntimeConfig() {
+  const chainIdValue = readOptionalEnv(
+    process.env.NEXT_PUBLIC_BICONOMY_DEFAULT_CHAIN_ID ??
+      process.env.MORPH_CHAIN_ID,
+  );
+  const rawNexusImplementation = readOptionalEnv(
+    process.env.NEXT_PUBLIC_BICONOMY_NEXUS_IMPLEMENTATION_ADDRESS,
+  );
+  const nexusImplementationAddress =
+    rawNexusImplementation && /^0x[a-fA-F0-9]{40}$/.test(rawNexusImplementation)
+      ? (rawNexusImplementation as `0x${string}`)
+      : ("0x000000004F43C49e93C970E84001853a70923B03" as const);
+
+  return {
+    apiKey: readOptionalEnv(process.env.NEXT_PUBLIC_BICONOMY_API_KEY),
+    supertransactionApiBaseUrl:
+      readOptionalEnv(process.env.NEXT_PUBLIC_BICONOMY_API_BASE_URL) ??
+      "https://api.biconomy.io",
+    meeNodeUrlOverride: readOptionalEnv(
+      process.env.NEXT_PUBLIC_BICONOMY_MEE_URL,
+    ),
+    useStagingNetwork: readBooleanEnv(
+      process.env.NEXT_PUBLIC_BICONOMY_STAGING,
+      false,
+    ),
+    defaultChainId: Number(chainIdValue ?? DEFAULT_MORPH_MAINNET_CHAIN_ID),
+    nexusImplementationAddress,
   };
 }
 
@@ -175,4 +310,41 @@ export function getFallbackVendorStatusEndpoint() {
 export function getVendorStatusToken() {
   const token = process.env.MANDATE402_STATUS_TOKEN?.trim();
   return token || undefined;
+}
+
+export type VendorRuntimeEndpointSummary = {
+  id: string;
+  endpoint: string | undefined;
+  statusEndpoint: string | undefined;
+  configured: boolean;
+  localOnly: boolean;
+};
+
+function isLocalEndpoint(endpoint: string | undefined) {
+  if (!endpoint) {
+    return false;
+  }
+
+  return /127\.0\.0\.1|localhost/i.test(endpoint);
+}
+
+export function getVendorRuntimeEndpointSummary(): VendorRuntimeEndpointSummary[] {
+  return [
+    {
+      id: "morph-market-data",
+      endpoint: getPrimaryVendorEndpoint("morph-market-data"),
+      statusEndpoint: getPrimaryVendorStatusEndpoint("morph-market-data"),
+      configured: Boolean(getPrimaryVendorEndpoint("morph-market-data")),
+      localOnly: isLocalEndpoint(getPrimaryVendorEndpoint("morph-market-data")),
+    },
+    {
+      id: "morph-research-net",
+      endpoint: getPrimaryVendorEndpoint("morph-research-net"),
+      statusEndpoint: getPrimaryVendorStatusEndpoint("morph-research-net"),
+      configured: Boolean(getPrimaryVendorEndpoint("morph-research-net")),
+      localOnly: isLocalEndpoint(
+        getPrimaryVendorEndpoint("morph-research-net"),
+      ),
+    },
+  ];
 }

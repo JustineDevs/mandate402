@@ -54,7 +54,6 @@ jobs:
           DEMO_KEY=$(node -e "console.log('0x' + '1'.repeat(64))")
           DEMO_ADDR=$(node -e "console.log('0x19E7E376E7C213B7E7E7E46CC70A5DD086DAFF2A')")
           cat > .env.local <<EOF
-          MANDATE402_OPERATOR_TOKEN=mandate402-demo-token
           MANDATE402_TESTNET_RPC_URL=https://rpc-hoodi.morph.network
           MANDATE402_TESTNET_CHAIN_ID=2910
           MANDATE402_TESTNET_EXPLORER_URL=https://explorer-hoodi.morph.network/
@@ -98,7 +97,6 @@ jobs:
         run: |
           go build -buildvcs=false -o /tmp/mandate402-smoke .
           env \
-            MANDATE402_OPERATOR_TOKEN=mandate402-demo-token \
             MANDATE402_TESTNET_RPC_URL=https://rpc-hoodi.morph.network \
             MANDATE402_TESTNET_CHAIN_ID=2910 \
             MANDATE402_TESTNET_EXPLORER_URL=https://explorer-hoodi.morph.network/ \
@@ -149,6 +147,16 @@ jobs:
       - name: Smoke system route auth boundary
         run: |
           code=$(curl -s -o /tmp/system.out -w "%{http_code}" http://127.0.0.1:3000/api/system)
+          test "$code" = "401"
+
+      - name: Smoke worker execute auth boundary
+        run: |
+          code=$(curl -s -o /tmp/worker-execute.out -w "%{http_code}" -X POST http://127.0.0.1:3000/api/internal/workers/execute)
+          test "$code" = "401"
+
+      - name: Smoke worker reconcile auth boundary
+        run: |
+          code=$(curl -s -o /tmp/worker-reconcile.out -w "%{http_code}" -X POST http://127.0.0.1:3000/api/internal/workers/reconcile)
           test "$code" = "401"
 
       - name: Smoke vendor A 402

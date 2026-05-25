@@ -93,19 +93,14 @@ export function Dashboard({ accessToken, data, onChanged }: DashboardProps) {
               <div className="eyebrow">Issue New Mandate</div>
             </CardHeader>
             <CardContent className="pt-6">
-              {activeMandate ? (
-                <OperatorConsole
-                  accessToken={accessToken}
-                  mandate={activeMandate}
-                  attempts={data.attempts}
-                  onChanged={onChanged}
-                  vendors={data.vendors}
-                />
-              ) : (
-                <p className="muted">
-                  Create a mandate to activate the live operator console.
-                </p>
-              )}
+              <OperatorConsole
+                accessToken={accessToken}
+                agents={data.agents}
+                mandates={data.mandates}
+                attempts={data.attempts}
+                onChanged={onChanged}
+                vendors={data.vendors}
+              />
             </CardContent>
           </Card>
 

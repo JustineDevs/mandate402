@@ -22,6 +22,7 @@
       "contracts/cache",
       "contracts/broadcast",
       ".tmp",
+      "output/playwright",
       "data/store.json",
       ".env.local",
       ".agents"

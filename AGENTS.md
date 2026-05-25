@@ -131,6 +131,136 @@ All meaningful work in this repository must follow the tracked workflow document
 
 These are mandatory operating rules, not optional references.
 
+### Production hardening and verification
+
+For changes that tighten **authentication/authorization**, **persistence truth**, **x402/payment boundaries**, **chain anchoring**, **workers/queues**, or **release/CI safety**, follow **`docs/process/HARDENING-CHECKLIST.md`** and read the applicable **`.agents/skills/*/SKILL.md`** files it references before implementation.
+
+### Mandatory AI-Agentic Augmented Development Standard
+
+This repository uses an explicit **AI-agentic augmented development** model.
+For every meaningful change such as:
+
+- bug fix
+- feature
+- hot-fix
+- refactor
+- hardening pass
+- release-prep change
+
+the agent must execute the applicable repo-local command and skill surfaces, not merely read them.
+
+#### Mandatory command surfaces
+
+The command surfaces under `.cursor/commands/*` are operational lenses.
+They must be treated as mandatory checklists when applicable to the change:
+
+- `ZSPS.md`
+  - always apply
+  - remove slop, fake polish, placeholders, duplicate logic, and blind fixes
+- `trace.md`
+  - mandatory for page, route, component, worker, or data-flow changes
+  - produce a real UI -> route -> module -> store/vendor/chain trace
+- `stress.md`
+  - mandatory for auth, runtime, worker, route, vendor, store, build, or deployment-shape changes
+  - validate real execution and failure behavior
+- `security.md`
+  - mandatory for auth, secrets, internal routes, tokens, logging, path handling, x402, worker, or release changes
+- `sadpath.md`
+  - mandatory for user-facing flows, operational flows, and anything that can fail partially or silently
+- `engineer.md`
+  - mandatory for broad system changes, production hardening, or any pre-push readiness pass
+- `architect.md`
+  - mandatory when changing boundaries, ownership, deployment shape, or subsystem design
+- `ui.md`
+  - mandatory for visual/product surfaces
+- `trace.md`
+  - mandatory for proving whether a surface is truly wired
+
+If a command surface is not applicable, say why in the working notes or final report.
+Do not silently skip applicable command lenses.
+
+#### Mandatory skill surfaces
+
+The repo-local skills under `.agents/skills/*` are also mandatory when their scope matches the change.
+
+At minimum:
+
+- choose the matching Mandate402 lane skill before edits
+- apply the matching overlay skills before verification
+
+Examples:
+
+- route / auth / persistence changes:
+  - `mandate402-backend`
+  - `mandate402-backend-runtime`
+  - `mandate402-runtime-security`
+  - `mandate402-test-harness`
+- worker / reconciliation changes:
+  - `mandate402-workers`
+  - `mandate402-x402-payment-boundary`
+  - `mandate402-test-harness`
+- frontend / console changes:
+  - `mandate402-frontend`
+  - `mandate402-frontend-testing`
+  - `mandate402-responsive-qa`
+  - `mandate402-accessibility-audit`
+- blockchain / treasury changes:
+  - `mandate402-blockchain`
+  - `mandate402-oracle-settlement-assets`
+  - `software-crypto-web3`
+- release / CI / deployment-shape changes:
+  - `mandate402-release-ci-safety`
+  - `mandate402-test-harness`
+
+#### Mandatory post-change checklist
+
+After implementation and before declaring completion, the agent must:
+
+1. run the applicable `.cursor/commands/*` lenses
+2. run the applicable `.agents/skills/*` verification guidance
+3. verify that changed routes, pages, and components are:
+   - real
+   - wired
+   - using actual runtime/store/auth truth
+   - not stubbed
+   - not fake
+   - not layout-only unless explicitly downgraded and labeled
+4. clean generated artifacts from repo-visible temp/build directories before repo-safety and lint checks
+5. run the relevant verification commands
+6. report findings first, then fixes, then residual risks
+
+#### Mandatory pre-PR checklist
+
+Before opening or updating a PR, the agent must perform an applicability pass across:
+
+- `.cursor/commands/*`
+- `.agents/skills/*`
+
+and execute all relevant checks needed to prove:
+
+- routes are protected or public by design
+- pages are real and not deceptive
+- components are not partial or dead mock surfaces
+- runtime/module/store ownership is consistent
+- fallback behavior is explicit and fail-closed
+- build/CI/repo-safety are clean
+
+#### Release prohibition
+
+Do not allow any release-candidate branch, PR, or push-ready state to contain:
+
+- fake operator data in a live route
+- canned or hardcoded runtime panels presented as live truth
+- stubbed controls that look executable
+- placeholder logic behind a production-looking page
+- public runtime routes that should be operator-only or worker-only
+- generated build artifacts left in tracked or repo-visible temp directories
+
+If a surface cannot be made real yet, it must be:
+
+- removed from the live route tree, or
+- explicitly downgraded so it cannot be mistaken for production functionality
+
 ### Issue-First Rule
 
 Do not begin meaningful implementation without a tracked issue or equivalent scoped work item.
@@ -365,12 +495,19 @@ choose the smallest change that preserves correctness, CI, and public-remote saf
 ## Learned User Preferences
 
 - Treat obvious decorative gradients and template-heavy marketing chrome as unacceptable; the user explicitly calls that out as “AI slop” and wants it removed or avoided.
-- Keep global and component colors aligned with `docs/brand/brandkit.md` and the official logo or header SVG palette; do not drift the theme away from those sources without an explicit design decision.
-- Shape the landing page as a full-viewport, two-column split and follow the ASCII layout and content bounds in `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md`, keeping marketing copy restrained and on-brief rather than loud or generic.
+- Keep global and component colors aligned with `docs/brand/brandkit.md`, `docs/brand/design-tokens.md`, and the official logo or header SVG palette under `public/images/`; if docs and the live UI drift from the logomark, reconcile tokens and documentation to the logo rather than inventing new greens.
+- Shape the landing page as a full-viewport, two-column split and follow the ASCII layout and content bounds in `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md` (including roughly lines 76–93 for hero-adjacent blocks), keeping marketing copy restrained and on-brief rather than loud or generic.
 - When using other projects only as inspiration, borrow layout geometry (viewport split, padding, margins, positioning), not their visual style, assets, or decorative effects.
 - Keep the signed-out home experience a marketing surface rather than turning it into a lightweight operator console shell after sign-in, unless product scope explicitly changes.
+- For operator chrome that sits beside primary actions (for example the desktop sidebar next to `bg-mandate-green` CTAs), keep the green read consistent with brand tokens so structural surfaces do not look like a different palette from core buttons.
+- Responsive layout and sizing across major breakpoints is treated as an explicit near-term product obligation (called out around v0.1.1), not an afterthought once desktop polish is done.
 
 ## Learned Workspace Facts
 
 - Canonical visual references for Mandate402 UI work include `docs/brand/brandkit.md` for palette and tokens and `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md` for the landing and console wireframe intent.
 - Primary operator console and marketing surfaces are implemented in the Next.js app under `src/` (for example app routes, layout, and shared components such as the sidebar and landing sections).
+- The Sherwin UI ADR references logo assets under `public/images/` (for example `Mandate402_logo.svg` alongside marks such as `mandate_header.svg`); use those paths when checking placement and color read against wireframes.
+- Forest and mint greens used in `public/images/mandate_header.svg` are anchored around `#346F2A` and `#91D186`; control-room teal is a separate band color from logomark fills unless brandkit explicitly ties them.
+- On Windows with Git Bash, avoid creating a repo-root `nul` file via `> nul` redirection; prefer `> /dev/null` so Turbopack does not choke on an accidental `nul` entry while processing CSS.
+- Prefer `pnpm exec wrangler` from the repo root when global Wrangler installs under fnm hit shim conflicts such as `EEXIST` or `EPERM`.
+- Run the local Next.js operator console with `pnpm dev` from the repo root when the user asks for the frontend dev server.
