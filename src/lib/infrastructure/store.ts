@@ -24,6 +24,7 @@ const require = createRequire(import.meta.url);
 
 type SqliteDatabase = {
   exec(sql: string): void;
+  close?(): void;
   prepare(sql: string): {
     get(): unknown;
     all(): unknown[];
@@ -43,7 +44,10 @@ function getSqlitePath() {
   const workerId = process.env.VITEST_POOL_ID;
   if (workerId) {
     mkdirSync(testDataDir, { recursive: true });
-    return path.join(testDataDir, `mandate402-${workerId}.sqlite`);
+    return path.join(
+      testDataDir,
+      `mandate402-${workerId}-${process.pid}.sqlite`,
+    );
   }
 
   return path.join(dataDir, "mandate402.sqlite");
@@ -684,6 +688,11 @@ export async function resetStoreForTests(
     return;
   }
 
+  if (database && isTestRuntime()) {
+    database.close?.();
+    database = null;
+  }
+
   writeStoreSync(data);
 }
 
@@ -710,6 +719,7 @@ export async function withStoreLock<T>(work: (data: StoreData) => Promise<T>) {
 
 export async function resetPersistenceForTests() {
   await resetPostgresStoreForTests();
+  database?.close?.();
   database = null;
   memoryStoreData = null;
 }

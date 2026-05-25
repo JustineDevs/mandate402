@@ -112,6 +112,23 @@ function makeDomainEvent(input: {
   };
 }
 
+function normalizeAnchorReference(value: unknown, label: string) {
+  if (typeof value === "string" && value.trim()) {
+    return value;
+  }
+
+  if (value === null || value === undefined) {
+    throw new ValidationError(`${label} must resolve to a non-empty string.`);
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    throw new ValidationError(`${label} must resolve to a non-empty string.`);
+  }
+
+  return normalized;
+}
+
 function makeWorkerTask(input: {
   kind: WorkerTask["kind"];
   mandateId: string;
@@ -183,7 +200,10 @@ export async function createMandate(input: CreateMandateInput) {
 
     const now = nowIso();
     const mandateId = createId("mdt");
-    const morphIssueTxId = await issueMandateAnchor(mandateId);
+    const morphIssueTxId = normalizeAnchorReference(
+      await issueMandateAnchor(mandateId),
+      "Morph issue anchor",
+    );
     const mandate: Mandate = {
       id: mandateId,
       name,
@@ -237,7 +257,10 @@ export async function revokeMandate(mandateId: string) {
     ensureMandateTransition(mandate.status, "revoking");
     mandate.status = "revoking";
     mandate.updatedAt = nowIso();
-    mandate.morphRevokeTxId = await revokeMandateAnchor(mandate.id);
+    mandate.morphRevokeTxId = normalizeAnchorReference(
+      await revokeMandateAnchor(mandate.id),
+      "Morph revoke anchor",
+    );
     ensureMandateTransition(mandate.status, "revoked");
     mandate.status = "revoked";
     mandate.updatedAt = nowIso();

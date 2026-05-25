@@ -8,6 +8,34 @@
       "when": 1760000000000,
       "tag": "0000_initial_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779567000000,
+      "tag": "0001_operator_auth_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779568800000,
+      "tag": "0002_operator_treasury_wallets",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779650400000,
+      "tag": "0003_operator_wallet_runtime_state",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779782400000,
+      "tag": "0004_operator_profile_insert_policy",
+      "breakpoints": true
     }
   ]
 }

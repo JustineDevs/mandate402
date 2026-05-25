@@ -123,6 +123,26 @@ export const defaultNavItems: NavigationItem[] = [
     ),
   },
   {
+    name: "Audit",
+    href: "/audit",
+    icon: (
+      <svg
+        className="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M9 17v-6m3 6V7m3 10v-3m5 7H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v14a2 2 0 01-2 2z"
+        />
+      </svg>
+    ),
+  },
+  {
     name: "Receipts",
     href: "/receipts",
     icon: (
@@ -147,7 +167,7 @@ export const defaultNavItems: NavigationItem[] = [
 export const defaultBottomItems: NavigationItem[] = [
   {
     name: "Policies",
-    href: "/policies",
+    href: "/policy-registry",
     icon: (
       <svg
         className="h-5 w-5"
@@ -192,7 +212,7 @@ export const defaultBottomItems: NavigationItem[] = [
     ),
   },
   {
-    name: "Build",
+    name: "Treasury",
     href: "/build",
     icon: (
       <svg
@@ -225,19 +245,16 @@ export function SidebarNavPanel({
   return (
     <div className="flex h-full flex-1 flex-col justify-between p-6 sm:p-8">
       <div className="flex-1">
-        <div className="mb-10 px-2 sm:mb-12">
-          <div className="flex items-center gap-3">
+        <div className="mb-10 flex min-h-24 items-center justify-center px-2 sm:mb-12 sm:min-h-28">
+          <div className="flex items-center justify-center">
             <Image
-              src="/images/Mandate402_logo.svg"
-              alt=""
-              width={44}
-              height={44}
-              className="h-10 w-10 shrink-0 object-contain sm:h-11 sm:w-11"
+              src="/images/mandate402_nav_header(white).png"
+              alt="Mandate402"
+              width={300}
+              height={76}
+              className="h-16 w-auto shrink-0 object-contain sm:h-20"
               priority
             />
-            <span className="text-lg font-extrabold tracking-tight text-on-dark sm:text-xl">
-              Mandate402
-            </span>
           </div>
         </div>
         <nav className="space-y-1" aria-label="Main links">

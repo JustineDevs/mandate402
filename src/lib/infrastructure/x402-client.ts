@@ -30,7 +30,12 @@ export function getPaymentRuntime(): PaymentRuntime {
 
   const signer = privateKeyToAccount(privateKey as `0x${string}`);
   const client = new x402Client();
-  client.register("eip155:*", new ExactEvmScheme(signer));
+  client.register(
+    "eip155:*",
+    new ExactEvmScheme(
+      signer as unknown as ConstructorParameters<typeof ExactEvmScheme>[0],
+    ),
+  );
   paymentRuntime = {
     client,
     httpClient: new x402HTTPClient(client),

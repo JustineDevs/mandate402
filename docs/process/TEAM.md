@@ -295,6 +295,9 @@ John must not:
 
 Edward's task is to implement the presentation-heavy and read-model frontend lane without overlapping John's default action-heavy ownership.
 
+The explicit tracked boundary for that lane is
+[ADR-0005](../adr/ADR-0005-edward-observability-frontend-implementation-task.md).
+
 The expected sequence is:
 
 1. sync the latest repository state
@@ -335,3 +338,11 @@ The correct model for Mandate402 is:
 - linear handoff
 - explicit review gates
 - one shared repository truth
+
+## ADR References
+
+- Justine scope authority: [ADR-0001](../adr/ADR-0001-justine-scope-documents.md)
+- Sherwin design authority: [ADR-0002](../adr/ADR-0002-sherwin-ui-wireframe-task.md)
+- John transactional lane: [ADR-0003](../adr/ADR-0003-john-frontend-implementation-task.md)
+- Runtime and architecture baseline: [ADR-0004](../adr/ADR-0004-morph-first-hybrid-architecture.md)
+- Edward observability lane: [ADR-0005](../adr/ADR-0005-edward-observability-frontend-implementation-task.md)

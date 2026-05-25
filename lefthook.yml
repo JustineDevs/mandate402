@@ -12,7 +12,7 @@ pre-commit:
     contracts:
       run: node scripts/precommit-contracts.mjs
     go:
-      run: GOCACHE=$(pwd)/.tmp/go-build-cache GOTMPDIR=$(pwd)/.tmp/go-tmp go test ./...
+      run: mkdir -p "$(pwd)/.tmp/go-build-cache" "$(pwd)/.tmp/go-tmp" && GOCACHE=$(pwd)/.tmp/go-build-cache GOTMPDIR=$(pwd)/.tmp/go-tmp go test ./...
 
 pre-push:
   parallel: true

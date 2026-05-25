@@ -32,7 +32,7 @@ interface TopNavProps {
  * TopNav — environment chrome, page-scoped search, global search (⌘K), wallet pill.
  */
 export const TopNav: React.FC<TopNavProps> = ({
-  userAddress = "0x0000...0000",
+  userAddress,
   onSearch,
   onProfileClick,
   onWalletClick,
@@ -43,6 +43,9 @@ export const TopNav: React.FC<TopNavProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const walletInteractive = typeof onWalletClick === "function";
+  const profileInteractive = typeof onProfileClick === "function";
+  const walletLabel = userAddress?.trim() || "Treasury unlinked";
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -158,6 +161,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               <TooltipTrigger
                 type="button"
                 onClick={onWalletClick}
+                disabled={!walletInteractive}
                 className="flex min-h-11 max-w-full items-center gap-2 rounded-full border border-hairline bg-canvas py-1.5 pr-3 pl-2 shadow-sm transition-colors hover:bg-surface-soft sm:gap-3 sm:pr-4 sm:pl-3"
                 aria-label="Wallet status and address"
               >
@@ -167,27 +171,30 @@ export const TopNav: React.FC<TopNavProps> = ({
                 />
 
                 <span className="font-mono-reference truncate text-xs font-medium tracking-tight text-ink sm:text-sm">
-                  {userAddress}
+                  {walletLabel}
                 </span>
 
-                <svg
-                  className="h-4 w-4 shrink-0 text-stone"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                {walletInteractive ? (
+                  <svg
+                    className="h-4 w-4 shrink-0 text-stone"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                ) : null}
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-xs text-left">
-                Demo treasury readout. Connect wallet/session providers in the
-                operator workspace when auth ships.
+                {walletInteractive
+                  ? "Treasury and onchain signer state come from the linked operator wallet path."
+                  : "Treasury wallet status is shown here, but wallet actions stay disabled until a real nav action is wired."}
               </TooltipContent>
             </Tooltip>
 
@@ -195,6 +202,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               <TooltipTrigger
                 type="button"
                 onClick={onProfileClick}
+                disabled={!profileInteractive}
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-hairline bg-canvas text-steel shadow-sm transition-colors hover:bg-surface-soft"
                 aria-label="Profile settings"
               >
@@ -214,8 +222,9 @@ export const TopNav: React.FC<TopNavProps> = ({
                 </svg>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-xs text-left">
-                Operator profile and session — placeholder until account
-                settings route is wired.
+                {profileInteractive
+                  ? "Operator profile actions are available from this control."
+                  : "Profile actions stay disabled until a real operator profile surface is wired."}
               </TooltipContent>
             </Tooltip>
           </div>

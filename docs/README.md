@@ -14,6 +14,13 @@ This document is the grouped index for the Mandate402 documentation set.
 | Implement the UI token layer | [design-tokens.md](./brand/design-tokens.md) |
 | Understand team roles and collaboration rules | [TEAM.md](./process/TEAM.md) |
 | Understand current release shape and priorities | [STATUS.md](./product/STATUS.md) |
+| Read the repo-native PRD anchor | [planning/PRD.md](./planning/PRD.md) |
+| Read the v0.2.0 hardening guide | [planning/V0.2.0-PRODUCTION-HARDENING.md](./planning/V0.2.0-PRODUCTION-HARDENING.md) |
+| Understand Scrum planning conventions | [process/SCRUM.md](./process/SCRUM.md) |
+| Understand Agile delivery expectations | [process/AGILE.md](./process/AGILE.md) |
+| See the roadmap summary | [planning/ROADMAP.md](./planning/ROADMAP.md) |
+| See milestone structure | [planning/MILESTONES.md](./planning/MILESTONES.md) |
+| Read the post-closure roadmap guide | [planning/POST-CLOSURE-ROADMAP.md](./planning/POST-CLOSURE-ROADMAP.md) |
 | Look up domain terms | [GLOSSARY.md](./reference/GLOSSARY.md) |
 | Understand mandatory delivery workflow | [WORKFLOW.md](./process/WORKFLOW.md) |
 | Understand mandatory branch rules | [BRANCHING.md](./process/BRANCHING.md) |
@@ -27,6 +34,9 @@ This document is the grouped index for the Mandate402 documentation set.
 | Check if an issue is ready | [DEFINITION-OF-READY.md](./process/DEFINITION-OF-READY.md) |
 | Check if a change is done | [DEFINITION-OF-DONE.md](./process/DEFINITION-OF-DONE.md) |
 | Reuse shared frontend building blocks | [FRONTEND-PRIMITIVES.md](./process/FRONTEND-PRIMITIVES.md) |
+| Harden the system toward production truth (skills + verification) | [HARDENING-CHECKLIST.md](./process/HARDENING-CHECKLIST.md) |
+| Understand mandatory AI-agentic augmented verification before push/PR | [HARDENING-CHECKLIST.md](./process/HARDENING-CHECKLIST.md) and [RELEASE-POLICY.md](./process/RELEASE-POLICY.md) |
+| Follow deploy and recovery procedures | [runbooks/DEPLOY.md](./runbooks/DEPLOY.md) |
 | Follow the public OSS onboarding path | [OPEN-SOURCE-ONBOARDING.md](./community/OPEN-SOURCE-ONBOARDING.md) |
 | Copy a ready-made contributor prompt | [CONTRIBUTOR-PROMPT.md](./community/CONTRIBUTOR-PROMPT.md) |
 | Find safe first contribution expectations | [FIRST-PR.md](./community/FIRST-PR.md) |
@@ -36,6 +46,7 @@ This document is the grouped index for the Mandate402 documentation set.
 | Get a simplified repo map | [ARCHITECTURE-OVERVIEW.md](./architecture/ARCHITECTURE-OVERVIEW.md) |
 | See contributor recognition norms | [RECOGNITION.md](./community/RECOGNITION.md) |
 | Review formal decisions | [adr/README.md](./adr/README.md) |
+| Review the May 18-25 sprint snapshot | [planning/SPRINT-2026-05-18-to-2026-05-25.md](./planning/SPRINT-2026-05-18-to-2026-05-25.md) |
 
 ## Reading Paths
 
@@ -57,6 +68,7 @@ This document is the grouped index for the Mandate402 documentation set.
 2. [SYSTEM_DESIGN.md](./architecture/SYSTEM_DESIGN.md)
 3. [STATUS.md](./product/STATUS.md)
 4. [GLOSSARY.md](./reference/GLOSSARY.md)
+5. [HARDENING-CHECKLIST.md](./process/HARDENING-CHECKLIST.md) (skills + verification matrix)
 
 ### Team member onboarding
 
@@ -76,10 +88,19 @@ This document is the grouped index for the Mandate402 documentation set.
 
 ### Product
 
+- [PRD.md](./planning/PRD.md)
 - [EXPLAIN.md](./product/EXPLAIN.md)
 - [PROJECT.md](./product/PROJECT.md)
 - [BM.md](./product/BM.md)
 - [STATUS.md](./product/STATUS.md)
+
+### Planning
+
+- [ROADMAP.md](./planning/ROADMAP.md)
+- [MILESTONES.md](./planning/MILESTONES.md)
+- [SPRINT-2026-05-18-to-2026-05-25.md](./planning/SPRINT-2026-05-18-to-2026-05-25.md)
+- [V0.2.0-PRODUCTION-HARDENING.md](./planning/V0.2.0-PRODUCTION-HARDENING.md)
+- [POST-CLOSURE-ROADMAP.md](./planning/POST-CLOSURE-ROADMAP.md)
 
 ### Architecture
 
@@ -95,6 +116,8 @@ This document is the grouped index for the Mandate402 documentation set.
 
 - [WORKFLOW.md](./process/WORKFLOW.md)
 - [BRANCHING.md](./process/BRANCHING.md)
+- [SCRUM.md](./process/SCRUM.md)
+- [AGILE.md](./process/AGILE.md)
 - [LANES.md](./process/LANES.md)
 - [AI-POLICY.md](./process/AI-POLICY.md)
 - [LABELS.md](./process/LABELS.md)
@@ -105,7 +128,15 @@ This document is the grouped index for the Mandate402 documentation set.
 - [DEFINITION-OF-READY.md](./process/DEFINITION-OF-READY.md)
 - [DEFINITION-OF-DONE.md](./process/DEFINITION-OF-DONE.md)
 - [FRONTEND-PRIMITIVES.md](./process/FRONTEND-PRIMITIVES.md)
+- [HARDENING-CHECKLIST.md](./process/HARDENING-CHECKLIST.md)
 - [TEAM.md](./process/TEAM.md)
+
+### Runbooks
+
+- [DEPLOY.md](./runbooks/DEPLOY.md)
+- [ROLLBACK.md](./runbooks/ROLLBACK.md)
+- [KEY-COMPROMISE.md](./runbooks/KEY-COMPROMISE.md)
+- [STUCK-RECONCILIATION.md](./runbooks/STUCK-RECONCILIATION.md)
 
 ### Community
 

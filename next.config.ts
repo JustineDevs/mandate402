@@ -7,16 +7,31 @@ import type { NextConfig } from "next";
 const turbopackRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
 );
+const isVercelBuild = process.env.VERCEL === "1";
+const proofDistDir = process.env.MANDATE402_NEXT_DIST_DIR?.trim();
+const farcasterSolanaShim = path.join(
+  turbopackRoot,
+  "src/lib/shims/farcaster-mini-app-solana.ts",
+);
 
 const nextConfig: NextConfig = {
   typedRoutes: true,
+  distDir: proofDistDir || undefined,
   /** Align tracing root with Turbopack root so resolution stays consistent. */
   outputFileTracingRoot: turbopackRoot,
-  outputFileTracingIncludes: {
-    "/*": ["./node_modules/pg-cloudflare/dist/**/*"],
-  },
+  outputFileTracingIncludes: isVercelBuild
+    ? undefined
+    : {
+        "/*": ["./node_modules/pg-cloudflare/dist/**/*"],
+      },
   turbopack: {
     root: turbopackRoot,
+  },
+  webpack(config) {
+    config.resolve ??= {};
+    config.resolve.alias ??= {};
+    config.resolve.alias["@farcaster/mini-app-solana"] = farcasterSolanaShim;
+    return config;
   },
 };
 

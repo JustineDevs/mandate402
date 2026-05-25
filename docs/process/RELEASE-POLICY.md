@@ -62,6 +62,37 @@ This keeps `development` aligned to released history without depending on duplic
 - release-readiness passed
 - no unresolved conversation remains
 
+## Mandatory AI-Agentic Augmented Release Gate
+
+For every release-bound change, hot-fix, or pre-release branch:
+
+1. run the applicable `.cursor/commands/*` lenses
+2. run the applicable `.agents/skills/*` guidance
+3. verify changed routes, pages, and components are:
+   - real
+   - wired
+   - backed by runtime/store/auth truth
+   - not fake
+   - not stubbed
+   - not partial
+4. remove generated build artifacts before repo-safety and lint checks
+
+Minimum mandatory lenses before PR or push readiness:
+
+- `ZSPS`
+- `trace`
+- `stress`
+- `security`
+- `sadpath`
+- `engineer`
+
+Plus:
+
+- `architect` when boundaries/deployment shape move
+- `ui` when visual/product surfaces change
+
+If a lens or skill is not applicable, record why.
+
 ## Tagging Rule
 
 - No manual release tagging in normal flow

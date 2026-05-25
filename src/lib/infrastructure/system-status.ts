@@ -1,4 +1,8 @@
 import { getBlockchainRuntimeHealth } from "@/lib/blockchain/health";
+import {
+  getVendorRuntimeEndpointSummary,
+  isProductionEnv,
+} from "@/lib/infrastructure/env";
 import { readFallbackGate } from "@/lib/infrastructure/fallback-gate";
 import { readStore } from "@/lib/infrastructure/store";
 import { buildStoreIntegrityReport } from "@/lib/infrastructure/store-integrity";
@@ -15,6 +19,13 @@ export async function getSystemStatus() {
   const blockchain = await getBlockchainRuntimeHealth(
     store.agents.map((agent) => agent.id),
   );
+  const vendorRuntime = getVendorRuntimeEndpointSummary();
+  const missingPrimaryVendors = vendorRuntime
+    .filter((vendor) => !vendor.configured)
+    .map((vendor) => vendor.id);
+  const localOnlyPrimaryVendors = vendorRuntime
+    .filter((vendor) => vendor.localOnly)
+    .map((vendor) => vendor.id);
   const unknownAttempts = store.attempts.filter(
     (attempt) => attempt.status === "execution_unknown",
   ).length;
@@ -45,7 +56,10 @@ export async function getSystemStatus() {
     blockchain.status === "ready" &&
     unknownAttempts === 0 &&
     staleUnknownAttempts === 0 &&
-    queuedAttempts === 0
+    queuedAttempts === 0 &&
+    (!isProductionEnv() ||
+      (missingPrimaryVendors.length === 0 &&
+        localOnlyPrimaryVendors.length === 0))
       ? "ok"
       : "degraded";
 
@@ -64,6 +78,13 @@ export async function getSystemStatus() {
     workerTasks: store.workerTasks.length,
     queuedDispatchTasks,
     queuedReconciliationTasks,
+    vendorRuntime: {
+      primaryConfigured: missingPrimaryVendors.length === 0,
+      missingPrimaryVendors,
+      localOnlyPrimaryVendors,
+      fallbackEnabled: false,
+      endpoints: vendorRuntime,
+    },
     fallbackDecision: fallbackGate.decision_status,
     integrity,
     blockchain,
