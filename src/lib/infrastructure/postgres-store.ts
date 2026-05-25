@@ -26,8 +26,7 @@ function isSupabasePoolerConnection(connectionString: string) {
   try {
     const host = new URL(connectionString).hostname.toLowerCase();
     return (
-      host === "pooler.supabase.com" ||
-      host.endsWith(".pooler.supabase.com")
+      host === "pooler.supabase.com" || host.endsWith(".pooler.supabase.com")
     );
   } catch {
     return false;
