@@ -25,7 +25,19 @@ let schemaEnsurePromise: Promise<void> | null = null;
 function isSupabasePoolerConnection(connectionString: string) {
   try {
     const host = new URL(connectionString).hostname.toLowerCase();
-    return host.includes("pooler.supabase.com");
+    return (
+      host === "pooler.supabase.com" ||
+      host.endsWith(".pooler.supabase.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isSupabaseProjectHost(connectionString: string) {
+  try {
+    const host = new URL(connectionString).hostname.toLowerCase();
+    return host === "supabase.co" || host.endsWith(".supabase.co");
   } catch {
     return false;
   }
@@ -34,7 +46,7 @@ function isSupabasePoolerConnection(connectionString: string) {
 function buildPool(connectionString: string) {
   const useSupabaseSsl =
     isSupabasePoolerConnection(connectionString) ||
-    connectionString.toLowerCase().includes("supabase.co");
+    isSupabaseProjectHost(connectionString);
 
   return new Pool({
     connectionString,

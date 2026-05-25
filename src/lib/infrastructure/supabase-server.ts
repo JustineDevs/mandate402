@@ -7,6 +7,22 @@ import {
   getSupabaseRuntimeConfig,
 } from "@/lib/infrastructure/env";
 
+function isHostnameWithinDomain(hostname: string, domain: string) {
+  return hostname === domain || hostname.endsWith(`.${domain}`);
+}
+
+function usesSupabaseManagedHost(connectionString: string) {
+  try {
+    const host = new URL(connectionString).hostname.toLowerCase();
+    return (
+      isHostnameWithinDomain(host, "supabase.co") ||
+      isHostnameWithinDomain(host, "pooler.supabase.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
 function createSupabaseServerClient() {
   const config = getSupabaseRuntimeConfig();
   if (!config.url || !config.anonKey) {
@@ -45,9 +61,7 @@ function buildOperatorProfilePool() {
     );
   }
 
-  const useSupabaseSsl =
-    connectionString.toLowerCase().includes("supabase.co") ||
-    connectionString.toLowerCase().includes("pooler.supabase.com");
+  const useSupabaseSsl = usesSupabaseManagedHost(connectionString);
 
   return new Pool({
     connectionString,
