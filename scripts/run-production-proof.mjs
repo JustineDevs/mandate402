@@ -156,7 +156,11 @@ async function main() {
     readOperatorToken() ?? (await readOperatorTokenFromBrowser());
   assertOperatorBearerToken(operatorToken);
   await expectStatus("Public homepage", `${baseUrl}/`, 200);
-  await expectStatus("Protected vendor route without auth", `${baseUrl}/api/vendors`, 401);
+  await expectStatus(
+    "Protected vendor route without auth",
+    `${baseUrl}/api/vendors`,
+    401,
+  );
   await expectStatus(
     "Protected vendor route with auth",
     `${baseUrl}/api/vendors`,
