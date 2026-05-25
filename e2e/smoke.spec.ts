@@ -20,13 +20,11 @@ test.describe("public and operator surfaces", () => {
   test("operator sign-in surface loads", async ({ page }) => {
     await page.goto("/operator");
     await expect(
-      page.getByRole("heading", {
-        name: /sign in to continue/i,
-      }),
+      page.getByLabel(/email/i),
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
-        name: /sign in/i,
+        name: /^sign in$/i,
       }),
     ).toBeVisible();
   });
