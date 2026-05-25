@@ -15,6 +15,7 @@ const webServerTimeout = usePrebuiltNext ? 120_000 : 600_000;
 const webServerEnv = {
   APP_ENV: "test",
   MANDATE402_PERSISTENCE_MODE: "sqlite",
+  MANDATE402_NEXT_DIST_DIR: "tmp/mandate402-next-build",
   MANDATE402_SITE_URL: baseURL,
   // Short client-side cap so E2E does not wait on a real Supabase host.
   NEXT_PUBLIC_CONSOLE_AUTH_SESSION_CHECK_MS: "1500",
