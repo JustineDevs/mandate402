@@ -15,12 +15,14 @@ tsconfig.tsbuildinfo
 .env.local
 internal/dont push.txt
 .tmp
+tmp
 mandate402
 agent-sdk/node_modules
 agent-sdk/package-lock.json
 contracts/out
 contracts/cache
 contracts/broadcast
+public/pitch_deck/*
 
 # OpenNext
 .open-next
@@ -34,6 +36,11 @@ contracts/broadcast
 
 # Cursor hook machine state (may contain local absolute paths)
 .cursor/hooks/state/
+
+# Playwright (skill: prefer output/playwright/ for HTML + traces)
+output/playwright/
+test-results/
+playwright-report/
 
 # Windows: accidental `> nul` in Git Bash creates a real file named `nul` and breaks Turbopack.
 /nul

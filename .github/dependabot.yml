@@ -1,0 +1,44 @@
+updates:
+- directory: /
+  ignore:
+  - dependency-name: "github/gh-aw-actions/**" # Managed by gh aw compile. Version-locked to the gh-aw compiler; do not bump.
+  labels:
+  - dependencies
+  - github-actions
+  open-pull-requests-limit: 5
+  package-ecosystem: github-actions
+  schedule:
+    day: monday
+    interval: weekly
+    time: "04:00"
+- directory: /
+  labels:
+  - dependencies
+  - javascript
+  open-pull-requests-limit: 5
+  package-ecosystem: npm
+  schedule:
+    day: monday
+    interval: weekly
+    time: "04:15"
+- directory: /
+  labels:
+  - dependencies
+  - go
+  open-pull-requests-limit: 5
+  package-ecosystem: gomod
+  schedule:
+    day: monday
+    interval: weekly
+    time: "04:30"
+- directory: /agent-sdk
+  labels:
+  - dependencies
+  - agent-sdk
+  open-pull-requests-limit: 3
+  package-ecosystem: npm
+  schedule:
+    day: monday
+    interval: weekly
+    time: "04:45"
+version: 2

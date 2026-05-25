@@ -23,7 +23,7 @@ import { vendorRegistry } from "@/lib/vendor-registry";
 
 const WORKER_LEASE_MS = 30_000;
 const RECONCILIATION_RETRY_DELAY_MS = 30_000;
-const MAX_RECONCILIATION_ATTEMPTS = 3;
+const UNKNOWN_ATTEMPT_ESCALATION_MS = 15 * 60 * 1000;
 
 export type WorkerProcessSummary = {
   processed: number;
@@ -50,11 +50,13 @@ type DispatchResult =
       status: "executed_charge_succeeded";
       chargeReference: string;
       receiptEvidence: ReceiptEvidenceStatus;
+      finalAmountCents?: number | null;
     }
   | {
       status: "executed_charge_failed";
       chargeReference: string | null;
       receiptEvidence: ReceiptEvidenceStatus;
+      finalAmountCents?: number | null;
     }
   | {
       status: "execution_unknown";
@@ -63,6 +65,43 @@ type DispatchResult =
       paymentPayloadJson: string;
       paymentRequirementsJson: string;
     };
+
+function nextMandateStatusAfterResolution(
+  current: StoreData["mandates"][number]["status"],
+) {
+  if (
+    current === "revoking" ||
+    current === "revoked" ||
+    current === "expired"
+  ) {
+    return current;
+  }
+
+  return "issued_active";
+}
+
+function resolveSettledAmountCents(
+  claimedAmountCents: number,
+  reportedFinalAmountCents: number | null | undefined,
+) {
+  if (
+    typeof reportedFinalAmountCents === "number" &&
+    Number.isInteger(reportedFinalAmountCents) &&
+    reportedFinalAmountCents >= 0
+  ) {
+    return Math.min(reportedFinalAmountCents, claimedAmountCents);
+  }
+
+  return claimedAmountCents;
+}
+
+function isAttemptPastEscalationWindow(updatedAt: string) {
+  const parsed = Date.parse(updatedAt);
+  return (
+    Number.isFinite(parsed) &&
+    Date.now() - parsed >= UNKNOWN_ATTEMPT_ESCALATION_MS
+  );
+}
 
 function makeAudit(
   mandateId: string,
@@ -337,13 +376,18 @@ async function applyDispatchResult(
     attempt.receiptEvidence = result.receiptEvidence;
     attempt.updatedAt = nowIso();
 
+    const finalAmountCents = resolveSettledAmountCents(
+      claimed.amountCents,
+      "finalAmountCents" in result ? result.finalAmountCents : null,
+    );
+
     if (result.status === "executed_charge_succeeded") {
       mandate.reservedCents -= claimed.amountCents;
-      mandate.consumedCents += claimed.amountCents;
-      mandate.status = "issued_active";
+      mandate.consumedCents += finalAmountCents;
+      mandate.status = nextMandateStatusAfterResolution(mandate.status);
     } else if (result.status === "executed_charge_failed") {
       mandate.reservedCents -= claimed.amountCents;
-      mandate.status = "issued_active";
+      mandate.status = nextMandateStatusAfterResolution(mandate.status);
     }
 
     if (result.status === "execution_unknown") {
@@ -418,6 +462,7 @@ async function applyDispatchResult(
         eventType: "financial_outcome",
         metadata: {
           financialOutcome: result.status,
+          finalAmountCents,
         },
       }),
     );
@@ -484,7 +529,7 @@ async function releaseDispatchTask(
       0,
       mandate.reservedCents - claimed.amountCents,
     );
-    mandate.status = "issued_active";
+    mandate.status = nextMandateStatusAfterResolution(mandate.status);
     mandate.updatedAt = nowIso();
 
     data.auditEntries.unshift(
@@ -613,12 +658,10 @@ async function applyReconciliationResult(
     attempt.chargeReference = result.chargeReference ?? attempt.chargeReference;
     attempt.updatedAt = nowIso();
 
-    const finalAmountCents =
-      typeof result.finalAmountCents === "number" &&
-      Number.isInteger(result.finalAmountCents) &&
-      result.finalAmountCents >= 0
-        ? result.finalAmountCents
-        : claimed.amountCents;
+    const finalAmountCents = resolveSettledAmountCents(
+      claimed.amountCents,
+      result.finalAmountCents ?? null,
+    );
 
     if (result.status === "executed_charge_succeeded") {
       mandate.consumedCents += finalAmountCents;
@@ -628,7 +671,7 @@ async function applyReconciliationResult(
       0,
       mandate.reservedCents - claimed.amountCents,
     );
-    mandate.status = "issued_active";
+    mandate.status = nextMandateStatusAfterResolution(mandate.status);
     mandate.updatedAt = nowIso();
 
     data.auditEntries.unshift(
@@ -935,7 +978,17 @@ export async function processNextReconciliation(
       error instanceof Error
         ? error
         : new Error("Unknown reconciliation worker failure.");
-    if (claimed.attemptCount < MAX_RECONCILIATION_ATTEMPTS) {
+    if (isAttemptPastEscalationWindow(attempt.updatedAt)) {
+      await failWorkerTask(
+        claimed.taskId,
+        new Error(
+          `Reconciliation exceeded the ${UNKNOWN_ATTEMPT_ESCALATION_MS / 60_000}-minute escalation window: ${workerError.message}`,
+        ),
+      );
+      return { kind: "failed" };
+    }
+
+    if (attempt.status === "execution_unknown") {
       await requeueWorkerTask(
         claimed.taskId,
         workerError,
@@ -943,6 +996,7 @@ export async function processNextReconciliation(
       );
       return { kind: "requeued" };
     }
+
     await failWorkerTask(claimed.taskId, workerError);
     return { kind: "failed" };
   }

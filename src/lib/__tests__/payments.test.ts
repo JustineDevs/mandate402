@@ -146,4 +146,52 @@ describe("dispatchAttempt", () => {
       }),
     );
   });
+
+  it("treats facilitator-confirmed success as authoritative over vendor failure", async () => {
+    vi.stubEnv(
+      "MORPH_X402_FACILITATOR_URL",
+      "https://facilitator.example/x402",
+    );
+    vi.stubEnv("MORPH_X402_ACCESS_KEY", "test-access");
+    vi.stubEnv("MORPH_X402_SECRET_KEY", "test-secret");
+    vi.stubEnv("PRIMARY_X402_VENDOR_A_URL", "https://example.com/vendor");
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ isValid: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            status: "executed_charge_failed",
+            chargeReference: "charge_live_3",
+            receiptEvidence: "missing_timeout",
+            finalAmountCents: 500,
+          }),
+          {
+            status: 200,
+            headers: {
+              "content-type": "application/json",
+            },
+          },
+        ),
+      );
+
+    const result = await correlateAttemptStatus({
+      vendor: primaryVendor,
+      paymentIdentifier: "pid_5",
+      chargeReference: "charge_live_3",
+      paymentPayloadJson: JSON.stringify({ signed: "payload" }),
+      paymentRequirementsJson: JSON.stringify({ accepts: ["exact"] }),
+    });
+
+    expect(result).toEqual({
+      status: "executed_charge_succeeded",
+      chargeReference: "charge_live_3",
+      receiptEvidence: "missing_timeout",
+      finalAmountCents: 500,
+    });
+  });
 });

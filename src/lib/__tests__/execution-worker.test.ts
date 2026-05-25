@@ -125,9 +125,9 @@ describe("execution worker", () => {
     });
   });
 
-  it("fails reconciliation after retry exhaustion", async () => {
+  it("fails reconciliation after the 15-minute escalation window", async () => {
     const data = createTestStoreData();
-    const now = new Date().toISOString();
+    const staleTime = "2000-01-01T00:00:00.000Z";
 
     data.attempts.unshift({
       id: "att_reconcile_fail",
@@ -141,8 +141,8 @@ describe("execution worker", () => {
       blockedReason: null,
       chargeReference: "charge_fail_1",
       paymentIdentifier: "pid_reconcile_fail",
-      createdAt: now,
-      updatedAt: now,
+      createdAt: staleTime,
+      updatedAt: staleTime,
     });
     data.workerTasks.unshift({
       id: "task_reconcile_fail",
@@ -153,12 +153,12 @@ describe("execution worker", () => {
       correlationId: "corr_fail",
       leaseOwner: null,
       leaseExpiresAt: null,
-      availableAt: now,
+      availableAt: staleTime,
       status: "queued",
-      attemptCount: 2,
+      attemptCount: 9,
       lastError: null,
-      createdAt: now,
-      updatedAt: now,
+      createdAt: staleTime,
+      updatedAt: staleTime,
       startedAt: null,
       completedAt: null,
     });
@@ -184,8 +184,9 @@ describe("execution worker", () => {
     );
     expect(task).toMatchObject({
       status: "failed",
-      attemptCount: 3,
-      lastError: "status endpoint unavailable",
+      attemptCount: 10,
+      lastError:
+        "Reconciliation exceeded the 15-minute escalation window: status endpoint unavailable",
     });
   });
 
@@ -362,6 +363,118 @@ describe("execution worker", () => {
     expect(processedAttempt?.status).toBe("executed_charge_failed");
     expect(refreshedMandates[0].reservedCents).toBe(0);
     expect(refreshedMandates[0].status).toBe("issued_active");
+  });
+
+  it("keeps facilitator-confirmed charge success even if vendor status reports failed", async () => {
+    const data = createTestStoreData();
+    const now = new Date().toISOString();
+    const mandate = data.mandates.find(
+      (entry) => entry.id === "mdt_fixture_001",
+    );
+    if (!mandate) {
+      throw new Error("Expected seeded mandate.");
+    }
+
+    mandate.status = "issued_reserved";
+    mandate.reservedCents = 1200;
+
+    data.attempts.unshift({
+      id: "att_reconcile_facilitator_success",
+      mandateId: "mdt_fixture_001",
+      vendorId: "morph-market-data",
+      amountCents: 1200,
+      operatorId: "operator_fixture",
+      status: "execution_unknown",
+      financialOutcome: "execution_unknown",
+      receiptEvidence: "required_pending",
+      blockedReason: null,
+      chargeReference: "charge_facilitator_success_1",
+      paymentIdentifier: "pid_reconcile_facilitator_success",
+      createdAt: now,
+      updatedAt: now,
+    });
+    data.domainEvents.unshift({
+      id: "evt_reconcile_facilitator_success",
+      entityType: "payment_attempt",
+      entityId: "att_reconcile_facilitator_success",
+      eventType: "attempt_reconciliation_started",
+      correlationId: "corr_facilitator_success",
+      occurredAt: now,
+      metadata: {
+        paymentIdentifier: "pid_reconcile_facilitator_success",
+        workerTaskId: "task_reconcile_facilitator_success",
+        paymentPayloadJson: JSON.stringify({ signed: "payload" }),
+        paymentRequirementsJson: JSON.stringify({ accepts: ["exact"] }),
+      },
+    });
+    data.workerTasks.unshift({
+      id: "task_reconcile_facilitator_success",
+      kind: "reconcile_attempt",
+      attemptId: "att_reconcile_facilitator_success",
+      mandateId: "mdt_fixture_001",
+      operatorId: "operator_fixture",
+      correlationId: "corr_facilitator_success",
+      leaseOwner: null,
+      leaseExpiresAt: null,
+      availableAt: now,
+      status: "queued",
+      attemptCount: 0,
+      lastError: null,
+      createdAt: now,
+      updatedAt: now,
+      startedAt: null,
+      completedAt: null,
+    });
+
+    await resetStoreForTests(data);
+    vi.stubEnv(
+      "MORPH_X402_FACILITATOR_URL",
+      "https://facilitator.example/x402",
+    );
+    vi.stubEnv("MORPH_X402_ACCESS_KEY", "test-access");
+    vi.stubEnv("MORPH_X402_SECRET_KEY", "test-secret");
+    vi.stubEnv("PRIMARY_X402_VENDOR_A_URL", "https://example.com/vendor");
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ isValid: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            status: "executed_charge_failed",
+            chargeReference: "charge_facilitator_success_1",
+            receiptEvidence: "missing_timeout",
+            finalAmountCents: 600,
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      );
+
+    const result = await processReconciliationQueue(1);
+    expect(result).toEqual({
+      processed: 1,
+      completed: 1,
+      unresolved: 0,
+      failed: 0,
+      requeued: 0,
+    });
+
+    const attempts = await listAttempts();
+    const processedAttempt = attempts.find(
+      (attempt) => attempt.id === "att_reconcile_facilitator_success",
+    );
+    const refreshedMandates = await listMandates();
+
+    expect(processedAttempt?.status).toBe("executed_charge_succeeded");
+    expect(processedAttempt?.receiptEvidence).toBe("missing_timeout");
+    expect(refreshedMandates[0].reservedCents).toBe(0);
+    expect(refreshedMandates[0].consumedCents).toBe(1800);
   });
 
   it("releases a queued attempt without vendor dispatch if the mandate was revoked before dispatch", async () => {

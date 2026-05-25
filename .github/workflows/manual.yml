@@ -1,0 +1,56 @@
+name: Manual Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Verification task to run"
+        required: true
+        default: "repo-safety"
+        type: choice
+        options:
+          - repo-safety
+          - biome
+          - test
+          - typecheck
+          - lint
+          - build
+          - release-readiness
+          - workers-dry-run
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run selected task
+        env:
+          APP_ENV: test
+          MANDATE402_PERSISTENCE_MODE: sqlite
+          MANDATE402_SITE_URL: http://127.0.0.1:3001
+          NEXT_PUBLIC_CONSOLE_AUTH_SESSION_CHECK_MS: "1500"
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-test-anon-key-not-a-real-secret
+        run: |
+          case "${{ inputs.task }}" in
+            repo-safety) pnpm check:repo-safety ;;
+            biome) pnpm check:biome ;;
+            test) pnpm test ;;
+            typecheck) pnpm typecheck ;;
+            lint) pnpm exec eslint src e2e playwright.config.ts next.config.ts eslint.config.mjs vitest.config.ts ;;
+            build) pnpm build ;;
+            release-readiness) pnpm check:release-readiness ;;
+            workers-dry-run) pnpm workers:dry-run ;;
+            *) echo "Unknown task: ${{ inputs.task }}" >&2; exit 1 ;;
+          esac

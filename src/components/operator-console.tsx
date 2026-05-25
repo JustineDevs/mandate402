@@ -2,11 +2,17 @@
 
 import { useState, useTransition } from "react";
 
-import type { Mandate, PaymentAttempt, Vendor } from "@/lib/domain/types";
+import type {
+  Agent,
+  Mandate,
+  PaymentAttempt,
+  Vendor,
+} from "@/lib/domain/types";
 
 type OperatorConsoleProps = {
   accessToken: string;
-  mandate: Mandate;
+  agents: Agent[];
+  mandates: Mandate[];
   onChanged: () => Promise<void>;
   attempts: PaymentAttempt[];
   vendors: Vendor[];
@@ -14,30 +20,44 @@ type OperatorConsoleProps = {
 
 export function OperatorConsole({
   accessToken,
-  mandate,
+  agents,
+  mandates,
   onChanged,
   attempts,
   vendors,
 }: OperatorConsoleProps) {
+  const activeMandates = mandates.filter(
+    (entry) =>
+      entry.status === "issued_active" || entry.status === "issued_reserved",
+  );
+  const selectableAgents = agents.filter((entry) => entry.status === "active");
+  const primaryVendors = vendors.filter((vendor) => vendor.mode === "primary");
+  const [selectedMandateId, setSelectedMandateId] = useState(
+    activeMandates[0]?.id ?? "",
+  );
+  const selectedMandate =
+    activeMandates.find((entry) => entry.id === selectedMandateId) ?? null;
+  const allowedAttemptVendors = selectedMandate
+    ? primaryVendors.filter((vendor) =>
+        selectedMandate.approvedVendorIds.includes(vendor.id),
+      )
+    : [];
+  const [selectedAgentId, setSelectedAgentId] = useState(
+    selectableAgents[0]?.id ?? "",
+  );
   const [mandateName, setMandateName] = useState("Fresh Research Mandate");
-  const [agentName, setAgentName] = useState("Research Beta");
   const [budgetCapCents, setBudgetCapCents] = useState("3000");
   const [expiresAt, setExpiresAt] = useState("2026-05-21T12:00:00.000Z");
   const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>(
-    vendors
-      .filter((vendor) => vendor.mode === "primary")
-      .map((vendor) => vendor.id),
+    primaryVendors.map((vendor) => vendor.id),
   );
-  const [agentId] = useState(mandate.agentId);
-  const [vendorId, setVendorId] = useState(
-    mandate.approvedVendorIds[0] ?? vendors[0]?.id ?? "",
-  );
+  const [vendorId, setVendorId] = useState(allowedAttemptVendors[0]?.id ?? "");
   const [amountCents, setAmountCents] = useState("1200");
   const [message, setMessage] = useState("Ready.");
   const [isPending, startTransition] = useTransition();
   const latestUnknownAttempt = attempts.find(
     (attempt) =>
-      attempt.mandateId === mandate.id &&
+      attempt.mandateId === selectedMandateId &&
       attempt.status === "execution_unknown",
   );
 
@@ -59,6 +79,14 @@ export function OperatorConsole({
     return response.json();
   };
 
+  const createMandateDisabled =
+    isPending ||
+    !selectedAgentId ||
+    !mandateName.trim() ||
+    selectedVendorIds.length === 0;
+  const attemptActionDisabled =
+    isPending || !selectedMandate || !vendorId || !amountCents.trim();
+
   return (
     <div className="form-grid mt-5">
       <div className="field">
@@ -78,12 +106,18 @@ export function OperatorConsole({
           />
         </div>
         <div className="field">
-          <label htmlFor="agent-name">Agent name</label>
-          <input
-            id="agent-name"
-            value={agentName}
-            onChange={(event) => setAgentName(event.target.value)}
-          />
+          <label htmlFor="agent-id">Assigned agent</label>
+          <select
+            id="agent-id"
+            value={selectedAgentId}
+            onChange={(event) => setSelectedAgentId(event.target.value)}
+          >
+            {selectableAgents.map((agent) => (
+              <option key={agent.id} value={agent.id}>
+                {agent.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="field">
           <label htmlFor="budget-cap-cents">Budget cap (cents)</label>
@@ -107,38 +141,58 @@ export function OperatorConsole({
           Approved primary vendors
         </label>
         <div className="chip-grid">
-          {vendors
-            .filter((vendor) => vendor.mode === "primary")
-            .map((vendor) => {
-              const selected = selectedVendorIds.includes(vendor.id);
-              return (
-                <button
-                  className={`chip ${selected ? "opacity-100" : "opacity-55"}`}
-                  key={vendor.id}
-                  type="button"
-                  onClick={() =>
-                    setSelectedVendorIds((current) =>
-                      current.includes(vendor.id)
-                        ? current.filter((id) => id !== vendor.id)
-                        : [...current, vendor.id],
-                    )
-                  }
-                >
-                  {vendor.name}
-                </button>
-              );
-            })}
+          {primaryVendors.map((vendor) => {
+            const selected = selectedVendorIds.includes(vendor.id);
+            return (
+              <button
+                className={`chip ${selected ? "opacity-100" : "opacity-55"}`}
+                key={vendor.id}
+                type="button"
+                onClick={() =>
+                  setSelectedVendorIds((current) =>
+                    current.includes(vendor.id)
+                      ? current.filter((id) => id !== vendor.id)
+                      : [...current, vendor.id],
+                  )
+                }
+              >
+                {vendor.name}
+              </button>
+            );
+          })}
         </div>
       </div>
+      <div className="field">
+        <p className="m-0 font-semibold text-charcoal">Mandate actions</p>
+        <p className="m-0 text-sm text-steel">
+          Select an active mandate to run a payment attempt, reconcile an
+          unresolved attempt, or revoke authority.
+        </p>
+      </div>
       <div className="inline-grid">
+        <div className="field">
+          <label htmlFor="selected-mandate">Active mandate</label>
+          <select
+            id="selected-mandate"
+            value={selectedMandateId}
+            onChange={(event) => setSelectedMandateId(event.target.value)}
+          >
+            {activeMandates.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {entry.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="field">
           <label htmlFor="attempt-vendor">Vendor</label>
           <select
             id="attempt-vendor"
             value={vendorId}
             onChange={(event) => setVendorId(event.target.value)}
+            disabled={!selectedMandate}
           >
-            {vendors.map((vendor) => (
+            {allowedAttemptVendors.map((vendor) => (
               <option key={vendor.id} value={vendor.id}>
                 {vendor.name}
               </option>
@@ -157,17 +211,25 @@ export function OperatorConsole({
       <div className="actions">
         <button
           className="pill pill-primary"
-          disabled={isPending}
+          disabled={createMandateDisabled}
           type="button"
           onClick={() =>
             startTransition(async () => {
               try {
+                const selectedAgent = selectableAgents.find(
+                  (agent) => agent.id === selectedAgentId,
+                );
+                if (!selectedAgent) {
+                  throw new Error(
+                    "Select an active agent before issuing a mandate.",
+                  );
+                }
                 const result = await call("/api/mandates", {
                   method: "POST",
                   body: JSON.stringify({
                     name: mandateName,
-                    agentId,
-                    agentName,
+                    agentId: selectedAgent.id,
+                    agentName: selectedAgent.name,
                     budgetCapCents: Number(budgetCapCents),
                     expiresAt,
                     approvedVendorIds: selectedVendorIds,
@@ -190,13 +252,18 @@ export function OperatorConsole({
         </button>
         <button
           className="pill pill-secondary"
-          disabled={isPending}
+          disabled={attemptActionDisabled}
           type="button"
           onClick={() =>
             startTransition(async () => {
               try {
+                if (!selectedMandate) {
+                  throw new Error(
+                    "Select an active mandate before running an attempt.",
+                  );
+                }
                 const result = await call(
-                  `/api/mandates/${mandate.id}/attempts`,
+                  `/api/mandates/${selectedMandate.id}/attempts`,
                   {
                     method: "POST",
                     body: JSON.stringify({
@@ -221,12 +288,15 @@ export function OperatorConsole({
         </button>
         <button
           className="pill pill-secondary"
-          disabled={isPending}
+          disabled={isPending || !selectedMandate}
           type="button"
           onClick={() =>
             startTransition(async () => {
               try {
-                await call(`/api/mandates/${mandate.id}/revoke`, {
+                if (!selectedMandate) {
+                  throw new Error("Select an active mandate before revoking.");
+                }
+                await call(`/api/mandates/${selectedMandate.id}/revoke`, {
                   method: "POST",
                 });
                 setMessage("Mandate revoked.");
@@ -244,13 +314,18 @@ export function OperatorConsole({
         {latestUnknownAttempt ? (
           <button
             className="pill pill-secondary"
-            disabled={isPending}
+            disabled={isPending || !selectedMandate}
             type="button"
             onClick={() =>
               startTransition(async () => {
                 try {
+                  if (!selectedMandate) {
+                    throw new Error(
+                      "Select an active mandate before reconciling.",
+                    );
+                  }
                   const result = await call(
-                    `/api/mandates/${mandate.id}/attempts/${latestUnknownAttempt.id}/reconcile`,
+                    `/api/mandates/${selectedMandate.id}/attempts/${latestUnknownAttempt.id}/reconcile`,
                     {
                       method: "POST",
                       body: JSON.stringify({}),

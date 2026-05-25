@@ -1,0 +1,49 @@
+app:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/**"
+          - "next.config.ts"
+          - "playwright.config.ts"
+          - "e2e/**"
+
+workers:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/workers/**"
+          - "wrangler.worker.toml"
+          - "workers/**"
+
+contracts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "contracts/**"
+
+go:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "main.go"
+          - "go.mod"
+          - "go.sum"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "README.md"
+          - "SECURITY.md"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - "scripts/**"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "SECURITY.md"
+          - "src/lib/modules/auth.ts"
+          - "src/lib/infrastructure/supabase-*.ts"
+          - "src/app/api/**"
+          - "db/migrations/**"
+          - "drizzle/**"

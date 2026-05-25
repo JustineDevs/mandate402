@@ -4,6 +4,19 @@
 
 Agents working in this repository must apply the matching skill before changing a lane.
 
+This is not advisory.
+For any meaningful bug fix, feature, hot-fix, refactor, hardening pass, or release-prep change:
+
+1. choose the matching lane skill before edits
+2. apply the relevant overlay skills before verification
+3. use the skill guidance to prove changed routes, pages, and components are real, wired, and not stubbed or partial
+
+When preparing work for push or PR:
+
+- all applicable `.cursor/commands/*` lenses must also be executed
+- all applicable `.agents/skills/*` checks must be executed
+- silent skipping is not allowed; non-applicable surfaces must be explicitly justified
+
 ## Mandatory Mandate402 Skills
 
 - `mandate402-frontend`

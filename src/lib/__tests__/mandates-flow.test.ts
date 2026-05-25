@@ -29,8 +29,6 @@ beforeEach(async () => {
 
 const TEST_PRIVATE_KEY =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
-const TEST_OPERATOR_TOKEN = "test-operator-token";
-
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.clearAllMocks();
@@ -80,7 +78,6 @@ describe("mandate flow", () => {
 
   it("does not mark execution_unknown as reconciled before correlation", async () => {
     vi.stubEnv("MORPH_PRIVATE_KEY", TEST_PRIVATE_KEY);
-    vi.stubEnv("MANDATE402_OPERATOR_TOKEN", TEST_OPERATOR_TOKEN);
     vi.stubEnv("PRIMARY_X402_VENDOR_A_URL", "https://example.com/vendor");
     vi.spyOn(globalThis, "fetch").mockImplementation(
       () =>
@@ -121,7 +118,6 @@ describe("mandate flow", () => {
 
   it("reconciles unknown attempts from correlated vendor truth", async () => {
     vi.stubEnv("MORPH_PRIVATE_KEY", TEST_PRIVATE_KEY);
-    vi.stubEnv("MANDATE402_OPERATOR_TOKEN", TEST_OPERATOR_TOKEN);
     vi.stubEnv("PRIMARY_X402_VENDOR_A_URL", "https://example.com/vendor");
     vi.spyOn(globalThis, "fetch")
       .mockImplementationOnce(
