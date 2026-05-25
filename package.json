@@ -5,6 +5,7 @@
   "pnpm": {
     "overrides": {
       "postcss": "8.5.10",
+      "uuid": "14.0.0",
       "ws": "8.20.1"
     }
   },
