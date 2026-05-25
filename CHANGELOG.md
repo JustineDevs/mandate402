@@ -1,3 +1,20 @@
+# [0.2.0](https://github.com/JustineDevs/mandate402/compare/v0.1.0...v0.2.0) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ci:** use issues.addAssignees in PR routing workflow ([#36](https://github.com/JustineDevs/mandate402/issues/36)) ([40b05d0](https://github.com/JustineDevs/mandate402/commit/40b05d0a84da7508b326ecc65fce9a7cd7d3c265))
+* stabilize CI YAML and test environment compatibility ([#2](https://github.com/JustineDevs/mandate402/issues/2)) ([09e26ec](https://github.com/JustineDevs/mandate402/commit/09e26ec1a9c118722f7e3ea96347bba06aeaef71))
+* stabilize operator auth/runtime and pre-release verification ([#66](https://github.com/JustineDevs/mandate402/issues/66)) ([#68](https://github.com/JustineDevs/mandate402/issues/68)) ([88db7bc](https://github.com/JustineDevs/mandate402/commit/88db7bc67452075bb0c35e813cb0da6c1ff18bb5)), closes [#aw](https://github.com/JustineDevs/mandate402/issues/aw)
+
+
+### Features
+
+* harden production path and make repository workflow release-strict ([#1](https://github.com/JustineDevs/mandate402/issues/1)) ([68d8d7f](https://github.com/JustineDevs/mandate402/commit/68d8d7f04192ffc3e20017bf0805382813bdd228))
+* **integration:** operator console UI, docs taxonomy, and dev tooling ([#35](https://github.com/JustineDevs/mandate402/issues/35)) ([7fbf6fb](https://github.com/JustineDevs/mandate402/commit/7fbf6fbc9377e72daa479f5b35e72027d1b6b440))
+* **persistence:** migrate runtime store to SQLite ([d915f46](https://github.com/JustineDevs/mandate402/commit/d915f461fd2607025cc4fe5bb1dc09cc2280da2d))
+* **x402:** route backend vendor execution through real x402 buyer client ([e079838](https://github.com/JustineDevs/mandate402/commit/e079838e166104fb96b4b3c91387b2417aa9e7f2))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
