@@ -189,7 +189,6 @@ export async function signUpOperatorWithEmailPassword(input: {
   password: string;
   fullName?: string;
 }) {
-  const config = getSupabaseAuthUiConfig();
   const redirectTo = getBrowserAuthRedirectUrl("/operator");
   const fullName = input.fullName?.trim();
 

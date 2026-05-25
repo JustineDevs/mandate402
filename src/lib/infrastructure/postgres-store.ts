@@ -10,6 +10,12 @@ import { assertStoreIntegrity } from "@/lib/infrastructure/store-integrity";
 
 const POSTGRES_LOCK_KEY = 402001;
 const runtimeMigrationsDir = path.join(process.cwd(), "db", "migrations");
+const supabaseOnlyMigrations = new Set([
+  "0003_operator_auth_tables.sql",
+  "0004_operator_treasury_wallets.sql",
+  "0005_operator_wallet_runtime_state.sql",
+  "0006_operator_profile_insert_policy.sql",
+]);
 
 let pool: Pool | null = null;
 let schemaPool: Pool | null = null;
@@ -102,9 +108,13 @@ async function ensureSchema() {
         .filter((file) => file.endsWith(".sql"))
         .sort();
       const applied = await readAppliedBootstrapMigrations(client);
+      const hasAuthSchema = await schemaExists(client, "auth");
 
       for (const file of migrationFiles) {
         if (applied.has(file)) {
+          continue;
+        }
+        if (!hasAuthSchema && supabaseOnlyMigrations.has(file)) {
           continue;
         }
 
@@ -131,6 +141,21 @@ async function ensureSchema() {
   } finally {
     schemaEnsurePromise = null;
   }
+}
+
+async function schemaExists(client: PoolClient, schemaName: string) {
+  const result = await client.query<{ exists: boolean }>(
+    `
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.schemata
+        WHERE schema_name = $1
+      ) AS exists
+    `,
+    [schemaName],
+  );
+
+  return result.rows[0]?.exists === true;
 }
 
 async function tableExists(client: PoolClient, tableName: string) {
