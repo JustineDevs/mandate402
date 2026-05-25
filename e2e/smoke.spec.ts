@@ -20,8 +20,13 @@ test.describe("public and operator surfaces", () => {
   test("operator sign-in surface loads", async ({ page }) => {
     await page.goto("/operator");
     await expect(
-      page.getByText("Sign in with your Supabase operator account.", {
-        exact: true,
+      page.getByRole("heading", {
+        name: /sign in to continue/i,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: /sign in/i,
       }),
     ).toBeVisible();
   });
