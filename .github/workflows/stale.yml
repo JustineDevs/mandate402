@@ -1,0 +1,37 @@
+name: Stale
+
+on:
+  schedule:
+    - cron: "19 2 * * 1"
+  workflow_dispatch:
+
+env:
+  GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v10
+        with:
+          repo-token: ${{ env.GH_TOKEN }}
+          stale-issue-message: >
+            This issue has been marked stale because it has had no recent activity.
+            If this is still actionable, add an update and it will stay open.
+          stale-pr-message: >
+            This pull request has been marked stale because it has had no recent activity.
+            If work is still active, add an update or push a change.
+          close-issue-message: >
+            Closing this stale issue due to inactivity.
+          close-pr-message: >
+            Closing this stale pull request due to inactivity.
+          days-before-stale: 30
+          days-before-close: 14
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: security,pinned,release-blocker
+          exempt-pr-labels: security,pinned,release-blocker

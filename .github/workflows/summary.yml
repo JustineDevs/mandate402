@@ -1,0 +1,62 @@
+name: Workflow Summary
+
+on:
+  workflow_run:
+    workflows: ["CI", "API Smoke", "Changesets", "Verify Contract"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Optional workflow run id to summarize"
+        required: false
+        type: string
+
+env:
+  GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          github-token: ${{ env.GH_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const runId = context.eventName === "workflow_dispatch"
+              ? core.getInput("run_id")
+              : String(context.payload.workflow_run.id);
+
+            if (!runId) {
+              core.summary.addHeading("Workflow Summary");
+              core.summary.addRaw("No run id was provided.");
+              await core.summary.write();
+              return;
+            }
+
+            const { data } = await github.rest.actions.listJobsForWorkflowRun({
+              owner,
+              repo,
+              run_id: Number(runId),
+            });
+
+            core.summary.addHeading(`Workflow Summary: ${runId}`);
+            core.summary.addTable([
+              [
+                { data: "Job", header: true },
+                { data: "Status", header: true },
+                { data: "Conclusion", header: true },
+              ],
+              ...data.jobs.map((job) => [
+                job.name,
+                job.status,
+                job.conclusion ?? "in_progress",
+              ]),
+            ]);
+            await core.summary.write();
