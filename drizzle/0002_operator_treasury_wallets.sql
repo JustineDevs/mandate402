@@ -78,8 +78,8 @@ INSERT INTO "operator_treasury_wallet_accounts" (
 )
 SELECT
   "auth_user_id",
-  COALESCE("preferred_wallet_provider", "external"),
-  COALESCE("preferred_treasury_mode", "external_fusion"),
+  COALESCE("preferred_wallet_provider", 'external'),
+  COALESCE("preferred_treasury_mode", 'external_fusion'),
   'Primary treasury lane',
   "wallet_address",
   'eip155',
