@@ -1,11 +1,15 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { CategoryAccentChip } from "@/components/category-accent";
 import { ConsoleCard, ConsoleCodeSurface } from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
 import { StatusPill } from "@/components/status-pill";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -22,12 +26,45 @@ import {
 } from "@/lib/operator-view-model";
 
 export default function TransactionsPage() {
+  const router = useRouter();
+  const [isReconciling, setIsReconciling] = useState<string | null>(null);
+
+  const handleReconcile = async (
+    mandateId: string,
+    attemptId: string,
+    token: string,
+  ) => {
+    setIsReconciling(attemptId);
+    try {
+      const response = await fetch(
+        `/api/mandates/${mandateId}/attempts/${attemptId}/reconcile`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to reconcile attempt");
+      }
+
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      alert("Reconciliation failed. Check logs or retry.");
+    } finally {
+      setIsReconciling(null);
+    }
+  };
+
   return (
     <OperatorGate
       title="Payment attempts"
       description="Inspect allowed, blocked, and unresolved payment attempts without exposing raw backend internals."
     >
-      {({ data }) => {
+      {({ data, accessToken }) => {
         const attempts = data.dashboard.attempts;
         const selected = attempts[0];
 
@@ -107,7 +144,7 @@ export default function TransactionsPage() {
                       <TableHead>Amount</TableHead>
                       <TableHead>Financial</TableHead>
                       <TableHead>Receipt</TableHead>
-                      <TableHead>Reason / Charge</TableHead>
+                      <TableHead>Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -136,10 +173,31 @@ export default function TransactionsPage() {
                             tone={receiptTone(attempt.receiptEvidence)}
                           />
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {attempt.blockedReason ??
-                            attempt.chargeReference ??
-                            "pending"}
+                        <TableCell>
+                          {attempt.status === "execution_unknown" ? (
+                            <Button
+                              size="sm"
+                              className="bg-mandate-green text-xs font-bold text-white hover:bg-mandate-green-dark"
+                              onClick={() =>
+                                handleReconcile(
+                                  attempt.mandateId,
+                                  attempt.id,
+                                  accessToken,
+                                )
+                              }
+                              disabled={isReconciling === attempt.id}
+                            >
+                              {isReconciling === attempt.id
+                                ? "..."
+                                : "Reconcile"}
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              {attempt.blockedReason ??
+                                attempt.chargeReference ??
+                                "complete"}
+                            </span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

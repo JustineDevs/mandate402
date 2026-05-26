@@ -156,6 +156,7 @@ const testStoreData: StoreData = {
       },
     },
   ],
+  groupedApprovals: [],
 };
 
 let lock = Promise.resolve();
@@ -666,6 +667,7 @@ export async function readStore(): Promise<StoreData> {
         string | number | boolean | null
       >,
     })),
+    groupedApprovals: [],
   };
 
   assertStoreIntegrity(store);

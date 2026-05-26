@@ -71,6 +71,10 @@ function getPool() {
   }
 
   pool = buildPool(connectionString);
+  pool.on("error", (error) => {
+    console.error("Unexpected error on idle postgres pool client:", error);
+  });
+
   return pool;
 }
 
@@ -87,6 +91,13 @@ function getSchemaPool() {
   }
 
   schemaPool = buildPool(connectionString);
+  schemaPool.on("error", (error) => {
+    console.error(
+      "Unexpected error on idle postgres schema pool client:",
+      error,
+    );
+  });
+
   return schemaPool;
 }
 
@@ -543,6 +554,7 @@ async function readStoreFromClient(client: PoolClient): Promise<StoreData> {
         string | number | boolean | null
       >,
     })),
+    groupedApprovals: [],
   };
 
   assertStoreIntegrity(store);

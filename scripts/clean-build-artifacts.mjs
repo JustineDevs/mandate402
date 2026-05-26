@@ -9,8 +9,7 @@ const roots = [
   ".open-next",
   ".vercel/output",
   "tmp/mandate402-next-build",
-  ".tmp/wrangler-cloudflare-dry-run",
-  ".tmp/wrangler-dry-run",
+  ".tmp",
 ];
 
 const RETRIES = 8;
@@ -69,6 +68,6 @@ async function rmTreeWithRetries(absPath, options) {
 
 for (const root of roots) {
   const abs = path.join(process.cwd(), root);
-  const tolerate = root === ".next";
+  const tolerate = root === ".next" || root === ".tmp";
   await rmTreeWithRetries(abs, { tolerateFailure: tolerate });
 }

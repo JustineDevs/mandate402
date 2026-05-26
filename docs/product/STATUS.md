@@ -1,6 +1,6 @@
 # Mandate402 Status
 
-This document is for contributors, reviewers, and stakeholders who want a concise view of what Mandate402 is today, what is still demo-shaped, and what the likely next documentation and product steps are.
+This document is for contributors, reviewers, and stakeholders who want a concise view of what Mandate402 is today and what the likely next documentation and product steps are.
 
 ## Current Product Shape
 
@@ -16,18 +16,18 @@ Mandate402 currently demonstrates a narrow but complete operator loop:
 ## What Is Real Now
 
 - operator-facing Next.js app and API routes
-- local SQLite-backed runtime store
+- PostgreSQL database (Supabase/Drizzle) for production-grade persistence
+- Real operator authentication (Supabase JWT/Session)
 - explicit audit entries and domain events
 - policy checks before payment dispatch
+- Worker-driven signer isolation and settlement execution
 - x402-based demo vendor integration
 - Morph lifecycle anchoring for mandate issue and revoke
 - treasury contract that models facilitator allowlists and fiat-window guardrails
 
 ## What Is Still Demo-Shaped
 
-- local or environment-configured vendor paths
-- simple operator authentication
-- local runtime persistence
+- simple external vendor paths (bundled Go demo merchant)
 - a demo merchant rather than a broad production vendor ecosystem
 - treasury contract exists alongside the app runtime, but is not yet invoked in every payment attempt path
 

@@ -11,7 +11,16 @@ export type SupabaseWeb3Chain = "ethereum";
 
 function readOptionalEnv(value: string | undefined) {
   const normalized = value?.trim();
-  return normalized ? normalized : undefined;
+  if (
+    !normalized ||
+    normalized === "replace-me" ||
+    normalized === "0xreplace_me" ||
+    normalized === "your-project.supabase.co" ||
+    normalized.includes("your-app.example.com")
+  ) {
+    return undefined;
+  }
+  return normalized;
 }
 
 export function isTestRuntime() {
@@ -19,13 +28,21 @@ export function isTestRuntime() {
 }
 
 export function getAppEnv(): AppEnv {
-  const value = process.env.APP_ENV?.trim().toLowerCase();
+  const value = (process.env.NEXT_PUBLIC_APP_ENV ?? process.env.APP_ENV)
+    ?.trim()
+    .toLowerCase();
+
   if (!value) {
     if (isTestRuntime()) {
       return "test";
     }
 
-    throw new Error("APP_ENV must be explicitly set.");
+    // On the client, we default to 'production' only if no public override is set.
+    if (typeof window !== "undefined") {
+      return "production";
+    }
+
+    throw new Error("APP_ENV or NEXT_PUBLIC_APP_ENV must be explicitly set.");
   }
 
   if (value === "test" || value === "production") {
@@ -42,7 +59,7 @@ export function isProductionEnv() {
 export function getPersistenceMode(): PersistenceMode {
   const value = process.env.MANDATE402_PERSISTENCE_MODE?.trim().toLowerCase();
   if (!value) {
-    return isTestRuntime() ? "sqlite" : "postgres";
+    return isProductionEnv() ? "postgres" : "sqlite";
   }
 
   if (value === "sqlite" || value === "postgres") {
@@ -72,11 +89,25 @@ export function getWorkerToken() {
 }
 
 export function getSupabaseRuntimeConfig() {
+  const url = readOptionalEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
+  );
+  const anonKey = readOptionalEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY,
+  );
+
+  if (!url || !anonKey) {
+    if (!isProductionEnv()) {
+      return {
+        url: url ?? "http://localhost:54321",
+        anonKey: anonKey ?? "local-dev-mock-key",
+      };
+    }
+  }
+
   return {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
-    anonKey:
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-      process.env.SUPABASE_ANON_KEY,
+    url,
+    anonKey,
   };
 }
 
@@ -185,6 +216,7 @@ export function getPrivyRuntimeConfig() {
 }
 
 export function getBiconomyRuntimeConfig() {
+  const apiKey = readOptionalEnv(process.env.NEXT_PUBLIC_BICONOMY_API_KEY);
   const chainIdValue = readOptionalEnv(
     process.env.NEXT_PUBLIC_BICONOMY_DEFAULT_CHAIN_ID ??
       process.env.MORPH_CHAIN_ID,
@@ -198,7 +230,7 @@ export function getBiconomyRuntimeConfig() {
       : ("0x000000004F43C49e93C970E84001853a70923B03" as const);
 
   return {
-    apiKey: readOptionalEnv(process.env.NEXT_PUBLIC_BICONOMY_API_KEY),
+    apiKey,
     supertransactionApiBaseUrl:
       readOptionalEnv(process.env.NEXT_PUBLIC_BICONOMY_API_BASE_URL) ??
       "https://api.biconomy.io",
@@ -225,8 +257,8 @@ export function getMorphRuntimeConfig() {
 
   return {
     rpcUrl,
-    privateKey: process.env.MORPH_PRIVATE_KEY,
-    contractAddress: process.env.MANDATE_REGISTRY_ADDRESS as
+    privateKey: readOptionalEnv(process.env.MORPH_PRIVATE_KEY),
+    contractAddress: readOptionalEnv(process.env.MANDATE_REGISTRY_ADDRESS) as
       | `0x${string}`
       | undefined,
     chainId: Number(chainIdValue),
@@ -271,8 +303,10 @@ export function getMorphX402FacilitatorUrl() {
 
 export function getPrimaryVendorEndpoint(vendorId: string) {
   const mapping: Record<string, string | undefined> = {
-    "morph-market-data": process.env.PRIMARY_X402_VENDOR_A_URL,
-    "morph-research-net": process.env.PRIMARY_X402_VENDOR_B_URL,
+    "morph-market-data": readOptionalEnv(process.env.PRIMARY_X402_VENDOR_A_URL),
+    "morph-research-net": readOptionalEnv(
+      process.env.PRIMARY_X402_VENDOR_B_URL,
+    ),
   };
 
   return mapping[vendorId];
@@ -293,10 +327,10 @@ function appendStatusPath(endpoint: string | undefined) {
 export function getPrimaryVendorStatusEndpoint(vendorId: string) {
   const mapping: Record<string, string | undefined> = {
     "morph-market-data": appendStatusPath(
-      process.env.PRIMARY_X402_VENDOR_A_URL,
+      readOptionalEnv(process.env.PRIMARY_X402_VENDOR_A_URL),
     ),
     "morph-research-net": appendStatusPath(
-      process.env.PRIMARY_X402_VENDOR_B_URL,
+      readOptionalEnv(process.env.PRIMARY_X402_VENDOR_B_URL),
     ),
   };
 

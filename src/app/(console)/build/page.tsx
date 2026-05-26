@@ -1,10 +1,14 @@
 "use client";
 
+import type { Route } from "next";
+import Link from "next/link";
+
 import { ConsoleCard, ConsoleCodeSurface } from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
 import { StatusPill } from "@/components/status-pill";
+import { Button } from "@/components/ui/button";
 import { formatUsd } from "@/lib/operator-view-model";
 
 export default function BuildPage() {
@@ -23,6 +27,15 @@ export default function BuildPage() {
             title="Treasury Status"
             summary="This is the safety-control-room view for treasury posture: how much is in motion, what is degraded, and whether the system is ready to trust a machine payment."
             heroTone="control"
+            actions={
+              <div className="flex gap-2">
+                <Link href={"/build/rebalance" as Route}>
+                  <Button className="rounded-full bg-white font-bold text-brand-control hover:bg-white/90">
+                    Rebalance Treasury
+                  </Button>
+                </Link>
+              </div>
+            }
             toolbar={
               <>
                 <StatusPill

@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
+
 import { ConsoleCard } from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
 import { StatusPill } from "@/components/status-pill";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -40,7 +43,12 @@ export default function MandatesPage() {
             title="Mandates"
             summary="Issue and review agent spending mandates with clear limits, approved vendors, and revocation history."
             actions={
-              <>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/mandates/create">
+                  <Button className="rounded-full bg-white font-bold text-mandate-green hover:bg-white/90">
+                    Create Mandate
+                  </Button>
+                </Link>
                 <StatusPill
                   label={`${liveMandates.length} Live`}
                   tone="success"
@@ -49,7 +57,7 @@ export default function MandatesPage() {
                   label={`${revokedMandates.length} Revoked / Expired`}
                   tone="danger"
                 />
-              </>
+              </div>
             }
           >
             <div className="grid gap-6 lg:grid-cols-3">

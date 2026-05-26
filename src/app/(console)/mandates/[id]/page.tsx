@@ -1,13 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { ConsoleCodeSurface } from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
 import { StatusPill } from "@/components/status-pill";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -27,13 +38,43 @@ import {
 export default function MandateDetailPage() {
   const params = useParams<{ id?: string }>();
   const mandateId = typeof params?.id === "string" ? params.id : "";
+  const router = useRouter();
+  const [isRevoking, setIsRevoking] = useState(false);
+  const [revokeError, setRevokeError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleRevoke = async (token: string) => {
+    setIsRevoking(true);
+    setRevokeError(null);
+
+    try {
+      const response = await fetch(`/api/mandates/${mandateId}/revoke`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to revoke mandate");
+      }
+
+      setDialogOpen(false);
+      router.refresh();
+    } catch (err: unknown) {
+      setRevokeError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsRevoking(false);
+    }
+  };
 
   return (
     <OperatorGate
       title="Mandate detail"
       description="Review the real mandate, its spend posture, and its related attempts without relying on a canned timeline."
     >
-      {({ data }) => {
+      {({ data, accessToken }) => {
         const mandate = data.dashboard.mandates.find(
           (entry) => entry.id === mandateId,
         );
@@ -62,6 +103,10 @@ export default function MandateDetailPage() {
           );
         }
 
+        const isRevocable =
+          mandate.status === "issued_active" ||
+          mandate.status === "issued_reserved";
+
         const attempts = data.dashboard.attempts.filter(
           (attempt) => attempt.mandateId === mandate.id,
         );
@@ -79,13 +124,55 @@ export default function MandateDetailPage() {
             title={mandate.name}
             summary="This detail page reflects the current mandate, the spend already in motion, and the exact attempt history tied to this ID."
             toolbar={
-              <>
+              <div className="flex flex-wrap gap-2">
+                {isRevocable && (
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger
+                      render={
+                        <Button className="rounded-full bg-red-600 font-bold text-white hover:bg-red-700">
+                          Revoke Mandate
+                        </Button>
+                      }
+                    />
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Revoke Mandate</DialogTitle>
+                        <DialogDescription>
+                          This action immediately removes spend authority from
+                          this mandate and records a revoke event on Morph.
+                          Queued and future attempts will be blocked.
+                        </DialogDescription>
+                      </DialogHeader>
+                      {revokeError && (
+                        <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
+                          {revokeError}
+                        </div>
+                      )}
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setDialogOpen(false)}
+                          disabled={isRevoking}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          className="bg-red-600 text-white hover:bg-red-700"
+                          onClick={() => handleRevoke(accessToken)}
+                          disabled={isRevoking}
+                        >
+                          {isRevoking ? "Revoking..." : "Confirm Revoke"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
                 <StatusPill
                   label={mandate.status}
                   tone={mandateTone(mandate.status)}
                 />
                 <StatusPill label={`${attempts.length} Attempts`} tone="info" />
-              </>
+              </div>
             }
           >
             <div className="grid gap-6 lg:grid-cols-4">
