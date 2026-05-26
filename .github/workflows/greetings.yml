@@ -17,7 +17,7 @@ jobs:
   greeting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/first-interaction@v2
+      - uses: actions/first-interaction@v3
         with:
           repo-token: ${{ env.GH_TOKEN }}
           issue-message: >
