@@ -9,6 +9,18 @@ export type AppEnv = "test" | "production";
 export type PersistenceMode = "sqlite" | "postgres";
 export type SupabaseWeb3Chain = "ethereum";
 
+function isPlaceholderAppHost(value: string) {
+  const placeholderHost = "your-app.example.com";
+
+  try {
+    const withScheme = value.includes("://") ? value : `https://${value}`;
+    const hostname = new URL(withScheme).hostname.toLowerCase();
+    return hostname === placeholderHost;
+  } catch {
+    return value.toLowerCase() === placeholderHost;
+  }
+}
+
 function readOptionalEnv(value: string | undefined) {
   const normalized = value?.trim();
   if (
@@ -16,7 +28,7 @@ function readOptionalEnv(value: string | undefined) {
     normalized === "replace-me" ||
     normalized === "0xreplace_me" ||
     normalized === "your-project.supabase.co" ||
-    normalized.includes("your-app.example.com")
+    isPlaceholderAppHost(normalized)
   ) {
     return undefined;
   }
