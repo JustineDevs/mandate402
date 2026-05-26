@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.20.0
       - uses: actions/setup-node@v4
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.20.0
       - uses: actions/setup-node@v4
@@ -99,7 +99,7 @@ jobs:
       MANDATE402_DATABASE_DIRECT_URL: postgres://mandate402:mandate402@127.0.0.1:5432/mandate402_test
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.20.0
       - uses: actions/setup-node@v4
