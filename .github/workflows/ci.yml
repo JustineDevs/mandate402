@@ -15,7 +15,7 @@ jobs:
       go: ${{ steps.scope.outputs.go }}
       contracts: ${{ steps.scope.outputs.contracts }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - id: scope
@@ -31,7 +31,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10.20.0
@@ -63,7 +63,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.workers == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10.20.0
@@ -98,7 +98,7 @@ jobs:
       MANDATE402_DATABASE_URL: postgres://mandate402:mandate402@127.0.0.1:5432/mandate402_test
       MANDATE402_DATABASE_DIRECT_URL: postgres://mandate402:mandate402@127.0.0.1:5432/mandate402_test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10.20.0
@@ -114,7 +114,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.contracts == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
@@ -125,7 +125,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
