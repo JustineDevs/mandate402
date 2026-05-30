@@ -1,3 +1,5 @@
+import { formatOperatorToken } from "@/lib/operator-display-labels";
+
 export type StatusTone = "success" | "warning" | "danger" | "info" | "neutral";
 
 const toneClassMap: Record<StatusTone, string> = {
@@ -12,16 +14,26 @@ const toneClassMap: Record<StatusTone, string> = {
 };
 
 interface StatusPillProps {
+  /** Raw token from API/store, or already formatted text. */
   label: string;
   tone?: StatusTone;
+  /** When false, show label verbatim (e.g. counts). Default true. */
+  humanize?: boolean;
 }
 
-export function StatusPill({ label, tone = "neutral" }: StatusPillProps) {
+export function StatusPill({
+  label,
+  tone = "neutral",
+  humanize = true,
+}: StatusPillProps) {
+  const display = humanize ? formatOperatorToken(label) : label;
+
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${toneClassMap[tone]}`}
+      className={`inline-flex max-w-full items-center rounded-full border px-2.5 py-1 text-xs font-semibold leading-snug normal-case sm:px-3 sm:text-[11px] ${toneClassMap[tone]}`}
+      title={display}
     >
-      {label}
+      <span className="truncate">{display}</span>
     </span>
   );
 }

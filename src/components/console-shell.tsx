@@ -3,9 +3,9 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 
+import { ConsoleTopNav } from "@/components/console-top-nav";
 import type { GlobalSearchItem } from "@/components/global-search";
 import { Sidebar, SidebarNavPanel } from "@/components/sidebar";
-import { TopNav } from "@/components/top-nav";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 export type ConsoleHeroTone = "brand" | "control";
@@ -94,9 +94,9 @@ export function ConsoleShell({
           </span>
         </div>
 
-        <TopNav searchExtraItems={searchExtraItems} />
+        <ConsoleTopNav searchExtraItems={searchExtraItems} />
 
-        <main className="mx-auto w-full max-w-6xl">
+        <main className="mx-auto w-full min-w-0 max-w-6xl">
           <section className="mb-6 overflow-hidden rounded-lg border border-hairline bg-canvas shadow-sm sm:mb-8">
             <div
               className={`px-5 py-6 text-on-dark sm:px-8 sm:py-8 ${heroBandClass}`}
@@ -126,7 +126,7 @@ export function ConsoleShell({
             ) : null}
           </section>
 
-          <section className="grid gap-6 sm:gap-8">{children}</section>
+          <section className="grid min-w-0 gap-6 sm:gap-8">{children}</section>
         </main>
       </div>
     </div>

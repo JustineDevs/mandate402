@@ -9,9 +9,30 @@ export type AppEnv = "test" | "production";
 export type PersistenceMode = "sqlite" | "postgres";
 export type SupabaseWeb3Chain = "ethereum";
 
+function isPlaceholderAppHost(value: string) {
+  const placeholderHost = "your-app.example.com";
+
+  try {
+    const withScheme = value.includes("://") ? value : `https://${value}`;
+    const hostname = new URL(withScheme).hostname.toLowerCase();
+    return hostname === placeholderHost;
+  } catch {
+    return value.toLowerCase() === placeholderHost;
+  }
+}
+
 function readOptionalEnv(value: string | undefined) {
   const normalized = value?.trim();
-  return normalized ? normalized : undefined;
+  if (
+    !normalized ||
+    normalized === "replace-me" ||
+    normalized === "0xreplace_me" ||
+    normalized === "your-project.supabase.co" ||
+    isPlaceholderAppHost(normalized)
+  ) {
+    return undefined;
+  }
+  return normalized;
 }
 
 export function isTestRuntime() {
@@ -19,7 +40,14 @@ export function isTestRuntime() {
 }
 
 export function getAppEnv(): AppEnv {
+  if (typeof window !== "undefined") {
+    throw new Error(
+      "APP_ENV is server-only. Browser chrome reads environment from GET /api/console/runtime.",
+    );
+  }
+
   const value = process.env.APP_ENV?.trim().toLowerCase();
+
   if (!value) {
     if (isTestRuntime()) {
       return "test";
@@ -39,10 +67,26 @@ export function isProductionEnv() {
   return getAppEnv() === "production";
 }
 
+/** True when primary vendors may point at localhost (Next dev / explicit opt-in). */
+export function isLocalVendorRehearsalAllowed() {
+  if (
+    process.env.MANDATE402_ALLOW_LOCAL_VENDORS?.trim().toLowerCase() === "true"
+  ) {
+    return true;
+  }
+
+  return process.env.NODE_ENV === "development";
+}
+
+/** True when the app is running on a deployed production host (e.g. Vercel). */
+export function isDeployedProductionRuntime() {
+  return isProductionEnv() && process.env.VERCEL === "1";
+}
+
 export function getPersistenceMode(): PersistenceMode {
   const value = process.env.MANDATE402_PERSISTENCE_MODE?.trim().toLowerCase();
   if (!value) {
-    return isTestRuntime() ? "sqlite" : "postgres";
+    return isProductionEnv() ? "postgres" : "sqlite";
   }
 
   if (value === "sqlite" || value === "postgres") {
@@ -71,12 +115,61 @@ export function getWorkerToken() {
   return token || undefined;
 }
 
-export function getSupabaseRuntimeConfig() {
+export function getWorkerControlApiUrl() {
+  return (
+    readOptionalEnv(process.env.MANDATE402_CONTROL_API_URL) ??
+    readOptionalEnv(process.env.MANDATE402_WORKER_CONTROL_URL)
+  );
+}
+
+export type WorkerQueueRuntimeConfig = {
+  maxRetries: number;
+  retryDelaySeconds: number;
+  dlqConfigured: boolean;
+};
+
+export function getWorkerQueueRuntimeConfig(): WorkerQueueRuntimeConfig {
+  const maxRetries = Number.parseInt(
+    process.env.MANDATE402_WORKER_MAX_RETRIES ?? "3",
+    10,
+  );
+  const retryDelaySeconds = Number.parseInt(
+    process.env.MANDATE402_WORKER_RETRY_DELAY_SECONDS ?? "30",
+    10,
+  );
+
   return {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
-    anonKey:
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-      process.env.SUPABASE_ANON_KEY,
+    maxRetries: Number.isFinite(maxRetries) ? maxRetries : 3,
+    retryDelaySeconds: Number.isFinite(retryDelaySeconds)
+      ? retryDelaySeconds
+      : 30,
+    dlqConfigured: readBooleanEnv(
+      process.env.MANDATE402_WORKER_DLQ_CONFIGURED,
+      isTestRuntime(),
+    ),
+  };
+}
+
+export function getSupabaseRuntimeConfig() {
+  const url = readOptionalEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
+  );
+  const anonKey = readOptionalEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY,
+  );
+
+  if (!url || !anonKey) {
+    if (!isProductionEnv()) {
+      return {
+        url: url ?? "http://localhost:54321",
+        anonKey: anonKey ?? "local-dev-mock-key",
+      };
+    }
+  }
+
+  return {
+    url,
+    anonKey,
   };
 }
 
@@ -185,6 +278,7 @@ export function getPrivyRuntimeConfig() {
 }
 
 export function getBiconomyRuntimeConfig() {
+  const apiKey = readOptionalEnv(process.env.NEXT_PUBLIC_BICONOMY_API_KEY);
   const chainIdValue = readOptionalEnv(
     process.env.NEXT_PUBLIC_BICONOMY_DEFAULT_CHAIN_ID ??
       process.env.MORPH_CHAIN_ID,
@@ -198,7 +292,7 @@ export function getBiconomyRuntimeConfig() {
       : ("0x000000004F43C49e93C970E84001853a70923B03" as const);
 
   return {
-    apiKey: readOptionalEnv(process.env.NEXT_PUBLIC_BICONOMY_API_KEY),
+    apiKey,
     supertransactionApiBaseUrl:
       readOptionalEnv(process.env.NEXT_PUBLIC_BICONOMY_API_BASE_URL) ??
       "https://api.biconomy.io",
@@ -225,8 +319,8 @@ export function getMorphRuntimeConfig() {
 
   return {
     rpcUrl,
-    privateKey: process.env.MORPH_PRIVATE_KEY,
-    contractAddress: process.env.MANDATE_REGISTRY_ADDRESS as
+    privateKey: readOptionalEnv(process.env.MORPH_PRIVATE_KEY),
+    contractAddress: readOptionalEnv(process.env.MANDATE_REGISTRY_ADDRESS) as
       | `0x${string}`
       | undefined,
     chainId: Number(chainIdValue),
@@ -271,8 +365,10 @@ export function getMorphX402FacilitatorUrl() {
 
 export function getPrimaryVendorEndpoint(vendorId: string) {
   const mapping: Record<string, string | undefined> = {
-    "morph-market-data": process.env.PRIMARY_X402_VENDOR_A_URL,
-    "morph-research-net": process.env.PRIMARY_X402_VENDOR_B_URL,
+    "morph-market-data": readOptionalEnv(process.env.PRIMARY_X402_VENDOR_A_URL),
+    "morph-research-net": readOptionalEnv(
+      process.env.PRIMARY_X402_VENDOR_B_URL,
+    ),
   };
 
   return mapping[vendorId];
@@ -293,10 +389,10 @@ function appendStatusPath(endpoint: string | undefined) {
 export function getPrimaryVendorStatusEndpoint(vendorId: string) {
   const mapping: Record<string, string | undefined> = {
     "morph-market-data": appendStatusPath(
-      process.env.PRIMARY_X402_VENDOR_A_URL,
+      readOptionalEnv(process.env.PRIMARY_X402_VENDOR_A_URL),
     ),
     "morph-research-net": appendStatusPath(
-      process.env.PRIMARY_X402_VENDOR_B_URL,
+      readOptionalEnv(process.env.PRIMARY_X402_VENDOR_B_URL),
     ),
   };
 

@@ -27,6 +27,9 @@ describe("mandate402 Cloudflare Worker", () => {
         executionQueueConfigured: false,
         reconciliationQueueConfigured: false,
         controlApiConfigured: true,
+        dlqConfigured: true,
+        maxRetries: 3,
+        retryDelaySeconds: 30,
       },
     });
   });
@@ -90,9 +93,16 @@ describe("mandate402 Cloudflare Worker", () => {
 
     await handleWorkerQueue(
       {
+        queue: "mandate402-execution",
         messages: [
           {
-            body: { kind: "dispatch_attempt" },
+            body: {
+              kind: "dispatch_attempt",
+              workerId: "cloudflare-queue-execution",
+              correlationId: null,
+              commandId: "cmd_test_1",
+              issuedAt: "2026-01-01T00:00:00.000Z",
+            },
             ack,
             retry,
           },

@@ -1,7 +1,11 @@
 "use client";
 
 import { CategoryAccentChip } from "@/components/category-accent";
-import { ConsoleCard, ConsoleCodeSurface } from "@/components/console-card";
+import {
+  ConsoleCard,
+  ConsoleCodeSurface,
+  ConsolePanel,
+} from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
@@ -14,34 +18,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { vendorStatusTone } from "@/lib/operator-view-model";
+import { consoleSplitSection, consoleStatGrid3 } from "@/lib/console-layout";
+import { fallbackGateTone } from "@/lib/operator-display-labels";
+import { formatVendorMode, vendorStatusTone } from "@/lib/operator-view-model";
 
 export default function VendorsPage() {
   return (
     <OperatorGate
-      title="Vendor registry"
-      description="Inspect the named vendor set, fallback posture, and receipt support in one protected operator view."
+      title="Sign in to view vendors"
+      description="Open the vendor registry."
     >
       {({ data }) => (
         <ConsoleShell
           activeTab="Vendors"
-          eyebrow="Vendor Registry"
-          title="Vendors"
-          summary="Named paid endpoints stay visible here with explicit mode and fallback posture so operators can distinguish the approved path from any guarded backup behavior."
+          eyebrow="Vendors"
+          title="Vendor registry"
+          summary="Named endpoints with mode, fallback posture, and receipt support."
           toolbar={
             <>
               <StatusPill
                 label={data.dashboard.fallbackGate.decision_status}
-                tone="warning"
+                tone={fallbackGateTone(
+                  data.dashboard.fallbackGate.decision_status,
+                )}
               />
               <StatusPill
-                label={`${data.dashboard.vendors.filter((vendor) => vendor.mode === "primary").length} Primary`}
+                label={`${data.dashboard.vendors.filter((vendor) => vendor.mode === "primary").length} primary vendors`}
+                humanize={false}
                 tone="success"
               />
             </>
           }
         >
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className={consoleStatGrid3()}>
             <ConsoleCard
               eyebrow="Primary Path"
               value={String(
@@ -78,8 +87,8 @@ export default function VendorsPage() {
             </ConsoleCard>
           </div>
 
-          <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+          <section className={consoleSplitSection()}>
+            <ConsolePanel>
               <SectionHeader
                 eyebrow="Named Targets"
                 title="Vendor registry summary"
@@ -114,7 +123,7 @@ export default function VendorsPage() {
                         </div>
                         <div className="text-xs text-steel">{vendor.id}</div>
                       </TableCell>
-                      <TableCell>{vendor.mode}</TableCell>
+                      <TableCell>{formatVendorMode(vendor.mode)}</TableCell>
                       <TableCell>
                         <StatusPill
                           label={vendor.status}
@@ -131,20 +140,29 @@ export default function VendorsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </ConsolePanel>
 
-            <ConsoleCodeSurface title="Boundary legend">
+            <ConsoleCodeSurface
+              title="How vendors fit"
+              summary="Vendors deliver services, facilitators move money, and treasury enforces spend limits before anything executes."
+              className="min-w-0"
+            >
               <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
-                <p>vendor = the paid service the agent wants to use</p>
                 <p>
-                  facilitator = payment infrastructure, not the service itself
+                  A vendor is the paid service the agent is trying to use (for
+                  example an API or data provider).
                 </p>
                 <p>
-                  treasury = the budget guardrail that approves or denies spend
+                  A facilitator is payment infrastructure — it is not the
+                  service itself.
                 </p>
                 <p>
-                  fallback gate = the policy that controls fallback adapter
-                  usage
+                  Treasury is the budget guardrail that approves or denies
+                  spend.
+                </p>
+                <p>
+                  The fallback gate controls when backup vendor adapters may be
+                  used instead of primary paths.
                 </p>
               </div>
             </ConsoleCodeSurface>

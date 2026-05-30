@@ -8,6 +8,7 @@ import { OperatorSignUpForm } from "@/components/auth/operator-sign-up-form";
 import { getSupabaseAuthUiConfig } from "@/lib/infrastructure/env";
 import {
   ensureOperatorProfileFromSession,
+  formatOperatorAuthErrorMessage,
   getSupabaseBrowserClient,
   signInOperatorWithGoogle,
   signInOperatorWithWeb3,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/infrastructure/supabase-browser";
 
 const operatorHref = "/operator" as Route;
-const operatorConnectHref = "/operator/connect" as Route;
+const operatorSettingsHref = "/settings?treasury=1" as Route;
 
 export function OperatorSignUpWorkspace() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export function OperatorSignUpWorkspace() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState(
-    "Creates a Supabase operator user. If email confirmation is on in your Supabase project, check your inbox before signing in.",
+    "Create an operator account. If email confirmation is enabled, check your inbox before signing in.",
   );
   const [isPending, startTransition] = useTransition();
 
@@ -36,7 +37,7 @@ export function OperatorSignUpWorkspace() {
       if (data.session?.access_token) {
         void ensureOperatorProfileFromSession(data.session)
           .catch(() => undefined)
-          .finally(() => router.replace(operatorConnectHref));
+          .finally(() => router.replace(operatorSettingsHref));
       }
     });
   }, [router, supabase]);
@@ -45,8 +46,8 @@ export function OperatorSignUpWorkspace() {
     <div className="mx-auto my-8 flex w-full max-w-md justify-center px-4">
       <OperatorSignUpForm
         className="w-full"
-        title="Create your operator account."
-        description="Use email, Google, or an existing wallet for access. Treasury wallet setup happens right after sign-in, with an in-app wallet path recommended before you enter the console."
+        title="Create operator account"
+        description="Use email, Google, or a wallet. Link a treasury wallet under Settings after sign-in."
         fullName={fullName}
         email={email}
         password={password}
@@ -68,18 +69,18 @@ export function OperatorSignUpWorkspace() {
               fullName: fullName.trim() || undefined,
             });
             if (error) {
-              setMessage(error.message);
+              setMessage(formatOperatorAuthErrorMessage(error, "sign_up"));
               return;
             }
             if (data.session?.access_token) {
               await ensureOperatorProfileFromSession(data.session);
               setMessage("Account ready. Opening setup…");
-              router.replace(operatorConnectHref);
+              router.replace(operatorSettingsHref);
               return;
             }
             if (data.user) {
               setMessage(
-                `Check your email (${email.trim()}) to confirm your account, then sign in on the operator page.`,
+                `Check your email (${email.trim()}) to confirm the account, then sign in.`,
               );
               return;
             }
@@ -105,11 +106,11 @@ export function OperatorSignUpWorkspace() {
             }
             if (data.session?.access_token) {
               await ensureOperatorProfileFromSession(data.session);
-              router.replace(operatorConnectHref);
+              router.replace(operatorSettingsHref);
               return;
             }
             setMessage(
-              "Complete the wallet flow and continue through the connection setup once the session is ready.",
+              "Complete the wallet sign-in flow, then open Settings to link a treasury wallet.",
             );
           })
         }

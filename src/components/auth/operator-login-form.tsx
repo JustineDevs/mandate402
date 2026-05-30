@@ -11,7 +11,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,7 +77,7 @@ export function OperatorLoginForm({
             />
           </div>
           <div>
-            <CardTitle className="text-xl tracking-tight">{title}</CardTitle>
+            <h1 className="text-xl tracking-tight">{title}</h1>
             <CardDescription className="text-pretty pt-1.5">
               {description}
             </CardDescription>
@@ -133,7 +132,7 @@ export function OperatorLoginForm({
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-card text-muted-foreground px-2 font-medium tracking-wide">
-                    Or continue with
+                    Other sign-in options
                   </span>
                 </div>
               </div>
@@ -163,7 +162,7 @@ export function OperatorLoginForm({
                       className="mr-2 h-[18px] w-[18px] shrink-0 opacity-80"
                       aria-hidden
                     />
-                    Continue with wallet
+                    Sign in with wallet
                   </Button>
                 ) : null}
               </div>
@@ -178,7 +177,7 @@ export function OperatorLoginForm({
               New here?{" "}
               <Link
                 href={createAccountHref}
-                className="text-primary font-medium underline-offset-4 hover:underline"
+                className="text-primary inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline"
               >
                 Create an account
               </Link>

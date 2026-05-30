@@ -54,6 +54,7 @@ jobs:
           DEMO_KEY=$(node -e "console.log('0x' + '1'.repeat(64))")
           DEMO_ADDR=$(node -e "console.log('0x19E7E376E7C213B7E7E7E46CC70A5DD086DAFF2A')")
           cat > .env.local <<EOF
+          APP_ENV=test
           MANDATE402_TESTNET_RPC_URL=https://rpc-hoodi.morph.network
           MANDATE402_TESTNET_CHAIN_ID=2910
           MANDATE402_TESTNET_EXPLORER_URL=https://explorer-hoodi.morph.network/

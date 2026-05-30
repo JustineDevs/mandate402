@@ -168,6 +168,69 @@ export type FallbackGate = {
   evidence_links: string[];
 };
 
+export type GroupedApprovalStatus =
+  | "pending"
+  | "ready_to_execute"
+  | "executed"
+  | "cancelled";
+
+export type GroupedApproval = {
+  id: string;
+  actionType:
+    | "high_value_payment"
+    | "policy_change"
+    | "vendor_allowlist_change";
+  description: string;
+  threshold: number;
+  signatures: string[]; // Operator IDs
+  status: GroupedApprovalStatus;
+  entityId: string; // The ID of the mandate, payment, or vendor being approved
+  correlationId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  executedAt: string | null;
+  executedBy: string | null;
+};
+
+export type BridgeQuoteRequest = {
+  fromChainId: number;
+  toChainId: number;
+  tokenAddress: string;
+  amountCents: number;
+};
+
+export type BridgeQuoteResponse = {
+  quoteId: string;
+  estimatedFeesCents: number;
+  estimatedTimeMinutes: number;
+  exchangeRate: number;
+  expiresAt: string;
+};
+
+export type FacilitatorRegistration = {
+  name: string;
+  address: string;
+  endpoint: string;
+  initialStakeCents: number;
+};
+
+export type SlashingProposal = {
+  facilitatorAddress: string;
+  reason: string;
+  evidenceLink: string;
+  penaltyCents: number;
+};
+
+export type GovernanceFacilitator = {
+  id: string;
+  name: string;
+  address: string;
+  endpoint: string;
+  stakeCents: number;
+  status: "active" | "slashed" | "jailed";
+  riskScore: number; // 0 to 100
+};
+
 export type StoreData = {
   agents: Agent[];
   mandates: Mandate[];
@@ -175,4 +238,5 @@ export type StoreData = {
   workerTasks: WorkerTask[];
   auditEntries: AuditEntry[];
   domainEvents: DomainEvent[];
+  groupedApprovals: GroupedApproval[];
 };

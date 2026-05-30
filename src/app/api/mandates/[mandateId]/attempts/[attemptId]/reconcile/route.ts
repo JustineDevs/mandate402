@@ -1,8 +1,10 @@
+import { UnauthorizedError } from "@/lib/domain/errors";
 import { jsonErrorFrom, jsonOk } from "@/lib/infrastructure/api";
 import { logEvent } from "@/lib/infrastructure/logger";
 import { readCorrelationId } from "@/lib/infrastructure/observability";
 import { requireOperator } from "@/lib/modules/auth";
 import { ensureReconciliationQueued } from "@/lib/modules/execution-worker";
+import { requireOperatorOnboardingComplete } from "@/lib/operator-access";
 
 export async function POST(
   request: Request,
@@ -13,7 +15,15 @@ export async function POST(
   },
 ) {
   try {
-    await requireOperator(request);
+    const operator = await requireOperator(request);
+    const bearer = request.headers.get("authorization");
+    const accessToken = bearer?.startsWith("Bearer ")
+      ? bearer.slice("Bearer ".length)
+      : undefined;
+    if (!accessToken) {
+      throw new UnauthorizedError("Missing bearer token.");
+    }
+    await requireOperatorOnboardingComplete(accessToken, operator.operatorId);
     const correlationId = readCorrelationId(request);
     const { mandateId, attemptId } = await params;
     const queued = await ensureReconciliationQueued({

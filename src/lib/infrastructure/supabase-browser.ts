@@ -248,3 +248,23 @@ export async function signInOperatorWithWeb3() {
     wallet: wallet as never,
   });
 }
+
+export function formatOperatorAuthErrorMessage(
+  error: { message?: string | null } | null | undefined,
+  mode: "sign_in" | "sign_up",
+) {
+  const message = error?.message?.trim();
+  if (!message) {
+    return mode === "sign_in"
+      ? "Unable to continue."
+      : "Unexpected response from sign-up. Try again.";
+  }
+
+  if (message.toLowerCase().includes("captcha")) {
+    return mode === "sign_in"
+      ? "Email/password sign-in is blocked by Supabase CAPTCHA in this environment. Use Google sign-in or configure CAPTCHA support before using the password flow."
+      : "Email/password sign-up is blocked by Supabase CAPTCHA in this environment. Use Google sign-in or configure CAPTCHA support before using the password flow.";
+  }
+
+  return message;
+}

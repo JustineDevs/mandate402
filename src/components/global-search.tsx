@@ -3,6 +3,7 @@
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
   Tooltip,
@@ -72,16 +73,23 @@ const DEFAULT_INDEX: GlobalSearchItem[] = [
   {
     id: "settings",
     label: "Settings",
-    description: "System health and configuration",
+    description: "Account, wallet link, and runtime fields",
     href: "/settings",
-    keywords: ["health", "runtime", "chain"],
+    keywords: ["health", "runtime", "chain", "wallet", "profile"],
   },
   {
-    id: "build",
-    label: "Build",
-    description: "Integrator build diary",
-    href: "/build",
-    keywords: ["developer", "api"],
+    id: "wallet-settings",
+    label: "Wallet settings",
+    description: "Link or update the treasury wallet",
+    href: "/settings?treasury=1" as Route,
+    keywords: ["connect", "wallet", "treasury", "external"],
+  },
+  {
+    id: "runtime",
+    label: "Runtime status",
+    description: "Spend exposure, queues, and system readiness",
+    href: "/treasury" as Route,
+    keywords: ["build", "liquidity", "runtime", "status"],
   },
   {
     id: "home",
@@ -98,6 +106,8 @@ interface GlobalSearchDialogProps {
   extraItems?: GlobalSearchItem[];
 }
 
+const DIALOG_ROLE = "dialog";
+
 /**
  * v0.1.1 global search shell: route index + client-side filter.
  * Parent owns Cmd/Ctrl+K and passes `open` / `onOpenChange`.
@@ -109,9 +119,14 @@ export function GlobalSearchDialog({
 }: GlobalSearchDialogProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const panelRef = useRef<HTMLDialogElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const allItems = useMemo(
     () => [...DEFAULT_INDEX, ...extraItems],
@@ -160,18 +175,29 @@ export function GlobalSearchDialog({
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   function navigateTo(href: Route) {
     onOpenChange(false);
     router.push(href);
   }
 
-  if (!open) {
+  if (!open || !mounted) {
     return null;
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[120] flex items-start justify-center bg-ink/40 px-3 pt-[min(20vh,8rem)] pb-8 sm:px-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-ink/45 p-4 sm:p-6"
       role="presentation"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) {
@@ -179,11 +205,12 @@ export function GlobalSearchDialog({
         }
       }}
     >
-      <dialog
+      <div
         ref={panelRef}
-        open
+        role={DIALOG_ROLE}
         aria-labelledby={titleId}
-        className="m-0 w-full max-w-lg overflow-hidden rounded-xl border border-hairline-strong bg-canvas p-0 shadow-[0_28px_80px_rgba(15,23,32,0.28)]"
+        aria-modal="true"
+        className="w-full max-w-lg shrink-0 overflow-hidden rounded-xl border border-hairline-strong bg-canvas p-0 shadow-[0_28px_80px_rgba(15,23,32,0.28)]"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="border-b border-hairline px-4 py-3 sm:px-5">
@@ -204,7 +231,8 @@ export function GlobalSearchDialog({
             autoComplete="off"
           />
           <p className="mt-1 text-xs text-stone">
-            v0.1.1 — filter is local; link APIs for mandate IDs next.
+            Local search across console routes. Server-backed mandate search
+            comes later.
           </p>
         </div>
         <ul
@@ -239,8 +267,9 @@ export function GlobalSearchDialog({
         <div className="border-t border-hairline px-4 py-2 text-[11px] text-stone sm:px-5">
           Esc to close · click row to navigate
         </div>
-      </dialog>
-    </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -254,15 +283,33 @@ export function GlobalSearchTriggerButton({
       <TooltipTrigger
         type="button"
         onClick={onClick}
-        className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-hairline bg-surface-soft px-3 text-xs font-bold uppercase tracking-wider text-steel transition-colors hover:border-hairline-strong hover:text-charcoal"
-        aria-label="Open global search"
+        className="inline-flex min-h-11 w-full min-w-0 max-w-lg items-center gap-3 rounded-full border border-hairline bg-canvas px-4 text-left shadow-sm transition-colors hover:border-hairline-strong hover:bg-surface-soft sm:max-w-xl"
+        aria-label="Search workspace"
       >
-        <span className="text-[10px] text-stone">⌘K</span>
-        <span>Search</span>
+        <svg
+          className="h-5 w-5 shrink-0 text-steel"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone">
+          Search workspace…
+        </span>
+        <kbd className="hidden shrink-0 rounded-md border border-hairline bg-surface-soft px-2 py-0.5 font-mono-reference text-[10px] font-bold uppercase tracking-wider text-steel sm:inline">
+          ⌘K
+        </kbd>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="max-w-xs text-left">
-        Jump to any workspace route. Local filter only — server-backed mandate
-        search comes later.
+        Jump to any page in the console. Keyboard shortcut: ⌘K (Ctrl+K on
+        Windows).
       </TooltipContent>
     </Tooltip>
   );

@@ -123,6 +123,26 @@ export const defaultNavItems: NavigationItem[] = [
     ),
   },
   {
+    name: "Runtime",
+    href: "/treasury",
+    icon: (
+      <svg
+        className="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M9 17v-6m3 6V7m3 10v-3m5 7H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v14a2 2 0 01-2 2z"
+        />
+      </svg>
+    ),
+  },
+  {
     name: "Audit",
     href: "/audit",
     icon: (
@@ -207,26 +227,6 @@ export const defaultBottomItems: NavigationItem[] = [
           strokeLinejoin="round"
           strokeWidth="2"
           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Treasury",
-    href: "/build",
-    icon: (
-      <svg
-        className="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M14.7 6.3a1 1 0 010 1.4L12.41 10l2.3 2.3a1 1 0 01-1.42 1.4l-3-3a1 1 0 010-1.4l3-3a1 1 0 011.41 0zM9.29 13.99a1 1 0 010-1.4L11.59 10l-2.3-2.3a1 1 0 011.42-1.4l3 3a1 1 0 010 1.4l-3 3a1 1 0 01-1.42 0z"
         />
       </svg>
     ),

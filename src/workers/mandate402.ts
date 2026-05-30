@@ -4,11 +4,13 @@ type QueueName = "dispatch_attempt" | "reconcile_attempt";
 
 type QueueMessage = {
   body: unknown;
+  attempts?: number;
   ack(): void;
   retry(options?: { delaySeconds?: number }): void;
 };
 
 type MessageBatch = {
+  queue: string;
   messages: QueueMessage[];
 };
 
@@ -47,8 +49,12 @@ type WorkerQueueEnvelope = {
   kind: QueueName;
   workerId: string;
   correlationId: string | null;
+  commandId: string;
   issuedAt: string;
 };
+
+const WORKER_MAX_RETRIES = 3;
+const WORKER_RETRY_DELAY_SECONDS = 30;
 
 type BudgetState = {
   reservedCents: number;
@@ -125,15 +131,35 @@ async function forwardWorkerRoute(
   return response.json() as Promise<unknown>;
 }
 
-function readQueueKind(message: QueueMessage): QueueName | null {
+function readQueueEnvelope(message: QueueMessage): WorkerQueueEnvelope | null {
   if (!message.body || typeof message.body !== "object") {
     return null;
   }
 
-  const kind = (message.body as { kind?: unknown }).kind;
-  return kind === "dispatch_attempt" || kind === "reconcile_attempt"
-    ? kind
-    : null;
+  const body = message.body as Partial<WorkerQueueEnvelope>;
+  if (
+    (body.kind !== "dispatch_attempt" && body.kind !== "reconcile_attempt") ||
+    typeof body.commandId !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    kind: body.kind,
+    workerId:
+      typeof body.workerId === "string" ? body.workerId : "cloudflare-queue",
+    correlationId:
+      typeof body.correlationId === "string" ? body.correlationId : null,
+    commandId: body.commandId,
+    issuedAt:
+      typeof body.issuedAt === "string"
+        ? body.issuedAt
+        : new Date().toISOString(),
+  };
+}
+
+function isDeadLetterQueueBatch(batch: MessageBatch) {
+  return batch.queue.endsWith("-dlq");
 }
 
 async function enqueueRequest(
@@ -154,10 +180,12 @@ async function enqueueRequest(
 
   const now = new Date().toISOString();
   const correlationId = request.headers.get("x-correlation-id");
+  const commandId = crypto.randomUUID();
   await queue.send({
     kind,
     workerId: "cloudflare-control-api",
     correlationId,
+    commandId,
     issuedAt: now,
   });
   await createWorkerCacheStorage(
@@ -167,6 +195,7 @@ async function enqueueRequest(
     kind,
     correlationId,
     workerId: "cloudflare-control-api",
+    commandId,
     status: "queued",
     createdAt: now,
   });
@@ -200,6 +229,9 @@ export async function handleWorkerFetch(request: Request, env: WorkerEnv) {
         executionQueueConfigured: Boolean(env.EXECUTION_QUEUE),
         reconciliationQueueConfigured: Boolean(env.RECONCILIATION_QUEUE),
         controlApiConfigured: Boolean(env.MANDATE402_CONTROL_API_URL),
+        dlqConfigured: true,
+        maxRetries: WORKER_MAX_RETRIES,
+        retryDelaySeconds: WORKER_RETRY_DELAY_SECONDS,
       },
     });
   }
@@ -250,21 +282,42 @@ export async function handleWorkerFetch(request: Request, env: WorkerEnv) {
 
 export async function handleWorkerQueue(batch: MessageBatch, env: WorkerEnv) {
   const cache = createWorkerCacheStorage(env.MANDATE402_WORKER_CACHE);
+
+  if (isDeadLetterQueueBatch(batch)) {
+    for (const message of batch.messages) {
+      const envelope = readQueueEnvelope(message);
+      const now = new Date().toISOString();
+      await cache.recordControlEvent({
+        id: crypto.randomUUID(),
+        kind: envelope?.kind ?? "invalid",
+        correlationId: envelope?.correlationId ?? null,
+        workerId: "cloudflare-dlq",
+        commandId: envelope?.commandId ?? null,
+        attemptCount: message.attempts ?? null,
+        status: "dead_letter",
+        createdAt: now,
+      });
+      message.ack();
+    }
+    return;
+  }
+
   for (const message of batch.messages) {
-    const kind = readQueueKind(message);
+    const envelope = readQueueEnvelope(message);
+    const kind = envelope?.kind ?? null;
     const now = new Date().toISOString();
     try {
       if (kind === "dispatch_attempt") {
         await forwardWorkerRoute(
           env,
           "/api/internal/workers/execute",
-          "cloudflare-queue-execution",
+          envelope?.workerId ?? "cloudflare-queue-execution",
         );
       } else if (kind === "reconcile_attempt") {
         await forwardWorkerRoute(
           env,
           "/api/internal/workers/reconcile",
-          "cloudflare-queue-reconciliation",
+          envelope?.workerId ?? "cloudflare-queue-reconciliation",
         );
       } else {
         throw new Error("Queue message kind is missing or invalid.");
@@ -272,8 +325,10 @@ export async function handleWorkerQueue(batch: MessageBatch, env: WorkerEnv) {
       await cache.recordControlEvent({
         id: crypto.randomUUID(),
         kind,
-        correlationId: null,
-        workerId: "cloudflare-queue",
+        correlationId: envelope?.correlationId ?? null,
+        workerId: envelope?.workerId ?? "cloudflare-queue",
+        commandId: envelope?.commandId ?? null,
+        attemptCount: message.attempts ?? null,
         status: "forwarded",
         createdAt: now,
       });
@@ -282,12 +337,14 @@ export async function handleWorkerQueue(batch: MessageBatch, env: WorkerEnv) {
       await cache.recordControlEvent({
         id: crypto.randomUUID(),
         kind: kind ?? "invalid",
-        correlationId: null,
-        workerId: "cloudflare-queue",
+        correlationId: envelope?.correlationId ?? null,
+        workerId: envelope?.workerId ?? "cloudflare-queue",
+        commandId: envelope?.commandId ?? null,
+        attemptCount: message.attempts ?? null,
         status: "retrying",
         createdAt: now,
       });
-      message.retry({ delaySeconds: 30 });
+      message.retry({ delaySeconds: WORKER_RETRY_DELAY_SECONDS });
     }
   }
 }

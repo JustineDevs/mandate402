@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { GET as getConsoleRuntime } from "@/app/api/console/runtime/route";
 import { GET as getFallbackGate } from "@/app/api/fallback-gate/route";
 import { POST as reconcileAttempt } from "@/app/api/mandates/[mandateId]/attempts/[attemptId]/reconcile/route";
 import { POST as createAttempt } from "@/app/api/mandates/[mandateId]/attempts/route";
@@ -194,6 +195,25 @@ describe("API routes", () => {
     expect(await response.json()).toEqual({
       ok: false,
       error: "Unauthorized operator request.",
+    });
+  });
+
+  it("returns public console runtime chrome without auth", async () => {
+    const response = await getConsoleRuntime(
+      new Request("http://localhost/api/console/runtime", {
+        method: "GET",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json.ok).toBe(true);
+    expect(json.data).toMatchObject({
+      environmentLabel: expect.any(String),
+      chainLabel: expect.any(String),
+      apiOrigin: "http://localhost",
+      status: expect.stringMatching(/^(ok|degraded)$/),
+      syncedAt: expect.any(String),
     });
   });
 
@@ -575,6 +595,17 @@ describe("API routes", () => {
       localOnlyPrimaryVendors: [],
       fallbackEnabled: false,
     });
+    expect(json.data.readiness).toMatchObject({
+      operatorAuthReady: true,
+      morphAnchoringReady: false,
+      primaryVendorsReady: true,
+      fallbackExecutionEnabled: false,
+      agents: {
+        label: "governed_identities",
+        agentExecutionApiEnabled: false,
+      },
+    });
+    expect(Array.isArray(json.data.readiness.degradedReasons)).toBe(true);
     expect(Array.isArray(json.data.vendorRuntime.endpoints)).toBe(true);
   });
 });

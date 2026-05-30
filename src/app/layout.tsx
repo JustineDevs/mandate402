@@ -1,7 +1,6 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 
-import { TreasuryWalletProvider } from "@/components/providers/treasury-wallet-provider";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -83,13 +82,11 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <TreasuryWalletProvider>
-          <TooltipProvider delay={200}>
-            <div id="main-content" tabIndex={-1} className="outline-none">
-              {children}
-            </div>
-          </TooltipProvider>
-        </TreasuryWalletProvider>
+        <TooltipProvider delay={200}>
+          <div id="main-content" tabIndex={-1} className="outline-none">
+            {children}
+          </div>
+        </TooltipProvider>
         <Analytics />
       </body>
     </html>

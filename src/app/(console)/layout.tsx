@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { ConsoleAuthGate } from "@/components/console-auth-gate";
+import { ConsoleProviders } from "@/components/console-providers";
 
 export const metadata: Metadata = {
   robots: {
@@ -20,5 +21,9 @@ export default function ConsoleRouteLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <ConsoleAuthGate>{children}</ConsoleAuthGate>;
+  return (
+    <ConsoleAuthGate>
+      <ConsoleProviders>{children}</ConsoleProviders>
+    </ConsoleAuthGate>
+  );
 }
