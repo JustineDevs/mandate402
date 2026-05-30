@@ -20,6 +20,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  agentIdentityLabel,
+  agentIdentityTone,
+  formatShortAddress,
+} from "@/lib/agent-identity-view";
 import { consoleSplitSection, consoleStatGrid4 } from "@/lib/console-layout";
 import type { DashboardData } from "@/lib/dashboard-data";
 import {
@@ -80,6 +85,7 @@ export function Dashboard({
   const incidentTone = data.incidents.length > 0 ? "warning" : "success";
   const onboardingComplete = operator.onboardingState === "complete";
   const readinessSummary = summarizeReadiness(data.systemStatus.readiness);
+  const agentsById = new Map(data.agents.map((agent) => [agent.id, agent]));
 
   return (
     <ConsoleShell
@@ -318,6 +324,9 @@ export function Dashboard({
             mandates={data.mandates}
             attempts={data.attempts}
             onChanged={onChanged}
+            treasuryEnforcementMode={
+              data.systemStatus.blockchain.treasuryEnforcementMode
+            }
             vendors={data.vendors}
           />
         ) : (
@@ -355,6 +364,7 @@ export function Dashboard({
               <TableRow>
                 <TableHead>Mandate</TableHead>
                 <TableHead>Agent</TableHead>
+                <TableHead>Identity</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Budget in motion</TableHead>
               </TableRow>
@@ -363,30 +373,51 @@ export function Dashboard({
               {activeMandates.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="py-10 text-center text-muted-foreground"
                   >
                     No active mandates found.
                   </TableCell>
                 </TableRow>
               ) : (
-                activeMandates.slice(0, 6).map((mandate) => (
-                  <TableRow key={mandate.id}>
-                    <TableCell className="font-medium text-charcoal">
-                      {mandate.name}
-                    </TableCell>
-                    <TableCell>{mandate.agentName}</TableCell>
-                    <TableCell>
-                      <StatusPill
-                        label={mandate.status}
-                        tone={mandateTone(mandate.status)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {formatUsd(mandate.reservedCents + mandate.consumedCents)}
-                    </TableCell>
-                  </TableRow>
-                ))
+                activeMandates.slice(0, 6).map((mandate) => {
+                  const agent = agentsById.get(mandate.agentId);
+
+                  return (
+                    <TableRow key={mandate.id}>
+                      <TableCell className="font-medium text-charcoal">
+                        {mandate.name}
+                      </TableCell>
+                      <TableCell>{mandate.agentName}</TableCell>
+                      <TableCell>
+                        {agent ? (
+                          <div className="space-y-1">
+                            <StatusPill
+                              label={agentIdentityLabel(agent)}
+                              tone={agentIdentityTone(agent)}
+                            />
+                            <div className="text-xs text-steel">
+                              {formatShortAddress(agent.onchainAddress)}
+                            </div>
+                          </div>
+                        ) : (
+                          <StatusPill label="identity_unmapped" tone="danger" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <StatusPill
+                          label={mandate.status}
+                          tone={mandateTone(mandate.status)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {formatUsd(
+                          mandate.reservedCents + mandate.consumedCents,
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

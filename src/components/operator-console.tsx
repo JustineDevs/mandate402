@@ -2,6 +2,15 @@
 
 import { useState, useTransition } from "react";
 
+import { StatusPill } from "@/components/status-pill";
+import {
+  agentIdentityLabel,
+  agentIdentityTone,
+  formatAgentChain,
+  formatAgentWalletProvider,
+  formatShortAddress,
+  isAgentOnchainIdentityVerified,
+} from "@/lib/agent-identity-view";
 import type {
   Agent,
   Mandate,
@@ -15,6 +24,7 @@ type OperatorConsoleProps = {
   mandates: Mandate[];
   onChanged: () => Promise<void>;
   attempts: PaymentAttempt[];
+  treasuryEnforcementMode: "enabled" | "prepared_only" | "not_configured";
   vendors: Vendor[];
 };
 
@@ -24,6 +34,7 @@ export function OperatorConsole({
   mandates,
   onChanged,
   attempts,
+  treasuryEnforcementMode,
   vendors,
 }: OperatorConsoleProps) {
   const activeMandates = mandates.filter(
@@ -55,6 +66,9 @@ export function OperatorConsole({
   const [amountCents, setAmountCents] = useState("1200");
   const [message, setMessage] = useState("Ready.");
   const [isPending, startTransition] = useTransition();
+  const selectedAgent =
+    selectableAgents.find((agent) => agent.id === selectedAgentId) ?? null;
+  const treasuryEnforcementEnabled = treasuryEnforcementMode === "enabled";
   const latestUnknownAttempt = attempts.find(
     (attempt) =>
       attempt.mandateId === selectedMandateId &&
@@ -83,7 +97,10 @@ export function OperatorConsole({
     isPending ||
     !selectedAgentId ||
     !mandateName.trim() ||
-    selectedVendorIds.length === 0;
+    selectedVendorIds.length === 0 ||
+    (treasuryEnforcementEnabled &&
+      selectedAgent !== null &&
+      !isAgentOnchainIdentityVerified(selectedAgent));
   const attemptActionDisabled =
     isPending || !selectedMandate || !vendorId || !amountCents.trim();
 
@@ -113,11 +130,38 @@ export function OperatorConsole({
             onChange={(event) => setSelectedAgentId(event.target.value)}
           >
             {selectableAgents.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
+              <option
+                key={agent.id}
+                value={agent.id}
+                disabled={
+                  treasuryEnforcementEnabled &&
+                  !isAgentOnchainIdentityVerified(agent)
+                }
+              >
+                {agent.name} -{" "}
+                {isAgentOnchainIdentityVerified(agent)
+                  ? "treasury verified"
+                  : "identity unmapped"}
               </option>
             ))}
           </select>
+          {selectedAgent ? (
+            <div className="mt-3 rounded-md border border-hairline bg-surface-soft p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusPill
+                  label={agentIdentityLabel(selectedAgent)}
+                  tone={agentIdentityTone(selectedAgent)}
+                />
+                <span className="text-xs font-semibold text-charcoal">
+                  {formatAgentWalletProvider(selectedAgent)}
+                </span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-steel">
+                {formatShortAddress(selectedAgent.onchainAddress)} ·{" "}
+                {formatAgentChain(selectedAgent)}
+              </p>
+            </div>
+          ) : null}
         </div>
         <div className="field">
           <label htmlFor="budget-cap-cents">Budget cap (cents)</label>

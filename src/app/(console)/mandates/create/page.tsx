@@ -6,9 +6,18 @@ import { useState } from "react";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
+import { StatusPill } from "@/components/status-pill";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  agentIdentityLabel,
+  agentIdentityTone,
+  formatAgentChain,
+  formatAgentWalletProvider,
+  formatShortAddress,
+  isAgentOnchainIdentityVerified,
+} from "@/lib/agent-identity-view";
 
 export default function CreateMandatePage() {
   const router = useRouter();
@@ -83,6 +92,18 @@ export default function CreateMandatePage() {
       description="Issue a new spending mandate for an agent."
     >
       {({ data, accessToken }) => {
+        const activeAgents = data.dashboard.agents.filter(
+          (agent) => agent.status === "active",
+        );
+        const selectedAgent =
+          activeAgents.find((agent) => agent.id === formData.agentId) ?? null;
+        const treasuryEnforcementEnabled =
+          data.dashboard.systemStatus.blockchain.treasuryEnforcementMode ===
+          "enabled";
+        const selectedAgentVerified = selectedAgent
+          ? isAgentOnchainIdentityVerified(selectedAgent)
+          : false;
+
         return (
           <ConsoleShell
             activeTab="Mandates"
@@ -131,12 +152,55 @@ export default function CreateMandatePage() {
                     required
                   >
                     <option value="">Select an agent</option>
-                    {data.dashboard.agents.map((agent) => (
-                      <option key={agent.id} value={agent.id}>
-                        {agent.name} ({agent.id})
+                    {activeAgents.map((agent) => (
+                      <option
+                        key={agent.id}
+                        value={agent.id}
+                        disabled={
+                          treasuryEnforcementEnabled &&
+                          !isAgentOnchainIdentityVerified(agent)
+                        }
+                      >
+                        {agent.name} ({agent.id}) -{" "}
+                        {isAgentOnchainIdentityVerified(agent)
+                          ? "treasury verified"
+                          : "identity unmapped"}
                       </option>
                     ))}
                   </select>
+                  {selectedAgent ? (
+                    <div className="rounded-md border border-hairline bg-surface-soft p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusPill
+                          label={agentIdentityLabel(selectedAgent)}
+                          tone={agentIdentityTone(selectedAgent)}
+                        />
+                        <span className="text-sm font-semibold text-charcoal">
+                          {formatAgentWalletProvider(selectedAgent)}
+                        </span>
+                      </div>
+                      <div className="mt-2 grid gap-2 text-xs text-steel sm:grid-cols-2">
+                        <span>
+                          Address:{" "}
+                          {formatShortAddress(selectedAgent.onchainAddress)}
+                        </span>
+                        <span>Chain: {formatAgentChain(selectedAgent)}</span>
+                      </div>
+                      {treasuryEnforcementEnabled && !selectedAgentVerified ? (
+                        <p className="mt-3 text-sm leading-relaxed text-semantic-warning-text">
+                          Treasury enforcement is enabled. Bind and verify this
+                          agent&apos;s on-chain identity before issuing a
+                          production spend mandate.
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <p className="text-xs leading-relaxed text-steel">
+                      Agent rows come from the live runtime store. If this list
+                      is empty, seed the production agent registry before
+                      issuing mandates.
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -233,7 +297,12 @@ export default function CreateMandatePage() {
                 <Button
                   type="submit"
                   className="bg-mandate-green text-white hover:bg-mandate-green-dark"
-                  disabled={isSubmitting}
+                  disabled={
+                    isSubmitting ||
+                    (treasuryEnforcementEnabled &&
+                      selectedAgent !== null &&
+                      !selectedAgentVerified)
+                  }
                 >
                   {isSubmitting ? "Creating..." : "Create Mandate"}
                 </Button>

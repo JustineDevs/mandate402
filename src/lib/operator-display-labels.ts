@@ -21,6 +21,8 @@ const TOKEN_LABELS: Record<string, string> = {
   complete: "Complete",
   incomplete: "Incomplete",
   verified: "Verified",
+  treasury_verified: "Treasury verified",
+  identity_unmapped: "Identity unmapped",
   linked_manual_review: "Linked (review)",
   sync_failed: "Sync failed",
   n_a: "Not available",

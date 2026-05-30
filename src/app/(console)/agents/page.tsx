@@ -17,6 +17,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  agentIdentityLabel,
+  agentIdentityTone,
+  formatAgentChain,
+  formatAgentWalletProvider,
+  formatShortAddress,
+  isAgentOnchainIdentityVerified,
+} from "@/lib/agent-identity-view";
 import { consoleSplitSection, consoleStatGrid3 } from "@/lib/console-layout";
 import { formatUsd } from "@/lib/operator-view-model";
 
@@ -31,6 +39,12 @@ export default function AgentsPage() {
           (mandate) =>
             mandate.status === "issued_active" ||
             mandate.status === "issued_reserved",
+        );
+        const verifiedAgents = data.dashboard.agents.filter(
+          isAgentOnchainIdentityVerified,
+        );
+        const unmappedAgents = data.dashboard.agents.filter(
+          (agent) => !isAgentOnchainIdentityVerified(agent),
         );
 
         return (
@@ -48,6 +62,10 @@ export default function AgentsPage() {
                 <StatusPill
                   label={`${activeMandates.length} Active Mandates`}
                   tone="success"
+                />
+                <StatusPill
+                  label={`${verifiedAgents.length} Treasury Ready`}
+                  tone={unmappedAgents.length > 0 ? "warning" : "success"}
                 />
               </>
             }
@@ -74,15 +92,19 @@ export default function AgentsPage() {
                 to these agents.
               </ConsoleCard>
               <ConsoleCard
-                eyebrow="Blocked Attempts"
-                value={String(
-                  data.dashboard.attempts.filter(
-                    (attempt) => attempt.status === "policy_denied",
-                  ).length,
-                )}
+                eyebrow="Treasury identities"
+                value={`${verifiedAgents.length}/${data.dashboard.agents.length}`}
+                humanizeValue={false}
+                pill={{
+                  label:
+                    unmappedAgents.length > 0
+                      ? "identity_unmapped"
+                      : "treasury_verified",
+                  tone: unmappedAgents.length > 0 ? "warning" : "success",
+                }}
               >
-                Denied attempts stay visible to show where agent behavior was
-                stopped before money moved.
+                Verified agents have a persisted on-chain address, wallet
+                provider, chain id, and verification timestamp.
               </ConsoleCard>
             </div>
 
@@ -91,7 +113,7 @@ export default function AgentsPage() {
                 <SectionHeader
                   eyebrow="Live registry"
                   title="Agent roster"
-                  description="Agents are shown with their current runtime status and any active mandates bound to them."
+                  description="Agents are shown with runtime status, treasury identity mapping, and any active mandates bound to them."
                 />
 
                 <Table>
@@ -99,42 +121,78 @@ export default function AgentsPage() {
                     <TableRow>
                       <TableHead>Agent</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Treasury identity</TableHead>
+                      <TableHead>Wallet</TableHead>
                       <TableHead>Active mandates</TableHead>
                       <TableHead>Budget in motion</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.dashboard.agents.map((agent) => {
-                      const mandates = activeMandates.filter(
-                        (mandate) => mandate.agentId === agent.id,
-                      );
-                      const exposure = mandates.reduce(
-                        (sum, mandate) =>
-                          sum + mandate.reservedCents + mandate.consumedCents,
-                        0,
-                      );
+                    {data.dashboard.agents.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={6}
+                          className="py-10 text-center text-muted-foreground"
+                        >
+                          No agent rows exist in the runtime store.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      data.dashboard.agents.map((agent) => {
+                        const mandates = activeMandates.filter(
+                          (mandate) => mandate.agentId === agent.id,
+                        );
+                        const exposure = mandates.reduce(
+                          (sum, mandate) =>
+                            sum + mandate.reservedCents + mandate.consumedCents,
+                          0,
+                        );
 
-                      return (
-                        <TableRow key={agent.id}>
-                          <TableCell>
-                            <div className="font-semibold text-charcoal">
-                              {agent.name}
-                            </div>
-                            <div className="text-xs text-steel">{agent.id}</div>
-                          </TableCell>
-                          <TableCell>
-                            <StatusPill
-                              label={agent.status}
-                              tone={
-                                agent.status === "active" ? "success" : "danger"
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>{mandates.length}</TableCell>
-                          <TableCell>{formatUsd(exposure)}</TableCell>
-                        </TableRow>
-                      );
-                    })}
+                        return (
+                          <TableRow key={agent.id}>
+                            <TableCell>
+                              <div className="font-semibold text-charcoal">
+                                {agent.name}
+                              </div>
+                              <div className="text-xs text-steel">
+                                {agent.id}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <StatusPill
+                                label={agent.status}
+                                tone={
+                                  agent.status === "active"
+                                    ? "success"
+                                    : "danger"
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <StatusPill
+                                  label={agentIdentityLabel(agent)}
+                                  tone={agentIdentityTone(agent)}
+                                />
+                                <div className="text-xs text-steel">
+                                  {formatShortAddress(agent.onchainAddress)}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium text-charcoal">
+                                {formatAgentWalletProvider(agent)}
+                              </div>
+                              <div className="text-xs text-steel">
+                                {formatAgentChain(agent)}
+                              </div>
+                            </TableCell>
+                            <TableCell>{mandates.length}</TableCell>
+                            <TableCell>{formatUsd(exposure)}</TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
                   </TableBody>
                 </Table>
               </ConsolePanel>
@@ -145,15 +203,18 @@ export default function AgentsPage() {
                 className="min-w-0"
               >
                 <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
-                  <p>Agent identity is loaded from the live runtime store.</p>
                   <p>
-                    To change what an agent may spend, update or revoke the
-                    mandate — not the agent row.
+                    Agent identity is loaded from the live runtime store and
+                    treasury enforcement reads the persisted on-chain address.
                   </p>
                   <p>
-                    Blocked attempts stay visible under Transactions and Policy
-                    so operators can see denials without a fake “run” button
-                    here.
+                    If identity is unmapped, treasury-enabled execution fails
+                    closed until a verified wallet binding is stored.
+                  </p>
+                  <p>
+                    To change what an agent may spend, update or revoke the
+                    mandate. To change who enforces spend on-chain, rotate the
+                    verified agent identity.
                   </p>
                 </div>
               </ConsoleCodeSurface>

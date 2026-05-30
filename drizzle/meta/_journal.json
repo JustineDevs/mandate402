@@ -43,6 +43,13 @@
       "when": 1780145881000,
       "tag": "0005_agent_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780146765000,
+      "tag": "0006_seed_research_agent",
+      "breakpoints": true
     }
   ]
 }

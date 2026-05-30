@@ -16,6 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  agentIdentityLabel,
+  agentIdentityTone,
+  formatShortAddress,
+} from "@/lib/agent-identity-view";
 import { consoleStatGrid3 } from "@/lib/console-layout";
 import {
   buildRevokedMandates,
@@ -36,6 +41,9 @@ export default function MandatesPage() {
             mandate.status === "issued_reserved",
         );
         const revokedMandates = buildRevokedMandates(data.dashboard);
+        const agentsById = new Map(
+          data.dashboard.agents.map((agent) => [agent.id, agent]),
+        );
 
         return (
           <ConsoleShell
@@ -117,35 +125,63 @@ export default function MandatesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {liveMandates.map((mandate) => (
-                      <TableRow key={mandate.id}>
-                        <TableCell>
-                          <div className="font-semibold text-charcoal">
-                            {mandate.name}
-                          </div>
-                          <div className="text-xs text-steel">{mandate.id}</div>
-                        </TableCell>
-                        <TableCell>{mandate.agentName}</TableCell>
-                        <TableCell>
-                          <StatusPill
-                            label={mandate.status}
-                            tone={mandateTone(mandate.status)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {formatUsd(mandate.budgetCapCents)}
-                        </TableCell>
-                        <TableCell>
-                          {formatUsd(mandate.reservedCents)}
-                        </TableCell>
-                        <TableCell>
-                          {formatUsd(mandate.consumedCents)}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {mandate.expiresAt}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {liveMandates.map((mandate) => {
+                      const agent = agentsById.get(mandate.agentId);
+
+                      return (
+                        <TableRow key={mandate.id}>
+                          <TableCell>
+                            <div className="font-semibold text-charcoal">
+                              {mandate.name}
+                            </div>
+                            <div className="text-xs text-steel">
+                              {mandate.id}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium text-charcoal">
+                              {mandate.agentName}
+                            </div>
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                              {agent ? (
+                                <>
+                                  <StatusPill
+                                    label={agentIdentityLabel(agent)}
+                                    tone={agentIdentityTone(agent)}
+                                  />
+                                  <span className="text-xs text-steel">
+                                    {formatShortAddress(agent.onchainAddress)}
+                                  </span>
+                                </>
+                              ) : (
+                                <StatusPill
+                                  label="identity_unmapped"
+                                  tone="danger"
+                                />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <StatusPill
+                              label={mandate.status}
+                              tone={mandateTone(mandate.status)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {formatUsd(mandate.budgetCapCents)}
+                          </TableCell>
+                          <TableCell>
+                            {formatUsd(mandate.reservedCents)}
+                          </TableCell>
+                          <TableCell>
+                            {formatUsd(mandate.consumedCents)}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {mandate.expiresAt}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </ConsolePanel>
