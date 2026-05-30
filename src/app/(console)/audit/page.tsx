@@ -1,6 +1,6 @@
 "use client";
 
-import { ConsoleCodeSurface } from "@/components/console-card";
+import { ConsoleCodeSurface, ConsolePanel } from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
@@ -13,34 +13,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { consoleSplitSection } from "@/lib/console-layout";
+import { formatOperatorToken } from "@/lib/operator-display-labels";
 
 export default function AuditPage() {
   return (
     <OperatorGate
-      title="Audit history"
-      description="Review the operator-readable event trail for mandates, attempts, receipt evidence, and revocations."
+      title="Sign in to view audit history"
+      description="Open the audit event timeline."
     >
       {({ data }) => (
         <ConsoleShell
           activeTab="Audit"
-          eyebrow="Audit & Evidence"
-          title="Audit History"
-          summary="Every important payment-control transition stays visible here so an operator can explain what happened without reconstructing backend logs."
+          eyebrow="Audit"
+          title="Audit history"
+          summary="Mandate, attempt, receipt, and revocation events in one timeline."
           toolbar={
             <>
               <StatusPill
-                label={`${data.dashboard.auditEntries.length} Audit Entries`}
+                label={`${data.dashboard.auditEntries.length} audit entries`}
+                humanize={false}
                 tone="info"
               />
               <StatusPill
-                label={`${data.dashboard.domainEvents.length} Domain Events`}
+                label={`${data.dashboard.domainEvents.length} domain events`}
+                humanize={false}
                 tone="neutral"
               />
             </>
           }
         >
-          <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+          <section className={consoleSplitSection()}>
+            <ConsolePanel>
               <SectionHeader
                 eyebrow="Timeline"
                 title="Audit ledger"
@@ -63,10 +67,7 @@ export default function AuditPage() {
                         {entry.createdAt}
                       </TableCell>
                       <TableCell>
-                        <StatusPill
-                          label={entry.type.replaceAll("_", " ")}
-                          tone="neutral"
-                        />
+                        <StatusPill label={entry.type} tone="neutral" />
                       </TableCell>
                       <TableCell>{entry.mandateId}</TableCell>
                       <TableCell>{entry.attemptId ?? "—"}</TableCell>
@@ -77,19 +78,25 @@ export default function AuditPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </ConsolePanel>
 
-            <ConsoleCodeSurface title="Structured event feed">
+            <ConsoleCodeSurface
+              title="Domain events"
+              summary={`${data.dashboard.domainEvents.length} recent ledger events. Expand for entity IDs and correlation references.`}
+              className="min-w-0"
+            >
               <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
                 {data.dashboard.domainEvents.slice(0, 8).map((event) => (
                   <div key={event.id}>
                     <div className="font-semibold text-on-dark">
-                      {event.eventType}
+                      {formatOperatorToken(event.eventType)}
                     </div>
                     <div>
-                      {event.entityType}: {event.entityId}
+                      {formatOperatorToken(event.entityType)} · {event.entityId}
                     </div>
-                    <div>correlation: {event.correlationId ?? "none"}</div>
+                    {event.correlationId ? (
+                      <div>Correlation: {event.correlationId}</div>
+                    ) : null}
                   </div>
                 ))}
               </div>

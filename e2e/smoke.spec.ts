@@ -13,7 +13,7 @@ test.describe("public and operator surfaces", () => {
       page.getByRole("link", { name: /mandate402 on github/i }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /continue to operator console/i }).first(),
+      page.getByRole("link", { name: /sign in to operator console/i }).first(),
     ).toBeVisible();
   });
 
@@ -40,5 +40,13 @@ test.describe("console auth gate", () => {
     const next = url.searchParams.get("next");
     expect(next).toBeTruthy();
     expect(decodeURIComponent(next ?? "")).toMatch(/^\/settings/);
+  });
+
+  test("legacy /operator/connect redirects to settings treasury section", async ({
+    page,
+  }) => {
+    await page.goto("/operator/connect");
+    await expect(page).toHaveURL(/\/settings/, { timeout: 15_000 });
+    expect(new URL(page.url()).searchParams.get("treasury")).toBe("1");
   });
 });

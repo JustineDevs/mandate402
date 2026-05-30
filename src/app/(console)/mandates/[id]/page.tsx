@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { ConsoleCodeSurface } from "@/components/console-card";
+import { ConsoleCodeSurface, ConsolePanel } from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
@@ -27,8 +27,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { consoleSplitSection, consoleStatGrid4 } from "@/lib/console-layout";
+import { formatOperatorToken } from "@/lib/operator-display-labels";
 import {
   financialTone,
+  formatMandateStatus,
   formatUsd,
   laneForAttempt,
   mandateTone,
@@ -71,8 +74,8 @@ export default function MandateDetailPage() {
 
   return (
     <OperatorGate
-      title="Mandate detail"
-      description="Review the real mandate, its spend posture, and its related attempts without relying on a canned timeline."
+      title="Sign in to view mandate"
+      description="Open mandate details and related attempts."
     >
       {({ data, accessToken }) => {
         const mandate = data.dashboard.mandates.find(
@@ -83,9 +86,9 @@ export default function MandateDetailPage() {
           return (
             <ConsoleShell
               activeTab="Mandates"
-              eyebrow="Mandate Detail"
+              eyebrow="Mandates"
               title="Mandate not found"
-              summary="This route only shows mandates that exist in the live runtime store."
+              summary="No mandate exists for this ID in the current dataset."
             >
               <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
                 <SectionHeader
@@ -120,9 +123,9 @@ export default function MandateDetailPage() {
         return (
           <ConsoleShell
             activeTab="Mandates"
-            eyebrow="Mandate Detail"
+            eyebrow="Mandates"
             title={mandate.name}
-            summary="This detail page reflects the current mandate, the spend already in motion, and the exact attempt history tied to this ID."
+            summary="Spend posture, vendors, and attempts for this mandate."
             toolbar={
               <div className="flex flex-wrap gap-2">
                 {isRevocable && (
@@ -175,42 +178,50 @@ export default function MandateDetailPage() {
               </div>
             }
           >
-            <div className="grid gap-6 lg:grid-cols-4">
-              <ConsoleCodeSurface title="Mandate identity">
+            <div className={consoleStatGrid4()}>
+              <ConsoleCodeSurface
+                title="Mandate identity"
+                summary={`${mandate.agentName} · ${formatMandateStatus(mandate.status)} · expires ${mandate.expiresAt}`}
+              >
                 <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
-                  <p>id: {mandate.id}</p>
-                  <p>agent: {mandate.agentName}</p>
-                  <p>expires: {mandate.expiresAt}</p>
+                  <p>Mandate ID: {mandate.id}</p>
                 </div>
               </ConsoleCodeSurface>
-              <ConsoleCodeSurface title="Approved vendors">
+              <ConsoleCodeSurface
+                title="Approved vendors"
+                summary={`${mandate.approvedVendorIds.length} vendor${mandate.approvedVendorIds.length === 1 ? "" : "s"} on the allow list.`}
+              >
                 <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
                   {mandate.approvedVendorIds.map((vendorId) => (
                     <p key={vendorId}>{vendorId}</p>
                   ))}
                 </div>
               </ConsoleCodeSurface>
-              <ConsoleCodeSurface title="Spend posture">
+              <ConsoleCodeSurface
+                title="Spend posture"
+                summary={`Cap ${formatUsd(mandate.budgetCapCents)} · reserved ${formatUsd(mandate.reservedCents)} · consumed ${formatUsd(mandate.consumedCents)}`}
+              >
                 <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
-                  <p>budget cap: {formatUsd(mandate.budgetCapCents)}</p>
-                  <p>reserved: {formatUsd(mandate.reservedCents)}</p>
-                  <p>consumed: {formatUsd(mandate.consumedCents)}</p>
+                  <p>Figures reflect live mandate ledger totals.</p>
                 </div>
               </ConsoleCodeSurface>
-              <ConsoleCodeSurface title="Evidence policy">
+              <ConsoleCodeSurface
+                title="Evidence policy"
+                summary={
+                  mandate.requiresReceiptCapability
+                    ? "Receipt evidence is required before spend is considered complete."
+                    : "Receipt evidence is optional for this mandate."
+                }
+              >
                 <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
-                  <p>
-                    receipt required:{" "}
-                    {mandate.requiresReceiptCapability ? "yes" : "no"}
-                  </p>
-                  <p>issue anchor: {mandate.morphIssueTxId}</p>
-                  <p>revoke anchor: {mandate.morphRevokeTxId ?? "none"}</p>
+                  <p>Issue anchor: {mandate.morphIssueTxId}</p>
+                  <p>Revoke anchor: {mandate.morphRevokeTxId ?? "None"}</p>
                 </div>
               </ConsoleCodeSurface>
             </div>
 
-            <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+            <section className={consoleSplitSection()}>
+              <ConsolePanel>
                 <SectionHeader
                   eyebrow="Attempts"
                   title="Related payment attempts"
@@ -238,16 +249,13 @@ export default function MandateDetailPage() {
                         <TableCell>{formatUsd(attempt.amountCents)}</TableCell>
                         <TableCell>
                           <StatusPill
-                            label={attempt.financialOutcome.replaceAll(
-                              "_",
-                              " ",
-                            )}
+                            label={attempt.financialOutcome}
                             tone={financialTone(attempt.financialOutcome)}
                           />
                         </TableCell>
                         <TableCell>
                           <StatusPill
-                            label={attempt.receiptEvidence.replaceAll("_", " ")}
+                            label={attempt.receiptEvidence}
                             tone={receiptTone(attempt.receiptEvidence)}
                           />
                         </TableCell>
@@ -255,15 +263,18 @@ export default function MandateDetailPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </ConsolePanel>
 
-              <div className="space-y-6">
-                <ConsoleCodeSurface title="Audit trail">
+              <div className="flex min-w-0 flex-col gap-4 sm:gap-6">
+                <ConsoleCodeSurface
+                  title="Audit trail"
+                  summary={`${auditEntries.length} entries for this mandate. Expand for full messages and timestamps.`}
+                >
                   <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
                     {auditEntries.slice(0, 8).map((entry) => (
                       <div key={entry.id}>
                         <div className="font-semibold text-on-dark">
-                          {entry.type}
+                          {formatOperatorToken(entry.type)}
                         </div>
                         <div>{entry.message}</div>
                         <div>{entry.createdAt}</div>
@@ -272,14 +283,19 @@ export default function MandateDetailPage() {
                   </div>
                 </ConsoleCodeSurface>
 
-                <ConsoleCodeSurface title="Domain events">
+                <ConsoleCodeSurface
+                  title="Domain events"
+                  summary={`${domainEvents.length} ledger events. Expand for correlation references.`}
+                >
                   <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
                     {domainEvents.slice(0, 8).map((event) => (
                       <div key={event.id}>
                         <div className="font-semibold text-on-dark">
-                          {event.eventType}
+                          {formatOperatorToken(event.eventType)}
                         </div>
-                        <div>correlation: {event.correlationId ?? "none"}</div>
+                        {event.correlationId ? (
+                          <div>Correlation: {event.correlationId}</div>
+                        ) : null}
                         <div>{event.occurredAt}</div>
                       </div>
                     ))}

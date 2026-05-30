@@ -5,6 +5,7 @@
 export const OPERATOR_CONSOLE_PATH_PREFIXES = [
   "/agents",
   "/audit",
+  "/treasury",
   "/build",
   "/mandates",
   "/policy-registry",

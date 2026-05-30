@@ -1,7 +1,11 @@
 "use client";
 
 import { CategoryAccentChip } from "@/components/category-accent";
-import { ConsoleCard, ConsoleCodeSurface } from "@/components/console-card";
+import {
+  ConsoleCard,
+  ConsoleCodeSurface,
+  ConsolePanel,
+} from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
@@ -14,12 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { consoleSplitSection, consoleStatGrid3 } from "@/lib/console-layout";
+import {
+  fallbackGateTone,
+  formatFallbackGateStatus,
+} from "@/lib/operator-view-model";
 
 export default function PolicyRegistryPage() {
   return (
     <OperatorGate
-      title="Policy controls"
-      description="Review the reasons machine payments were blocked before they reached a vendor."
+      title="Sign in to view policies"
+      description="Open the policy registry."
     >
       {({ data }) => {
         const blockedAttempts = data.dashboard.attempts.filter(
@@ -29,24 +38,27 @@ export default function PolicyRegistryPage() {
         return (
           <ConsoleShell
             activeTab="Policies"
-            eyebrow="Policy Registry"
-            title="Policies"
-            summary="This screen shows why a payment was denied before money moved, so operators can trust the treasury controls without reading backend logs."
+            eyebrow="Policies"
+            title="Policy registry"
+            summary="Reasons a payment was blocked before funds moved."
             heroTone="control"
             toolbar={
               <>
                 <StatusPill
-                  label={`${blockedAttempts.length} Blocked`}
+                  label={`${blockedAttempts.length} blocked`}
+                  humanize={false}
                   tone="danger"
                 />
                 <StatusPill
                   label={data.dashboard.fallbackGate.decision_status}
-                  tone="warning"
+                  tone={fallbackGateTone(
+                    data.dashboard.fallbackGate.decision_status,
+                  )}
                 />
               </>
             }
           >
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className={consoleStatGrid3()}>
               <ConsoleCard
                 eyebrow="Allowlist Enforcement"
                 value={String(
@@ -82,8 +94,8 @@ export default function PolicyRegistryPage() {
               </ConsoleCard>
             </div>
 
-            <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+            <section className={consoleSplitSection()}>
+              <ConsolePanel>
                 <SectionHeader
                   eyebrow="Blocked Before Money Moved"
                   title="Denial reason ledger"
@@ -123,19 +135,21 @@ export default function PolicyRegistryPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </ConsolePanel>
 
-              <ConsoleCodeSurface title="Policy posture">
+              <ConsoleCodeSurface
+                title="Policy posture"
+                summary={`Fallback is ${formatFallbackGateStatus(data.dashboard.fallbackGate.decision_status)}. Primary vendor paths stay preferred until review opens fallback.`}
+                className="min-w-0"
+              >
                 <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
                   <p>
-                    fallback gate: {data.dashboard.fallbackGate.decision_status}
+                    Review owner: {data.dashboard.fallbackGate.review_owner}
                   </p>
                   <p>
-                    review owner: {data.dashboard.fallbackGate.review_owner}
-                  </p>
-                  <p>
-                    primary path: configured Morph x402 vendor paths stay
-                    preferred until the fallback gate explicitly opens.
+                    Configured Morph vendor paths remain the default execution
+                    route until the fallback gate explicitly allows backup
+                    adapters.
                   </p>
                 </div>
               </ConsoleCodeSurface>

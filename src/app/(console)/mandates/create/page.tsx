@@ -79,24 +79,24 @@ export default function CreateMandatePage() {
 
   return (
     <OperatorGate
-      title="Create mandate"
-      description="Issue a new spending mandate to an autonomous agent."
+      title="Sign in to create a mandate"
+      description="Issue a new spending mandate for an agent."
     >
       {({ data, accessToken }) => {
         return (
           <ConsoleShell
             activeTab="Mandates"
-            eyebrow="Mandate Registry"
-            title="Create New Mandate"
-            summary="Define the scope, budget, and vendors for a new agent spending lane."
+            eyebrow="Mandates"
+            title="Create mandate"
+            summary="Set scope, budget, vendors, and expiry for a new mandate."
           >
             <form
               onSubmit={(e) => handleSubmit(e, accessToken)}
-              className="mx-auto max-w-2xl space-y-8 rounded-lg border border-hairline bg-canvas p-6 shadow-sm sm:p-8"
+              className="w-full space-y-8 rounded-lg border border-hairline bg-canvas p-6 shadow-sm sm:p-8"
             >
               <SectionHeader
-                title="Mandate Configuration"
-                description="Configure the spending limits and policy rules for this mandate."
+                title="Configuration"
+                description="Spending limits and policy rules for this mandate."
               />
 
               {error && (

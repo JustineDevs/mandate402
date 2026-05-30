@@ -94,7 +94,7 @@ export function ConsoleAuthGate({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-dvh flex-col items-center justify-center gap-2 bg-surface p-6 text-ink">
         <p className="text-sm font-medium text-charcoal">Checking session</p>
         <p className="max-w-sm text-center text-xs text-steel">
-          Sign in on the operator page if you are not already authenticated.
+          Sign in on the operator page to continue.
         </p>
       </div>
     );

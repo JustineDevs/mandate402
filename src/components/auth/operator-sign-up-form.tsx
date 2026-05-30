@@ -12,7 +12,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,7 +92,7 @@ export function OperatorSignUpForm({
             />
           </div>
           <div>
-            <CardTitle className="text-xl tracking-tight">{title}</CardTitle>
+            <h1 className="text-xl tracking-tight">{title}</h1>
             <CardDescription className="text-pretty pt-1.5">
               {description}
             </CardDescription>
@@ -237,7 +236,7 @@ export function OperatorSignUpForm({
             Already have an account?{" "}
             <Link
               href={signInHref}
-              className="text-primary font-medium underline-offset-4 hover:underline"
+              className="text-primary inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline"
             >
               Sign in
             </Link>

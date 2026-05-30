@@ -285,6 +285,29 @@ async function readAppliedBootstrapMigrations(client: PoolClient) {
   return inferred;
 }
 
+export async function probePostgresConnection(): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  try {
+    const client = await getPool().connect();
+    try {
+      await client.query("SELECT 1");
+      return { ok: true };
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Postgres connectivity probe failed.",
+    };
+  }
+}
+
 export async function readStorePostgres(): Promise<StoreData> {
   await ensureSchema();
   const client = await getPool().connect();

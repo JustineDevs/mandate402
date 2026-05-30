@@ -119,7 +119,7 @@ export default async function HomePage() {
                       <p className="text-xs leading-relaxed text-steel sm:text-sm">
                         Use{" "}
                         <span className="font-semibold text-slate">
-                          Continue to operator console
+                          Sign in to operator console
                         </span>{" "}
                         to review the protected control surface.
                       </p>

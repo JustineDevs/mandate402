@@ -85,3 +85,23 @@ export function buildRevokedMandates(data: DashboardData) {
     (mandate) => mandate.status === "revoked" || mandate.status === "expired",
   );
 }
+
+export {
+  formatAuditEventType,
+  formatBlockedReason,
+  formatFallbackGateStatus,
+  formatFinancialOutcome,
+  formatMandateStatus,
+  formatOnboardingState,
+  formatOperatorRole,
+  formatOperatorToken,
+  formatPaymentStatus,
+  formatReceiptEvidence,
+  formatTreasuryMode,
+  formatVendorMode,
+  formatVendorStatus,
+  formatWalletProvider,
+  fallbackGateTone,
+  onboardingStateTone,
+  runtimeStatusTone,
+} from "@/lib/operator-display-labels";

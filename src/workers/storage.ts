@@ -12,7 +12,9 @@ export type WorkerControlEventInput = {
   kind: string;
   correlationId: string | null;
   workerId: string;
-  status: "queued" | "forwarded" | "retrying";
+  status: "queued" | "forwarded" | "retrying" | "dead_letter";
+  commandId?: string | null;
+  attemptCount?: number | null;
   createdAt: string;
 };
 

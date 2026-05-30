@@ -40,21 +40,20 @@ export function isTestRuntime() {
 }
 
 export function getAppEnv(): AppEnv {
-  const value = (process.env.NEXT_PUBLIC_APP_ENV ?? process.env.APP_ENV)
-    ?.trim()
-    .toLowerCase();
+  if (typeof window !== "undefined") {
+    throw new Error(
+      "APP_ENV is server-only. Browser chrome reads environment from GET /api/console/runtime.",
+    );
+  }
+
+  const value = process.env.APP_ENV?.trim().toLowerCase();
 
   if (!value) {
     if (isTestRuntime()) {
       return "test";
     }
 
-    // On the client, we default to 'production' only if no public override is set.
-    if (typeof window !== "undefined") {
-      return "production";
-    }
-
-    throw new Error("APP_ENV or NEXT_PUBLIC_APP_ENV must be explicitly set.");
+    throw new Error("APP_ENV must be explicitly set.");
   }
 
   if (value === "test" || value === "production") {
@@ -66,6 +65,22 @@ export function getAppEnv(): AppEnv {
 
 export function isProductionEnv() {
   return getAppEnv() === "production";
+}
+
+/** True when primary vendors may point at localhost (Next dev / explicit opt-in). */
+export function isLocalVendorRehearsalAllowed() {
+  if (
+    process.env.MANDATE402_ALLOW_LOCAL_VENDORS?.trim().toLowerCase() === "true"
+  ) {
+    return true;
+  }
+
+  return process.env.NODE_ENV === "development";
+}
+
+/** True when the app is running on a deployed production host (e.g. Vercel). */
+export function isDeployedProductionRuntime() {
+  return isProductionEnv() && process.env.VERCEL === "1";
 }
 
 export function getPersistenceMode(): PersistenceMode {
@@ -98,6 +113,41 @@ export function getDatabaseDirectUrl() {
 export function getWorkerToken() {
   const token = process.env.MANDATE402_WORKER_TOKEN?.trim();
   return token || undefined;
+}
+
+export function getWorkerControlApiUrl() {
+  return (
+    readOptionalEnv(process.env.MANDATE402_CONTROL_API_URL) ??
+    readOptionalEnv(process.env.MANDATE402_WORKER_CONTROL_URL)
+  );
+}
+
+export type WorkerQueueRuntimeConfig = {
+  maxRetries: number;
+  retryDelaySeconds: number;
+  dlqConfigured: boolean;
+};
+
+export function getWorkerQueueRuntimeConfig(): WorkerQueueRuntimeConfig {
+  const maxRetries = Number.parseInt(
+    process.env.MANDATE402_WORKER_MAX_RETRIES ?? "3",
+    10,
+  );
+  const retryDelaySeconds = Number.parseInt(
+    process.env.MANDATE402_WORKER_RETRY_DELAY_SECONDS ?? "30",
+    10,
+  );
+
+  return {
+    maxRetries: Number.isFinite(maxRetries) ? maxRetries : 3,
+    retryDelaySeconds: Number.isFinite(retryDelaySeconds)
+      ? retryDelaySeconds
+      : 30,
+    dlqConfigured: readBooleanEnv(
+      process.env.MANDATE402_WORKER_DLQ_CONFIGURED,
+      isTestRuntime(),
+    ),
+  };
 }
 
 export function getSupabaseRuntimeConfig() {

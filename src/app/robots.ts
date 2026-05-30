@@ -14,7 +14,7 @@ export default function robots(): MetadataRoute.Robots {
           "/operator/",
           "/agents",
           "/audit",
-          "/build",
+          "/treasury",
           "/mandates",
           "/policy-registry",
           "/receipts",

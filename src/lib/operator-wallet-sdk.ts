@@ -115,6 +115,28 @@ export async function preparePrivyEmbeddedWalletBinding(input: {
   };
 }
 
+export function createPrivyExternalWalletBinding(input: {
+  wallet: ConnectedWallet;
+  providerUserId: string | null;
+  chainId: number;
+}) {
+  return {
+    address: input.wallet.address,
+    chainId: input.chainId,
+    binding: {
+      providerUserId: input.providerUserId,
+      providerWalletId: input.wallet.meta.id,
+      walletClientType: input.wallet.walletClientType,
+      orchestratorAddress: input.wallet.address,
+      orchestratorKind: "browser_wallet",
+      delegationContractAddress: null,
+      status: "verified",
+      verificationSource: "provider_session",
+      lastSyncError: null,
+    } satisfies PreparedOperatorWalletBinding,
+  };
+}
+
 export function createBrowserWalletBinding(snapshot: BrowserWalletSnapshot) {
   return {
     address: snapshot.address,
