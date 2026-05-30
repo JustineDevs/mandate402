@@ -1,6 +1,10 @@
 "use client";
 
-import { ConsoleCard, ConsoleCodeSurface } from "@/components/console-card";
+import {
+  ConsoleCard,
+  ConsoleCodeSurface,
+  ConsolePanel,
+} from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
@@ -13,13 +17,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { consoleSplitSection, consoleStatGrid3 } from "@/lib/console-layout";
 import { formatUsd } from "@/lib/operator-view-model";
 
 export default function AgentsPage() {
   return (
     <OperatorGate
-      title="Agent registry"
-      description="Review the real agents, their current mandate coverage, and whether they still have spend authority."
+      title="Sign in to view agents"
+      description="Open the agent registry for live agents and mandate coverage."
     >
       {({ data }) => {
         const activeMandates = data.dashboard.mandates.filter(
@@ -31,9 +36,9 @@ export default function AgentsPage() {
         return (
           <ConsoleShell
             activeTab="Agents"
-            eyebrow="Agent Registry"
-            title="Agents"
-            summary="This screen shows real agent identities and the mandates currently governing their spend. It does not pretend to be a live action runner."
+            eyebrow="Agents"
+            title="Agent registry"
+            summary="Governed agent identities and the mandates that control their spend (not an autonomous LLM runtime)."
             toolbar={
               <>
                 <StatusPill
@@ -47,7 +52,7 @@ export default function AgentsPage() {
               </>
             }
           >
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className={consoleStatGrid3()}>
               <ConsoleCard
                 eyebrow="Registered Agents"
                 value={String(data.dashboard.agents.length)}
@@ -81,8 +86,8 @@ export default function AgentsPage() {
               </ConsoleCard>
             </div>
 
-            <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+            <section className={consoleSplitSection("narrow")}>
+              <ConsolePanel>
                 <SectionHeader
                   eyebrow="Live registry"
                   title="Agent roster"
@@ -132,18 +137,23 @@ export default function AgentsPage() {
                     })}
                   </TableBody>
                 </Table>
-              </div>
+              </ConsolePanel>
 
-              <ConsoleCodeSurface title="Agent control note">
+              <ConsoleCodeSurface
+                title="Agent control"
+                summary="Agents are governed identities. Spend authority comes from mandates — this screen does not execute payments."
+                className="min-w-0"
+              >
                 <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
-                  <p>agent identity comes from the live runtime store</p>
+                  <p>Agent identity is loaded from the live runtime store.</p>
                   <p>
-                    spend authority comes from mandates, not from this screen
+                    To change what an agent may spend, update or revoke the
+                    mandate — not the agent row.
                   </p>
                   <p>
-                    blocked attempts remain visible in the transactions and
-                    policy surfaces rather than pretending an agent can execute
-                    directly here
+                    Blocked attempts stay visible under Transactions and Policy
+                    so operators can see denials without a fake “run” button
+                    here.
                   </p>
                 </div>
               </ConsoleCodeSurface>

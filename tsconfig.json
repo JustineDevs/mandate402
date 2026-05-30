@@ -31,7 +31,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     ".next-cloudflare/types/**/*.ts",
-    ".next-cloudflare/dev/types/**/*.ts"
+    ".next-cloudflare/dev/types/**/*.ts",
+    "tmp/mandate402-next-build/types/**/*.ts",
+    "tmp/mandate402-next-build/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

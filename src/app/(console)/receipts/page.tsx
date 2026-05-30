@@ -1,7 +1,7 @@
 "use client";
 
 import { CategoryAccentChip } from "@/components/category-accent";
-import { ConsoleCodeSurface } from "@/components/console-card";
+import { ConsoleCodeSurface, ConsolePanel } from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
@@ -14,7 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { consoleSplitSection } from "@/lib/console-layout";
 import {
+  financialTone,
+  formatFinancialOutcome,
+  formatReceiptEvidence,
   laneForAttempt,
   receiptTone,
   summarizeReceipt,
@@ -23,8 +27,8 @@ import {
 export default function ReceiptsPage() {
   return (
     <OperatorGate
-      title="Receipt evidence"
-      description="Inspect proof-of-delivery status separately from the financial result for each machine payment attempt."
+      title="Sign in to view receipts"
+      description="Open receipt and evidence records."
     >
       {({ data }) => {
         const attempts = data.dashboard.attempts;
@@ -33,9 +37,9 @@ export default function ReceiptsPage() {
         return (
           <ConsoleShell
             activeTab="Receipts"
-            eyebrow="Receipts & Evidence"
+            eyebrow="Receipts"
             title="Receipts"
-            summary="Keep payment success, receipt availability, and blocked no-call cases understandable even for operators who do not think in blockchain terms."
+            summary="Payment outcomes, receipt availability, and blocked cases without vendor calls."
             toolbar={
               <>
                 <StatusPill
@@ -49,8 +53,8 @@ export default function ReceiptsPage() {
               </>
             }
           >
-            <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+            <section className={consoleSplitSection()}>
+              <ConsolePanel>
                 <SectionHeader
                   eyebrow="Proof"
                   title="Receipt ledger"
@@ -79,24 +83,14 @@ export default function ReceiptsPage() {
                         <TableCell>{attempt.vendorId}</TableCell>
                         <TableCell>
                           <StatusPill
-                            label={attempt.receiptEvidence.replaceAll("_", " ")}
+                            label={attempt.receiptEvidence}
                             tone={receiptTone(attempt.receiptEvidence)}
                           />
                         </TableCell>
                         <TableCell>
                           <StatusPill
-                            label={attempt.financialOutcome.replaceAll(
-                              "_",
-                              " ",
-                            )}
-                            tone={
-                              attempt.financialOutcome ===
-                              "executed_charge_succeeded"
-                                ? "success"
-                                : attempt.financialOutcome === "policy_denied"
-                                  ? "danger"
-                                  : "warning"
-                            }
+                            label={attempt.financialOutcome}
+                            tone={financialTone(attempt.financialOutcome)}
                           />
                         </TableCell>
                         <TableCell className="text-muted-foreground">
@@ -106,16 +100,18 @@ export default function ReceiptsPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </ConsolePanel>
 
               {selected ? (
-                <ConsoleCodeSurface title={`Receipt review: ${selected.id}`}>
+                <ConsoleCodeSurface
+                  title="Receipt review"
+                  summary={`${formatFinancialOutcome(selected.financialOutcome)} · ${formatReceiptEvidence(selected.receiptEvidence)}. ${summarizeReceipt(selected)}`}
+                  className="min-w-0"
+                >
                   <div className="space-y-3 text-sm leading-7 text-on-dark-muted">
-                    <p>vendor: {selected.vendorId}</p>
-                    <p>payment identifier: {selected.paymentIdentifier}</p>
-                    <p>financial lane: {selected.financialOutcome}</p>
-                    <p>receipt lane: {selected.receiptEvidence}</p>
-                    <p>{summarizeReceipt(selected)}</p>
+                    <p>Attempt ID: {selected.id}</p>
+                    <p>Vendor: {selected.vendorId}</p>
+                    <p>Payment identifier: {selected.paymentIdentifier}</p>
                   </div>
                 </ConsoleCodeSurface>
               ) : null}

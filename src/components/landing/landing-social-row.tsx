@@ -1,5 +1,5 @@
 const linkClass =
-  "inline-flex h-9 w-9 items-center justify-center rounded-sm text-steel transition-colors hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mandate-green-mid focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:h-10 sm:w-10";
+  "inline-flex h-11 w-11 items-center justify-center rounded-sm text-steel transition-colors hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mandate-green-mid focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 
 const iconClass = "h-5 w-5 sm:h-[22px] sm:w-[22px]";
 

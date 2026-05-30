@@ -4,6 +4,7 @@ import {
   isProductionEnv,
 } from "@/lib/infrastructure/env";
 import { readFallbackGate } from "@/lib/infrastructure/fallback-gate";
+import { buildProductionReadiness } from "@/lib/infrastructure/production-readiness";
 import { readStore } from "@/lib/infrastructure/store";
 import { buildStoreIntegrityReport } from "@/lib/infrastructure/store-integrity";
 
@@ -51,7 +52,20 @@ export async function getSystemStatus() {
   ).length;
   const queuedAttempts = queuedDispatchTasks + queuedReconciliationTasks;
 
+  const readiness = await buildProductionReadiness({
+    integrity,
+    blockchain,
+    fallbackGate,
+    missingPrimaryVendors,
+    localOnlyPrimaryVendors,
+    staleUnknownAttempts,
+    unknownAttempts,
+    queuedDispatchTasks,
+    queuedReconciliationTasks,
+  });
+
   const status =
+    readiness.status === "ok" &&
     integrity.status === "ok" &&
     blockchain.status === "ready" &&
     unknownAttempts === 0 &&
@@ -65,6 +79,7 @@ export async function getSystemStatus() {
 
   return {
     status,
+    readiness,
     agents: store.agents.length,
     mandates: store.mandates.length,
     activeMandates,
@@ -82,7 +97,7 @@ export async function getSystemStatus() {
       primaryConfigured: missingPrimaryVendors.length === 0,
       missingPrimaryVendors,
       localOnlyPrimaryVendors,
-      fallbackEnabled: false,
+      fallbackEnabled: readiness.fallbackExecutionEnabled,
       endpoints: vendorRuntime,
     },
     fallbackDecision: fallbackGate.decision_status,

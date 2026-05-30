@@ -1,11 +1,13 @@
 import { z } from "zod";
 
+import { UnauthorizedError } from "@/lib/domain/errors";
 import { isFutureIsoTimestamp } from "@/lib/domain/time";
 import { jsonCreated, jsonErrorFrom, jsonOk } from "@/lib/infrastructure/api";
 import { logEvent } from "@/lib/infrastructure/logger";
 import { readCorrelationId } from "@/lib/infrastructure/observability";
 import { requireOperator } from "@/lib/modules/auth";
 import { createMandate, listMandates } from "@/lib/modules/mandates";
+import { requireOperatorOnboardingComplete } from "@/lib/operator-access";
 
 const createMandateSchema = z.object({
   name: z.string().min(1),
@@ -36,7 +38,15 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireOperator(request);
+    const operator = await requireOperator(request);
+    const bearer = request.headers.get("authorization");
+    const accessToken = bearer?.startsWith("Bearer ")
+      ? bearer.slice("Bearer ".length)
+      : undefined;
+    if (!accessToken) {
+      throw new UnauthorizedError("Missing bearer token.");
+    }
+    await requireOperatorOnboardingComplete(accessToken, operator.operatorId);
     const correlationId = readCorrelationId(request);
     const body = await request.json();
     const input = createMandateSchema.parse(body);

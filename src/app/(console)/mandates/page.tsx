@@ -1,10 +1,13 @@
 "use client";
 
-import { ConsoleCard } from "@/components/console-card";
+import Link from "next/link";
+
+import { ConsoleCard, ConsolePanel } from "@/components/console-card";
 import { ConsoleShell } from "@/components/console-shell";
 import { OperatorGate } from "@/components/operator-gate";
 import { SectionHeader } from "@/components/section-header";
 import { StatusPill } from "@/components/status-pill";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -13,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { consoleStatGrid3 } from "@/lib/console-layout";
 import {
   buildRevokedMandates,
   formatUsd,
@@ -22,8 +26,8 @@ import {
 export default function MandatesPage() {
   return (
     <OperatorGate
-      title="Mandate registry"
-      description="Review active and revoked spending mandates in the same protected operator workspace."
+      title="Sign in to view mandates"
+      description="Open the mandate registry to issue and review spending limits."
     >
       {({ data }) => {
         const liveMandates = data.dashboard.mandates.filter(
@@ -36,11 +40,16 @@ export default function MandatesPage() {
         return (
           <ConsoleShell
             activeTab="Mandates"
-            eyebrow="Mandate Registry"
-            title="Mandates"
-            summary="Issue and review agent spending mandates with clear limits, approved vendors, and revocation history."
+            eyebrow="Mandates"
+            title="Mandate registry"
+            summary="Issue and review mandates with limits, vendors, and revocation history."
             actions={
-              <>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/mandates/create">
+                  <Button className="rounded-full bg-white font-bold text-mandate-green hover:bg-white/90">
+                    Create Mandate
+                  </Button>
+                </Link>
                 <StatusPill
                   label={`${liveMandates.length} Live`}
                   tone="success"
@@ -49,10 +58,10 @@ export default function MandatesPage() {
                   label={`${revokedMandates.length} Revoked / Expired`}
                   tone="danger"
                 />
-              </>
+              </div>
             }
           >
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className={consoleStatGrid3()}>
               <ConsoleCard
                 eyebrow="Budget Under Control"
                 value={formatUsd(
@@ -88,8 +97,8 @@ export default function MandatesPage() {
               </ConsoleCard>
             </div>
 
-            <section className="grid gap-6">
-              <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+            <section className="grid min-w-0 gap-4 sm:gap-6">
+              <ConsolePanel>
                 <SectionHeader
                   eyebrow="Live Spending Lanes"
                   title="Active mandates"
@@ -119,7 +128,7 @@ export default function MandatesPage() {
                         <TableCell>{mandate.agentName}</TableCell>
                         <TableCell>
                           <StatusPill
-                            label={mandate.status.replaceAll("_", " ")}
+                            label={mandate.status}
                             tone={mandateTone(mandate.status)}
                           />
                         </TableCell>
@@ -139,9 +148,9 @@ export default function MandatesPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </ConsolePanel>
 
-              <div className="rounded-lg border border-hairline bg-canvas p-6 shadow-sm">
+              <ConsolePanel>
                 <SectionHeader
                   eyebrow="Closed Lanes"
                   title="Revoked and expired mandates"
@@ -167,7 +176,7 @@ export default function MandatesPage() {
                         </TableCell>
                         <TableCell>
                           <StatusPill
-                            label={mandate.status.replaceAll("_", " ")}
+                            label={mandate.status}
                             tone={mandateTone(mandate.status)}
                           />
                         </TableCell>
@@ -181,7 +190,7 @@ export default function MandatesPage() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </ConsolePanel>
             </section>
           </ConsoleShell>
         );

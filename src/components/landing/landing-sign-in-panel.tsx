@@ -28,11 +28,11 @@ export function LandingSignInPanel({
           "rounded-sm",
         )}
       >
-        Continue to operator console
+        Sign in to operator console
       </Link>
       <p className="text-center text-xs leading-relaxed text-steel sm:text-sm">
-        Email, Google, or wallet sign-in runs on the operator workspace after
-        you continue.
+        Sign in with email, Google, or a wallet on the next screen. Link a
+        treasury wallet later under Settings.
       </p>
     </div>
   );

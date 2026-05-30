@@ -82,6 +82,12 @@ export function buildStoreIntegrityReport(
     "duplicate_domain_event_id",
     "domain event",
   );
+  pushDuplicateIdIssues(
+    issues,
+    data.groupedApprovals.map((ga) => ga.id),
+    "duplicate_approval_id",
+    "grouped approval",
+  );
 
   for (const mandate of data.mandates) {
     const agent = agentsById.get(mandate.agentId);

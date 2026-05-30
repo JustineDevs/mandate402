@@ -39,13 +39,14 @@ For Mandate402, Morph is not decorative branding. It is part of the trust, settl
 > [!WARNING]
 > Never commit `.env.local`, private keys, Morph x402 HMAC credentials, or deployment cache files.
 
-Mandate402 is a Morph-native governance and treasury control layer for x402 commerce. This repository implements the `v0.1.0` MVP operator loop:
+Mandate402 is a Morph-native governance and treasury control layer for x402 commerce. This repository implements the `v0.2.0` Production Hardening milestone:
 
-- issue a mandate
-- run one approved payment attempt
-- block one invalid payment attempt before dispatch
-- inspect financial outcome and receipt evidence
-- revoke the mandate
+- issue a mandate with real operator auth
+- run approved payment attempts with Postgres-backed idempotency
+- block invalid payment attempts before dispatch
+- inspect financial outcome and receipt evidence with settlement-first truth
+- revoke the mandate with chain-anchored proof
+- reconcile unknown outcomes via worker-driven truth recovery
 
 ## Core Team & Workflow
 
@@ -106,7 +107,7 @@ Mandate402 inserts a programmable policy boundary before x402 settlement:
 | [docs/product/BM.md](./docs/product/BM.md) | Business model and stakeholder framing |
 | [docs/reference/GLOSSARY.md](./docs/reference/GLOSSARY.md) | Shared definitions for product and system terms |
 | [docs/brand/design-tokens.md](./docs/brand/design-tokens.md) | UI token reference for design and frontend implementation |
-| [docs/product/STATUS.md](./docs/product/STATUS.md) | Current MVP state, real vs demo-shaped boundaries, and next priorities |
+| [docs/product/STATUS.md](./docs/product/STATUS.md) | Current hardened state, real vs demo-shaped boundaries, and next priorities |
 | [docs/process/WORKFLOW.md](./docs/process/WORKFLOW.md) | Mandatory issue-to-merge workflow |
 | [docs/process/BRANCHING.md](./docs/process/BRANCHING.md) | Mandatory branching and worktree strategy |
 | [docs/process/LANES.md](./docs/process/LANES.md) | Mandatory ownership split by team lane |
@@ -144,7 +145,7 @@ Current implementation includes:
 - a modular-monolith Next.js app
 - mandate, policy, payment, receipt, vendor, and auth modules
 - a canonical fallback-gate artifact
-- SQLite-backed local persistence
+- Postgres-backed production persistence (via Supabase and Drizzle)
 - unit tests for the critical state machine and policy logic
 
 The contract workspace lives under `contracts/`.
@@ -158,14 +159,15 @@ Production-shaped:
 - local policy / reconciliation logic
 - deployed treasury contract on Morph Hoodi
 - x402 merchant sample with real 402 challenges
+- Postgres-first ledger and reservation correctness
 
 Still demo-shaped:
 
-- local file persistence
 - local controlled vendor endpoints
 - environment-driven live vendor URLs not yet replaced with third-party services
 
 </details>
+
 
 ## Architecture
 

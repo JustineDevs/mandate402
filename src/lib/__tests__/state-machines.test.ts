@@ -21,7 +21,7 @@ const baseMandate: Mandate = {
   approvedVendorIds: ["vendor-a"],
   morphIssueTxId: "0x1",
   morphRevokeTxId: null,
-  expiresAt: "2026-05-30T00:00:00.000Z",
+  expiresAt: "3026-05-30T00:00:00.000Z",
   createdAt: "2026-05-14T00:00:00.000Z",
   updatedAt: "2026-05-14T00:00:00.000Z",
 };

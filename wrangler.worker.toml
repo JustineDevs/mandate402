@@ -8,6 +8,9 @@ enabled = true
 
 [vars]
 MANDATE402_CONTROL_API_URL = "https://your-app.example.com"
+MANDATE402_WORKER_DLQ_CONFIGURED = "true"
+MANDATE402_WORKER_MAX_RETRIES = "3"
+MANDATE402_WORKER_RETRY_DELAY_SECONDS = "30"
 
 [triggers]
 crons = ["*/5 * * * *"]
@@ -33,9 +36,23 @@ queue = "mandate402-reconciliation"
 queue = "mandate402-execution"
 max_batch_size = 10
 max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "mandate402-execution-dlq"
 
 [[queues.consumers]]
 queue = "mandate402-reconciliation"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "mandate402-reconciliation-dlq"
+
+[[queues.consumers]]
+queue = "mandate402-execution-dlq"
+max_batch_size = 10
+max_batch_timeout = 5
+
+[[queues.consumers]]
+queue = "mandate402-reconciliation-dlq"
 max_batch_size = 10
 max_batch_timeout = 5
 

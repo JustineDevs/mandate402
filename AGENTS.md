@@ -113,7 +113,8 @@ Current persistence is lightweight, but the code must still behave as if data we
 
 - Mutating API routes must propagate a `correlationId`.
 - Important route actions should emit structured logs.
-- System status must be introspectable via `GET /api/system`.
+- System status and production readiness must be introspectable via `GET /api/system` (`readiness.*` booleans and `degradedReasons`).
+- Database migrations: canonical schema in `src/lib/db/schema.ts`; apply with `pnpm db:migrate` (see `docs/DATABASE.md`).
 
 ## Workflow Rules
 
@@ -496,18 +497,26 @@ choose the smallest change that preserves correctness, CI, and public-remote saf
 
 - Treat obvious decorative gradients and template-heavy marketing chrome as unacceptable; the user explicitly calls that out as “AI slop” and wants it removed or avoided.
 - Keep global and component colors aligned with `docs/brand/brandkit.md`, `docs/brand/design-tokens.md`, and the official logo or header SVG palette under `public/images/`; if docs and the live UI drift from the logomark, reconcile tokens and documentation to the logo rather than inventing new greens.
-- Shape the landing page as a full-viewport, two-column split and follow the ASCII layout and content bounds in `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md` (including roughly lines 76–93 for hero-adjacent blocks), keeping marketing copy restrained and on-brief rather than loud or generic.
+- Shape the landing page as a full-viewport, edge-to-edge two-column split per `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md` (including roughly lines 76–93 for hero-adjacent blocks), without outer wrapper bands or gutters between columns; keep marketing copy restrained and on-brief.
 - When using other projects only as inspiration, borrow layout geometry (viewport split, padding, margins, positioning), not their visual style, assets, or decorative effects.
 - Keep the signed-out home experience a marketing surface rather than turning it into a lightweight operator console shell after sign-in, unless product scope explicitly changes.
-- For operator chrome that sits beside primary actions (for example the desktop sidebar next to `bg-mandate-green` CTAs), keep the green read consistent with brand tokens so structural surfaces do not look like a different palette from core buttons.
-- Responsive layout and sizing across major breakpoints is treated as an explicit near-term product obligation (called out around v0.1.1), not an afterthought once desktop polish is done.
+- Landing **Sign in** should open an in-page modal or popup with provider options, not treat navigation to `/operator` as the primary entry pattern.
+- In the landing marketing column, keep hero and ecosystem copy **left-aligned**; when the user asks to fix “positioning,” they usually mean shifting blocks downward for vertical balance, not centering text.
+- For third-party sign-in (Google and similar), use **official provider branding and logos** rather than fully custom-styled auth chrome.
+- Unauthenticated users must not reach console routes by typing URLs directly; enforce the operator auth gate before rendering app shell chrome.
+- For operator chrome beside primary actions (for example the desktop sidebar next to `bg-mandate-green` CTAs), keep the green read consistent with brand tokens so structural surfaces do not look like a different palette from core buttons.
+- Responsive layout and sizing across major breakpoints is an explicit near-term obligation (v0.1.1), not an afterthought after desktop polish.
+- Console product scope treats destructive flows (revoke, key rotation, export, bulk actions) as required for production-grade work; use category accent tokens in lists and audit views; reserve `canvas-dark` for logs, receipts, and code—not a whole-app night mode.
 
 ## Learned Workspace Facts
 
 - Canonical visual references for Mandate402 UI work include `docs/brand/brandkit.md` for palette and tokens and `docs/adr/ADR-0002-sherwin-ui-wireframe-task.md` for the landing and console wireframe intent.
 - Primary operator console and marketing surfaces are implemented in the Next.js app under `src/` (for example app routes, layout, and shared components such as the sidebar and landing sections).
 - The Sherwin UI ADR references logo assets under `public/images/` (for example `Mandate402_logo.svg` alongside marks such as `mandate_header.svg`); use those paths when checking placement and color read against wireframes.
+- Landing ecosystem row assets: Morph `public/images/Lime-Black Primary Horizontal Lockup.png`, Pyth `public/images/Pyth_Network_crypto-logo-pyth-png_3.png`, and **x402** as bold text without a decorative underline.
 - Forest and mint greens used in `public/images/mandate_header.svg` are anchored around `#346F2A` and `#91D186`; control-room teal is a separate band color from logomark fills unless brandkit explicitly ties them.
+- Mandates, attempts, and similar entities use **full-page detail** routes, not master–detail list-plus-drawer as the primary pattern.
+- Operator **global search** is planned for v0.1.1; the current v0.1.0 line ships without it.
 - On Windows with Git Bash, avoid creating a repo-root `nul` file via `> nul` redirection; prefer `> /dev/null` so Turbopack does not choke on an accidental `nul` entry while processing CSS.
 - Prefer `pnpm exec wrangler` from the repo root when global Wrangler installs under fnm hit shim conflicts such as `EEXIST` or `EPERM`.
 - Run the local Next.js operator console with `pnpm dev` from the repo root when the user asks for the frontend dev server.

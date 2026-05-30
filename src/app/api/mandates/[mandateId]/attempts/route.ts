@@ -1,10 +1,12 @@
 import { z } from "zod";
 
+import { UnauthorizedError } from "@/lib/domain/errors";
 import { jsonCreated, jsonErrorFrom } from "@/lib/infrastructure/api";
 import { logEvent } from "@/lib/infrastructure/logger";
 import { readCorrelationId } from "@/lib/infrastructure/observability";
 import { requireOperator } from "@/lib/modules/auth";
 import { runAttempt } from "@/lib/modules/mandates";
+import { requireOperatorOnboardingComplete } from "@/lib/operator-access";
 
 const attemptSchema = z.object({
   vendorId: z.string().min(1),
@@ -18,6 +20,14 @@ export async function POST(
 ) {
   try {
     const operator = await requireOperator(request);
+    const bearer = request.headers.get("authorization");
+    const accessToken = bearer?.startsWith("Bearer ")
+      ? bearer.slice("Bearer ".length)
+      : undefined;
+    if (!accessToken) {
+      throw new UnauthorizedError("Missing bearer token.");
+    }
+    await requireOperatorOnboardingComplete(accessToken, operator.operatorId);
     const correlationId = readCorrelationId(request);
     const { mandateId } = await params;
     const body = await request.json();

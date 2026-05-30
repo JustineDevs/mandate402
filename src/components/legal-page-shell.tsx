@@ -69,31 +69,31 @@ export function LegalPageShell({ content }: LegalPageShellProps) {
             >
               <Link
                 href="/"
-                className={`${focusRing} inline-flex rounded-full border border-hairline px-3 py-2 transition-colors hover:border-mandate-green/45 hover:text-mandate-green-dark`}
+                className={`${focusRing} inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 transition-colors hover:border-mandate-green/45 hover:text-mandate-green-dark`}
               >
                 Home
               </Link>
               <Link
                 href="/policies"
-                className={`${focusRing} inline-flex rounded-full border border-hairline px-3 py-2 transition-colors hover:border-mandate-green/45 hover:text-mandate-green-dark`}
+                className={`${focusRing} inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 transition-colors hover:border-mandate-green/45 hover:text-mandate-green-dark`}
               >
                 Policies
               </Link>
               <Link
                 href="/terms"
-                className={`${focusRing} inline-flex rounded-full border border-hairline px-3 py-2 transition-colors hover:border-mandate-green/45 hover:text-mandate-green-dark`}
+                className={`${focusRing} inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 transition-colors hover:border-mandate-green/45 hover:text-mandate-green-dark`}
               >
                 Terms
               </Link>
               <Link
                 href="/privacy"
-                className={`${focusRing} inline-flex rounded-full border border-hairline px-3 py-2 transition-colors hover:border-mandate-green/45 hover:text-mandate-green-dark`}
+                className={`${focusRing} inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 transition-colors hover:border-mandate-green/45 hover:text-mandate-green-dark`}
               >
                 Privacy
               </Link>
               <Link
                 href="/operator"
-                className={`${focusRing} inline-flex rounded-full bg-mandate-green px-3 py-2 text-sm font-semibold text-on-dark transition-colors hover:bg-mandate-green-dark`}
+                className={`${focusRing} inline-flex min-h-11 items-center rounded-full bg-mandate-green px-4 py-2 text-sm font-semibold text-on-dark transition-colors hover:bg-mandate-green-dark`}
               >
                 Operator Access
               </Link>

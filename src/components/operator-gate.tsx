@@ -10,6 +10,7 @@ import type { DashboardData } from "@/lib/dashboard-data";
 import { getSupabaseAuthUiConfig } from "@/lib/infrastructure/env";
 import {
   ensureOperatorProfileFromSession,
+  formatOperatorAuthErrorMessage,
   getSupabaseBrowserClient,
   signInOperatorWithEmailPassword,
   signInOperatorWithGoogle,
@@ -59,7 +60,7 @@ export function OperatorGate({
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [message, setMessage] = useState(
-    "Sign in with your operator account to open this control surface.",
+    "Use your operator account to open this page.",
   );
   const [isPending, startTransition] = useTransition();
 
@@ -174,7 +175,7 @@ export function OperatorGate({
               });
 
               if (error || !data.session?.access_token) {
-                setMessage(error?.message ?? "Unable to continue.");
+                setMessage(formatOperatorAuthErrorMessage(error, "sign_in"));
                 return;
               }
 

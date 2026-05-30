@@ -94,7 +94,7 @@ const testStoreData: StoreData = {
       approvedVendorIds: ["morph-market-data", "morph-research-net"],
       morphIssueTxId: "0xmorphissue001",
       morphRevokeTxId: null,
-      expiresAt: "2026-05-29T23:59:00.000Z",
+      expiresAt: "3026-05-29T23:59:00.000Z",
       createdAt: nowIso(),
       updatedAt: nowIso(),
     },
@@ -156,6 +156,7 @@ const testStoreData: StoreData = {
       },
     },
   ],
+  groupedApprovals: [],
 };
 
 let lock = Promise.resolve();
@@ -666,6 +667,7 @@ export async function readStore(): Promise<StoreData> {
         string | number | boolean | null
       >,
     })),
+    groupedApprovals: [],
   };
 
   assertStoreIntegrity(store);

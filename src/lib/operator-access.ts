@@ -1,3 +1,4 @@
+import { UnauthorizedError } from "@/lib/domain/errors";
 import {
   type OperatorProfileRecord,
   createSupabaseRequestClient,
@@ -79,6 +80,22 @@ export async function getOperatorAccessState(
     profile,
     walletAccounts: wallets ?? [],
   };
+}
+
+export async function requireOperatorOnboardingComplete(
+  accessToken: string,
+  userId: string,
+) {
+  const access = await getOperatorAccessState(accessToken, userId);
+
+  if (access.profile?.onboarding_state !== "complete") {
+    throw new UnauthorizedError(
+      "Complete treasury connection before using governed operator actions.",
+      "operator_onboarding_incomplete",
+    );
+  }
+
+  return access;
 }
 
 export async function linkTreasuryWalletAccount(input: {

@@ -8,6 +8,7 @@ describe("production persistence guard", () => {
 
   it("rejects sqlite persistence in production mode", async () => {
     vi.stubEnv("APP_ENV", "production");
+    vi.stubEnv("MANDATE402_PERSISTENCE_MODE", "sqlite");
 
     const store = await import("@/lib/infrastructure/store");
 

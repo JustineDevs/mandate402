@@ -3,6 +3,8 @@
 import { PrivyProvider } from "@privy-io/react-auth";
 import type { ReactNode } from "react";
 
+import { getTreasuryPrivyProviderConfig } from "@/lib/infrastructure/privy-config";
+
 type TreasuryWalletProviderRuntimeProps = {
   appId: string;
   clientId?: string;
@@ -18,15 +20,7 @@ export function TreasuryWalletProviderRuntime({
     <PrivyProvider
       appId={appId}
       clientId={clientId}
-      config={{
-        loginMethods: ["email", "google", "wallet"],
-        embeddedWallets: {
-          showWalletUIs: false,
-          ethereum: {
-            createOnLogin: "all-users",
-          },
-        },
-      }}
+      config={getTreasuryPrivyProviderConfig()}
     >
       {children}
     </PrivyProvider>
