@@ -307,6 +307,10 @@ export async function runAttempt(input: {
     if (!mandate) {
       throw new NotFoundError("Mandate not found.");
     }
+    const agent = data.agents.find((entry) => entry.id === mandate.agentId);
+    if (!agent || agent.status !== "active") {
+      throw new ValidationError("Mandate agent must exist and be active.");
+    }
 
     if (input.paymentIdentifier) {
       const existingAttempt = data.attempts.find(
@@ -451,7 +455,7 @@ export async function runAttempt(input: {
 
     try {
       const treasury = await enforceTreasuryExecution({
-        agentId: mandate.agentId,
+        agent,
         amountCents: input.amountCents,
       });
 

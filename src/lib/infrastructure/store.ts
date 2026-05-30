@@ -76,6 +76,13 @@ const testStoreData: StoreData = {
       id: "agent_research_alpha",
       name: "Research Alpha",
       status: "active",
+      onchainAddress: null,
+      walletProvider: null,
+      providerWalletId: null,
+      chainId: null,
+      createdByOperatorId: null,
+      verifiedAt: null,
+      rotatedAt: null,
       createdAt: nowIso(),
       updatedAt: nowIso(),
     },
@@ -204,6 +211,13 @@ function ensureDatabase() {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       status TEXT NOT NULL,
+      onchain_address TEXT,
+      wallet_provider TEXT,
+      provider_wallet_id TEXT,
+      chain_id INTEGER,
+      created_by_operator_id TEXT,
+      verified_at TEXT,
+      rotated_at TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -304,6 +318,27 @@ function ensureDatabase() {
   if (!workerTaskColumns.has("correlation_id")) {
     database.exec("ALTER TABLE worker_tasks ADD COLUMN correlation_id TEXT;");
   }
+  const agentColumns = new Set(
+    database
+      .prepare("PRAGMA table_info(agents)")
+      .all()
+      .map((column) => (column as { name: string }).name),
+  );
+  for (const [columnName, columnType] of [
+    ["onchain_address", "TEXT"],
+    ["wallet_provider", "TEXT"],
+    ["provider_wallet_id", "TEXT"],
+    ["chain_id", "INTEGER"],
+    ["created_by_operator_id", "TEXT"],
+    ["verified_at", "TEXT"],
+    ["rotated_at", "TEXT"],
+  ] as const) {
+    if (!agentColumns.has(columnName)) {
+      database.exec(
+        `ALTER TABLE agents ADD COLUMN ${columnName} ${columnType};`,
+      );
+    }
+  }
 
   const count = database
     .prepare("SELECT COUNT(*) as count FROM agents")
@@ -338,14 +373,23 @@ function writeStoreSync(data: StoreData) {
     `);
 
     const insertAgent = db.prepare(`
-      INSERT INTO agents (id, name, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO agents (
+        id, name, status, onchain_address, wallet_provider, provider_wallet_id,
+        chain_id, created_by_operator_id, verified_at, rotated_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     for (const agent of store.agents) {
       insertAgent.run(
         agent.id,
         agent.name,
         agent.status,
+        agent.onchainAddress,
+        agent.walletProvider,
+        agent.providerWalletId,
+        agent.chainId,
+        agent.createdByOperatorId,
+        agent.verifiedAt,
+        agent.rotatedAt,
         agent.createdAt,
         agent.updatedAt,
       );
@@ -510,6 +554,8 @@ export async function readStore(): Promise<StoreData> {
   const agents = db
     .prepare(`
     SELECT id, name, status, created_at, updated_at
+      , onchain_address, wallet_provider, provider_wallet_id, chain_id,
+      created_by_operator_id, verified_at, rotated_at
     FROM agents
     ORDER BY created_at DESC
   `)
@@ -517,6 +563,13 @@ export async function readStore(): Promise<StoreData> {
     id: string;
     name: string;
     status: "active" | "revoked";
+    onchain_address: string | null;
+    wallet_provider: StoreData["agents"][number]["walletProvider"];
+    provider_wallet_id: string | null;
+    chain_id: number | null;
+    created_by_operator_id: string | null;
+    verified_at: string | null;
+    rotated_at: string | null;
     created_at: string;
     updated_at: string;
   }>;
@@ -590,6 +643,13 @@ export async function readStore(): Promise<StoreData> {
       id: agent.id,
       name: agent.name,
       status: agent.status,
+      onchainAddress: agent.onchain_address,
+      walletProvider: agent.wallet_provider,
+      providerWalletId: agent.provider_wallet_id,
+      chainId: agent.chain_id === null ? null : Number(agent.chain_id),
+      createdByOperatorId: agent.created_by_operator_id,
+      verifiedAt: agent.verified_at,
+      rotatedAt: agent.rotated_at,
       createdAt: agent.created_at,
       updatedAt: agent.updated_at,
     })),

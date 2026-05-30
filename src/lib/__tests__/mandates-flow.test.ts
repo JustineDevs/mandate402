@@ -196,4 +196,46 @@ describe("mandate flow", () => {
       "Attempt amount must be a positive integer amount in cents.",
     );
   });
+
+  it("blocks approved attempts when enabled treasury enforcement lacks verified agent identity", async () => {
+    vi.stubEnv(
+      "MANDATE402_TREASURY_ADDRESS",
+      "0x1111111111111111111111111111111111111111",
+    );
+    vi.stubEnv(
+      "MANDATE402_PYTH_ORACLE_ADDRESS",
+      "0x2222222222222222222222222222222222222222",
+    );
+    vi.stubEnv(
+      "MANDATE402_PYTH_ETH_USD_FEED_ID",
+      "0xff61491a931112ddf1bd8147cd1b641375f79f582bb9473d47a502f86ef44195",
+    );
+    vi.stubEnv(
+      "MANDATE402_PYTH_USDC_USD_FEED_ID",
+      "0xeaa020c61cc479712813461ce153894b96a6c00b21ed0cfc2798d1f9a9e9c94a",
+    );
+    vi.stubEnv(
+      "MANDATE402_TREASURY_SETTLEMENT_TOKEN_ADDRESS",
+      "0x3333333333333333333333333333333333333333",
+    );
+    vi.stubEnv(
+      "MANDATE402_TREASURY_FACILITATOR_ADDRESS",
+      "0x4444444444444444444444444444444444444444",
+    );
+    vi.stubEnv("MANDATE402_TREASURY_SETTLEMENT_TOKEN_DECIMALS", "6");
+
+    const [mandate] = await listMandates();
+    const attempt = await runAttempt({
+      mandateId: mandate.id,
+      vendorId: "morph-market-data",
+      amountCents: 1300,
+      operatorId: "operator_fixture",
+      paymentIdentifier: "pid_treasury_missing_agent_identity",
+    });
+
+    expect(attempt).toMatchObject({
+      status: "policy_denied",
+      blockedReason: "missing_agent_onchain_address",
+    });
+  });
 });

@@ -17,9 +17,7 @@ export async function getSystemStatus() {
   ]);
 
   const integrity = buildStoreIntegrityReport(store);
-  const blockchain = await getBlockchainRuntimeHealth(
-    store.agents.map((agent) => agent.id),
-  );
+  const blockchain = await getBlockchainRuntimeHealth(store.agents);
   const vendorRuntime = getVendorRuntimeEndpointSummary();
   const missingPrimaryVendors = vendorRuntime
     .filter((vendor) => !vendor.configured)

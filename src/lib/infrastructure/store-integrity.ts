@@ -32,6 +32,14 @@ function pushDuplicateIdIssues(
   }
 }
 
+function isValidEvmAddress(value: string) {
+  return /^0x[a-fA-F0-9]{40}$/.test(value);
+}
+
+function isValidIsoTimestamp(value: string) {
+  return !Number.isNaN(Date.parse(value));
+}
+
 export function buildStoreIntegrityReport(
   data: StoreData,
 ): StoreIntegrityReport {
@@ -88,6 +96,80 @@ export function buildStoreIntegrityReport(
     "duplicate_approval_id",
     "grouped approval",
   );
+
+  for (const agent of data.agents) {
+    if (agent.status !== "active" && agent.status !== "revoked") {
+      issues.push({
+        code: "invalid_agent_status",
+        message: `Agent ${agent.id} has invalid status ${agent.status}.`,
+      });
+    }
+
+    if (
+      agent.onchainAddress !== null &&
+      !isValidEvmAddress(agent.onchainAddress)
+    ) {
+      issues.push({
+        code: "invalid_agent_onchain_address",
+        message: `Agent ${agent.id} has invalid onchain address.`,
+      });
+    }
+
+    if (
+      agent.walletProvider !== null &&
+      agent.walletProvider !== "privy" &&
+      agent.walletProvider !== "external" &&
+      agent.walletProvider !== "managed"
+    ) {
+      issues.push({
+        code: "invalid_agent_wallet_provider",
+        message: `Agent ${agent.id} has invalid wallet provider ${agent.walletProvider}.`,
+      });
+    }
+
+    if (agent.providerWalletId !== null && !agent.providerWalletId.trim()) {
+      issues.push({
+        code: "blank_agent_provider_wallet_id",
+        message: `Agent ${agent.id} has a blank provider wallet id.`,
+      });
+    }
+
+    if (
+      agent.chainId !== null &&
+      (!Number.isInteger(agent.chainId) || agent.chainId <= 0)
+    ) {
+      issues.push({
+        code: "invalid_agent_chain_id",
+        message: `Agent ${agent.id} has invalid chain id ${agent.chainId}.`,
+      });
+    }
+
+    if (agent.verifiedAt !== null && !isValidIsoTimestamp(agent.verifiedAt)) {
+      issues.push({
+        code: "invalid_agent_verified_at",
+        message: `Agent ${agent.id} has invalid verifiedAt timestamp.`,
+      });
+    }
+
+    if (agent.rotatedAt !== null && !isValidIsoTimestamp(agent.rotatedAt)) {
+      issues.push({
+        code: "invalid_agent_rotated_at",
+        message: `Agent ${agent.id} has invalid rotatedAt timestamp.`,
+      });
+    }
+
+    if (
+      agent.verifiedAt !== null &&
+      (agent.onchainAddress === null ||
+        agent.walletProvider === null ||
+        agent.chainId === null)
+    ) {
+      issues.push({
+        code: "incomplete_verified_agent_identity",
+        message: `Agent ${agent.id} is marked verified without complete onchain identity.`,
+      });
+    }
+  }
 
   for (const mandate of data.mandates) {
     const agent = agentsById.get(mandate.agentId);

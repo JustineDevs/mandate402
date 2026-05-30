@@ -30,6 +30,7 @@ export type ReceiptEvidenceStatus =
 
 export type VendorMode = "primary" | "fallback-only";
 export type VendorStatus = "available" | "degraded" | "blocked" | "unknown";
+export type AgentWalletProvider = "privy" | "external" | "managed";
 
 export type Vendor = {
   id: string;
@@ -45,6 +46,13 @@ export type Agent = {
   id: string;
   name: string;
   status: "active" | "revoked";
+  onchainAddress: string | null;
+  walletProvider: AgentWalletProvider | null;
+  providerWalletId: string | null;
+  chainId: number | null;
+  createdByOperatorId: string | null;
+  verifiedAt: string | null;
+  rotatedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -126,7 +134,12 @@ export type AuditEntry = {
 
 export type DomainEvent = {
   id: string;
-  entityType: "mandate" | "payment_attempt" | "worker_task" | "system";
+  entityType:
+    | "agent"
+    | "mandate"
+    | "payment_attempt"
+    | "worker_task"
+    | "system";
   entityId: string;
   eventType: string;
   correlationId: string | null;

@@ -5,6 +5,7 @@ import {
   getTreasuryExecutionRuntimeConfig,
   resolveAgentOnchainAddress,
 } from "@/lib/blockchain/treasury";
+import type { Agent } from "@/lib/domain/types";
 import { isProductionEnv } from "@/lib/infrastructure/env";
 
 export type BlockchainRuntimeHealth = {
@@ -45,7 +46,7 @@ function isValidChainId(chainId: number | null) {
 }
 
 export async function getBlockchainRuntimeHealth(
-  agentIds: string[] = [],
+  agents: Agent[] = [],
 ): Promise<BlockchainRuntimeHealth> {
   const network = getActiveMorphNetwork();
   const contracts = getMorphContractManifest();
@@ -63,11 +64,11 @@ export async function getBlockchainRuntimeHealth(
     signerReady &&
     contracts.mandateRegistry.configured;
   const treasuryPrepared = contracts.treasury.preparation.configured;
-  const mappedAgents = agentIds.filter((agentId) =>
-    Boolean(resolveAgentOnchainAddress(agentId)),
+  const mappedAgents = agents.filter((agent) =>
+    Boolean(resolveAgentOnchainAddress(agent)),
   );
-  const unmappedAgents = agentIds.filter(
-    (agentId) => !resolveAgentOnchainAddress(agentId),
+  const unmappedAgents = agents.filter(
+    (agent) => !resolveAgentOnchainAddress(agent),
   );
 
   let rpcProbeAttempted = false;
@@ -111,8 +112,9 @@ export async function getBlockchainRuntimeHealth(
   warnings.push(...treasuryRuntime.warnings);
 
   if (treasuryRuntime.mode === "enabled" && unmappedAgents.length > 0) {
+    const unmappedAgentIds = unmappedAgents.map((agent) => agent.id).join(", ");
     warnings.push(
-      `Treasury enforcement is enabled but some agents are missing on-chain addresses: ${unmappedAgents.join(", ")}.`,
+      `Treasury enforcement is enabled but some agents are missing on-chain addresses: ${unmappedAgentIds}.`,
     );
   }
 
@@ -167,8 +169,8 @@ export async function getBlockchainRuntimeHealth(
         ? "enabled"
         : treasuryRuntime.mode,
     treasuryAgentMappings: {
-      mapped: mappedAgents,
-      unmapped: unmappedAgents,
+      mapped: mappedAgents.map((agent) => agent.id),
+      unmapped: unmappedAgents.map((agent) => agent.id),
     },
     warnings,
   };

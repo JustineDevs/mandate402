@@ -275,6 +275,14 @@ async function readAppliedBootstrapMigrations(client: PoolClient) {
     inferred.add("0005_operator_wallet_runtime_state.sql");
   }
 
+  if (
+    (await columnExists(client, "agents", "onchain_address")) &&
+    (await columnExists(client, "agents", "wallet_provider")) &&
+    (await columnExists(client, "agents", "verified_at"))
+  ) {
+    inferred.add("0007_agent_identity.sql");
+  }
+
   for (const file of inferred) {
     await client.query(
       "INSERT INTO mandate402_schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING",
@@ -360,11 +368,20 @@ async function readStoreFromClient(client: PoolClient): Promise<StoreData> {
     id: string;
     name: string;
     status: "active" | "revoked";
+    onchain_address: string | null;
+    wallet_provider: StoreData["agents"][number]["walletProvider"];
+    provider_wallet_id: string | null;
+    chain_id: number | string | null;
+    created_by_operator_id: string | null;
+    verified_at: string | null;
+    rotated_at: string | null;
     created_at: string;
     updated_at: string;
   }>(
     `
-      SELECT id, name, status, created_at, updated_at
+      SELECT
+        id, name, status, onchain_address, wallet_provider, provider_wallet_id,
+        chain_id, created_by_operator_id, verified_at, rotated_at, created_at, updated_at
       FROM agents
       ORDER BY created_at DESC
     `,
@@ -504,6 +521,13 @@ async function readStoreFromClient(client: PoolClient): Promise<StoreData> {
       id: row.id,
       name: row.name,
       status: row.status,
+      onchainAddress: row.onchain_address,
+      walletProvider: row.wallet_provider,
+      providerWalletId: row.provider_wallet_id,
+      chainId: row.chain_id === null ? null : Number(row.chain_id),
+      createdByOperatorId: row.created_by_operator_id,
+      verifiedAt: row.verified_at,
+      rotatedAt: row.rotated_at,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     })),
@@ -589,15 +613,38 @@ async function writeStoreToClient(client: PoolClient, data: StoreData) {
   for (const agent of data.agents) {
     await client.query(
       `
-        INSERT INTO agents (id, name, status, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO agents (
+          id, name, status, onchain_address, wallet_provider, provider_wallet_id,
+          chain_id, created_by_operator_id, verified_at, rotated_at, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         ON CONFLICT (id) DO UPDATE SET
           name = EXCLUDED.name,
           status = EXCLUDED.status,
+          onchain_address = EXCLUDED.onchain_address,
+          wallet_provider = EXCLUDED.wallet_provider,
+          provider_wallet_id = EXCLUDED.provider_wallet_id,
+          chain_id = EXCLUDED.chain_id,
+          created_by_operator_id = EXCLUDED.created_by_operator_id,
+          verified_at = EXCLUDED.verified_at,
+          rotated_at = EXCLUDED.rotated_at,
           created_at = EXCLUDED.created_at,
           updated_at = EXCLUDED.updated_at
       `,
-      [agent.id, agent.name, agent.status, agent.createdAt, agent.updatedAt],
+      [
+        agent.id,
+        agent.name,
+        agent.status,
+        agent.onchainAddress,
+        agent.walletProvider,
+        agent.providerWalletId,
+        agent.chainId,
+        agent.createdByOperatorId,
+        agent.verifiedAt,
+        agent.rotatedAt,
+        agent.createdAt,
+        agent.updatedAt,
+      ],
     );
   }
 

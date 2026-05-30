@@ -1,3 +1,4 @@
+import type { PreparedOperatorWalletBinding } from "@/lib/agent-identity";
 import {
   DEFAULT_MORPH_EXPLORER_URL,
   DEFAULT_MORPH_MAINNET_RPC_URL,
@@ -7,6 +8,11 @@ import type { BrowserWalletSnapshot } from "@/lib/infrastructure/supabase-browse
 import { getDefaultMEENetworkUrl } from "@biconomy/abstractjs";
 import { type ConnectedWallet, toViemAccount } from "@privy-io/react-auth";
 import type { Chain } from "viem";
+
+export {
+  createAgentIdentityFromWalletBinding,
+  type PreparedOperatorWalletBinding,
+} from "@/lib/agent-identity";
 
 const MORPH_HOODI_RPC_URL = "https://rpc-hoodi.morph.network";
 const MORPH_HOODI_EXPLORER_URL = "https://explorer-hoodi.morph.network";
@@ -26,18 +32,6 @@ type PrivyAuthorizationSigner = (
   chainId: number;
   nonce: number;
 }>;
-
-export type PreparedOperatorWalletBinding = {
-  providerUserId: string | null;
-  providerWalletId: string | null;
-  walletClientType: string | null;
-  orchestratorAddress: string;
-  orchestratorKind: "biconomy_nexus_7702" | "browser_wallet" | "managed_signer";
-  delegationContractAddress: string | null;
-  status: "verified" | "linked_manual_review";
-  verificationSource: "provider_session" | "browser_wallet" | "manual";
-  lastSyncError: string | null;
-};
 
 function createMorphChainForWallet(chainId: number): Chain {
   const preset =

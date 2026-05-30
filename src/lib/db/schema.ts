@@ -13,6 +13,13 @@ export const agents = pgTable("agents", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   status: text("status").notNull(),
+  onchainAddress: text("onchain_address"),
+  walletProvider: text("wallet_provider"),
+  providerWalletId: text("provider_wallet_id"),
+  chainId: integer("chain_id"),
+  createdByOperatorId: text("created_by_operator_id"),
+  verifiedAt: text("verified_at"),
+  rotatedAt: text("rotated_at"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

@@ -36,6 +36,13 @@
       "when": 1779782400000,
       "tag": "0004_operator_profile_insert_policy",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780145881000,
+      "tag": "0005_agent_identity",
+      "breakpoints": true
     }
   ]
 }
