@@ -25,6 +25,13 @@ function readinessTone(ready: boolean) {
   return ready ? "success" : "warning";
 }
 
+function readinessReasonKey(
+  reason: ProductionReadiness["degradedReasons"][number],
+  index: number,
+) {
+  return `${reason.code}-${index}-${reason.message}`;
+}
+
 function CheckTile({ label, ready }: { label: string; ready: boolean }) {
   return (
     <div className="flex min-w-0 items-center justify-between gap-2 rounded-md border border-hairline bg-surface-soft px-3 py-2.5">
@@ -120,8 +127,8 @@ export function ProductionReadinessPanel({
           defaultOpen
         >
           <ul className="space-y-3">
-            {attentionReasons.map((reason) => (
-              <li key={`${reason.code}-${reason.message}`}>
+            {attentionReasons.map((reason, index) => (
+              <li key={readinessReasonKey(reason, index)}>
                 <div className="font-medium text-charcoal">
                   {formatReadinessReasonHeadline(reason)}
                 </div>
@@ -140,8 +147,8 @@ export function ProductionReadinessPanel({
           summary={`${advisoryReasons.length} non-blocking note${advisoryReasons.length === 1 ? "" : "s"}`}
         >
           <ul className="space-y-3">
-            {advisoryReasons.map((reason) => (
-              <li key={`${reason.code}-${reason.message}`}>
+            {advisoryReasons.map((reason, index) => (
+              <li key={readinessReasonKey(reason, index)}>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-charcoal">
                     {formatReadinessReasonHeadline(reason)}
@@ -194,8 +201,8 @@ export function ProductionReadinessPanel({
           summary="For engineering review only"
         >
           <ul className="space-y-2 font-mono-reference text-xs text-steel">
-            {readiness.degradedReasons.map((reason) => (
-              <li key={`diag-${reason.code}`}>
+            {readiness.degradedReasons.map((reason, index) => (
+              <li key={`diag-${readinessReasonKey(reason, index)}`}>
                 <span className="text-charcoal">{reason.code}</span>
                 <span className="text-stone"> · </span>
                 <span>{reason.message}</span>
