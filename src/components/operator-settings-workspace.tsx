@@ -12,7 +12,6 @@ import { SectionHeader } from "@/components/section-header";
 import { StatusPill } from "@/components/status-pill";
 import { consoleStatGrid3, consoleStatGrid4 } from "@/lib/console-layout";
 import {
-  fallbackGateTone,
   formatFallbackGateStatus,
   formatOnboardingState,
   formatOperatorRole,

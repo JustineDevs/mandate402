@@ -264,12 +264,6 @@ export function TreasuryConnectionPanel({
     useState<PreparedOperatorWalletBinding | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const selectedConfig =
-    treasuryModes.find(
-      (entry) =>
-        entry.mode === selectedMode && entry.provider === selectedProvider,
-    ) ?? treasuryModes[0];
-
   const applyPrimaryWallet = useCallback(
     (wallet: TreasuryWalletAccountRecord | undefined) => {
       if (!wallet) {
