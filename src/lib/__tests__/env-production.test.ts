@@ -77,4 +77,38 @@ describe("production environment guards", () => {
       siteUrl: "https://mandate402.example.com",
     });
   });
+
+  it("rejects localhost Supabase redirect config in production", async () => {
+    vi.stubEnv("VITEST", "");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("APP_ENV", "production");
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_AUTH_REDIRECT_URL",
+      "http://localhost:3000/operator",
+    );
+
+    const env = await import("@/lib/infrastructure/env");
+
+    expect(() => env.getSupabaseAuthRedirectUrl()).toThrow(
+      "Supabase auth redirect URL must not point at localhost in production.",
+    );
+  });
+
+  it("falls back to the app site URL when redirect env is the Supabase auth endpoint", async () => {
+    vi.stubEnv("VITEST", "");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("APP_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://project.supabase.co");
+    vi.stubEnv("MANDATE402_SITE_URL", "https://mandate402.vercel.app");
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_AUTH_REDIRECT_URL",
+      "https://project.supabase.co/auth/v1/callback",
+    );
+
+    const env = await import("@/lib/infrastructure/env");
+
+    expect(env.getSupabaseAuthRedirectUrl()).toBe(
+      "https://mandate402.vercel.app/operator",
+    );
+  });
 });

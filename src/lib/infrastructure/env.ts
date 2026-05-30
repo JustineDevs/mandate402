@@ -35,6 +35,34 @@ function readOptionalEnv(value: string | undefined) {
   return normalized;
 }
 
+function isLoopbackUrl(value: string) {
+  try {
+    const parsed = new URL(value.includes("://") ? value : `https://${value}`);
+    const hostname = parsed.hostname.toLowerCase();
+    return (
+      hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isProductionLikeRuntime() {
+  return (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL === "1" ||
+    process.env.APP_ENV?.trim().toLowerCase() === "production"
+  );
+}
+
+function assertNotProductionLoopbackUrl(value: string, label: string) {
+  if (isProductionLikeRuntime() && isLoopbackUrl(value)) {
+    throw new Error(
+      `${label} must not point at localhost in production. Configure the deployed application origin instead.`,
+    );
+  }
+}
+
 export function isTestRuntime() {
   return process.env.VITEST === "true" || process.env.NODE_ENV === "test";
 }
@@ -196,7 +224,12 @@ export function getMandate402SiteUrl() {
       process.env.SITE_URL,
   );
 
-  return siteUrl?.replace(/\/$/, "") || undefined;
+  const normalized = siteUrl?.replace(/\/$/, "") || undefined;
+  if (normalized) {
+    assertNotProductionLoopbackUrl(normalized, "MANDATE402_SITE_URL");
+  }
+
+  return normalized;
 }
 
 export function getSupabaseAuthRedirectUrl(path = "/operator") {
@@ -219,9 +252,17 @@ export function getSupabaseAuthRedirectUrl(path = "/operator") {
         // This is a Supabase auth endpoint, not the application callback route.
         // Ignore it and fall back to the application site URL.
       } else {
+        assertNotProductionLoopbackUrl(
+          explicitUrl.toString(),
+          "Supabase auth redirect URL",
+        );
         return explicitUrl.toString();
       }
     } catch {
+      assertNotProductionLoopbackUrl(
+        explicitValue,
+        "Supabase auth redirect URL",
+      );
       return explicitValue;
     }
   }

@@ -21,13 +21,35 @@ export type BrowserWalletSnapshot = {
   chainNamespace: "eip155";
 };
 
+function isLoopbackOrigin(origin: string) {
+  try {
+    const hostname = new URL(origin).hostname.toLowerCase();
+    return (
+      hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1"
+    );
+  } catch {
+    return false;
+  }
+}
+
 function getBrowserAuthRedirectUrl(path = "/operator") {
+  const configuredRedirect = getSupabaseAuthRedirectUrl(path);
+
   if (typeof window !== "undefined" && window.location?.origin) {
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    return `${window.location.origin}${normalizedPath}`;
+    const browserRedirect = `${window.location.origin}${normalizedPath}`;
+    if (
+      configuredRedirect &&
+      isLoopbackOrigin(window.location.origin) &&
+      !isLoopbackOrigin(configuredRedirect)
+    ) {
+      return configuredRedirect;
+    }
+
+    return browserRedirect;
   }
 
-  return getSupabaseAuthRedirectUrl(path);
+  return configuredRedirect;
 }
 
 function inferPrimaryAuthProvider(user: User) {
