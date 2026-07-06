@@ -269,6 +269,94 @@ describe("execution worker", () => {
     expect(refreshedMandates[0].status).toBe("issued_active");
   });
 
+  it("caps reconciled final amount at the original reserved amount", async () => {
+    const data = createTestStoreData();
+    const now = new Date().toISOString();
+    const mandate = data.mandates.find(
+      (entry) => entry.id === "mdt_fixture_001",
+    );
+    if (!mandate) {
+      throw new Error("Expected seeded mandate.");
+    }
+
+    mandate.status = "issued_reserved";
+    mandate.reservedCents = 1200;
+
+    data.attempts.unshift({
+      id: "att_reconcile_amount_cap",
+      mandateId: "mdt_fixture_001",
+      vendorId: "morph-market-data",
+      amountCents: 1200,
+      operatorId: "operator_fixture",
+      status: "execution_unknown",
+      financialOutcome: "execution_unknown",
+      receiptEvidence: "required_pending",
+      blockedReason: null,
+      chargeReference: "charge_amount_cap_1",
+      paymentIdentifier: "pid_reconcile_amount_cap",
+      createdAt: now,
+      updatedAt: now,
+    });
+    data.workerTasks.unshift({
+      id: "task_reconcile_amount_cap",
+      kind: "reconcile_attempt",
+      attemptId: "att_reconcile_amount_cap",
+      mandateId: "mdt_fixture_001",
+      operatorId: "operator_fixture",
+      correlationId: "corr_amount_cap",
+      leaseOwner: null,
+      leaseExpiresAt: null,
+      availableAt: now,
+      status: "queued",
+      attemptCount: 0,
+      lastError: null,
+      createdAt: now,
+      updatedAt: now,
+      startedAt: null,
+      completedAt: null,
+    });
+
+    await resetStoreForTests(data);
+    vi.stubEnv("PRIMARY_X402_VENDOR_A_URL", "https://example.com/vendor");
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          status: "executed_charge_succeeded",
+          chargeReference: "charge_amount_cap_1",
+          receiptEvidence: "received_valid",
+          finalAmountCents: 1700,
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const result = await processReconciliationQueue(1);
+    expect(result).toEqual({
+      processed: 1,
+      completed: 1,
+      unresolved: 0,
+      failed: 0,
+      requeued: 0,
+    });
+
+    const refreshed = await readStore();
+    const refreshedMandate = refreshed.mandates.find(
+      (entry) => entry.id === "mdt_fixture_001",
+    );
+    const financialOutcomeEvent = refreshed.domainEvents.find(
+      (entry) =>
+        entry.entityId === "att_reconcile_amount_cap" &&
+        entry.eventType === "financial_outcome",
+    );
+
+    expect(refreshedMandate?.reservedCents).toBe(0);
+    expect(refreshedMandate?.consumedCents).toBe(2400);
+    expect(financialOutcomeEvent?.metadata.finalAmountCents).toBe(1200);
+  });
+
   it("uses facilitator verification before vendor status when artifacts are present", async () => {
     const data = createTestStoreData();
     const now = new Date().toISOString();
